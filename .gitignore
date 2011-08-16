@@ -1,0 +1,120 @@
+# Mac specific files
+.DS_Store?
+Icon?
+
+# Mac Thumbnails
+._*
+
+# Mac Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+# Windows image file caches
+Thumbs.db 
+
+# Windows Folder config file
+Desktop.ini
+
+# Compiled files
+*.o
+*.a
+
+# Compressed Containers
+*.7z
+*.jar
+*.rar
+*.zip
+*.gz
+*.bzip
+*.xz
+*.lzma
+
+# Packed only Containers
+*.iso
+*.tar
+
+# Package Management Containers
+*.dmg
+*.xpi
+*.gem
+*.egg
+*.deb
+*.rpm
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+
+# Python
+*.pyc
+
+# Java
+*.class
+
+# Xcode
+build/*
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+*.xcworkspace
+!default.xcworkspace
+xcuserdata
+profile
+*.moved-aside
+
+# Perforce
+.p4config.txt
+.p4config
+
+# CVS
+/CVS/*
+*/CVS/*
+.cvsignore
+*/.cvsignore
+
+# Eclipse
+*.pydevproject
+.project
+.metadata
+bin/**
+tmp/**
+tmp/**/*
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.classpath
+.settings/
+.loadpath
+
+# Eclipse CDT-specific
+.cproject
+
+# emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+.elc
+auto-save-list
+tramp
+
+# VIM
+.*.sw[a-z]
+*.un~
+Session.vim
+
+# Mercurial
+/.hg/*
+*/.hg/*
+.hgignore
+
+# SVN
+.svn/
