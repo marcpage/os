@@ -1,0 +1,15 @@
+x -> y -> x
+
+insert z after x
+
+do	{
+	z->next= x->next
+} while(!compare and swap x->next, z, &x->next);
+
+
+x -> z -> y -> x
+
+remove x
+
+while(!compare and swap y->next, x->next, &y->next) {
+}
