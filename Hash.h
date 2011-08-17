@@ -3,6 +3,8 @@
 
 /** @file Hash.h
 	@todo evaluate the ability to do partial hashes so not all the data needs to be in memory.
+	@todo document
+	@todo trace_bool in for loops
 */
 
 #include <string>
@@ -121,7 +123,7 @@ namespace hash {
 		@todo TEST!
 	*/
 	template<class Hasher> inline SpecificHash<Hasher>::SpecificHash(const SpecificHash &other)
-		:_hash() {trace_scope
+		:Hash(other), _hash() {trace_scope
 		memcpy(_hash, other._hash, sizeof(_hash));
 	}
 	template<class Hasher> inline SpecificHash<Hasher>::~SpecificHash() {trace_scope

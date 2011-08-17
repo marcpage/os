@@ -1,9 +1,17 @@
-#include "../tracer.h"
-#include "../TypeSafeEnum.h"
+#include "TypeSafeEnum.h"
 
 // g++ -o /tmp/test TypeSafeEnum_test.cpp -I.. -g -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -Wno-non-template-friend
 // /tmp/test | grep TypeSafeEnum.h | sort | uniq | wc -l
 // max = 133
+
+/**
+	@todo set the return value for main
+	@todo update dotest and main in all tests so far
+*/
+#define dotest(condition) \
+	if(!(condition)) { \
+		fprintf(stderr, "FAIL(%s:%d): %s\n",__FILE__, __LINE__, #condition); \
+	}
 
 enum Bits {
 	Bit0,
@@ -21,161 +29,68 @@ typedef TypeSafeEnum<Bits, Bit8> SafeBits;
 
 int main(int,const char*const[]) {
 	SafeBits	bits1, bits2(Bit2);
-	int			returnValue= 0;
-	
+
 	bits1= bits2;
 	bits1.set(Bit0).set(Bit1).set(Bit3).set(Bit6);
 	const int	expected= 1 * 1 | 1 * 2 | 1 * 4 | 1 * 8 | 0 * 16 | 0 * 32 | 1 * 64 | 0 * 128 | 0 * 256;
-	if(bits1.get<int>() != expected) {
-		printf("FAIL: %s:%d =%x vs %x\n", __FILE__, __LINE__, bits1.get<int>(), expected);
-	}
-	if(bits1.empty()) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(bits2.empty()) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(!(SafeBits().set(Bit5)^=Bit5).empty()) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if( (bits1 | bits2) != bits1 ) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if( (bits1 ^ bits2) == bits1 ) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if( ((bits1 ^ bits2) & bits2) != SafeBits() ) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if( (SafeBits().set(Bit2).set(Bit3)&=Bit2) != bits2 ) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if( (SafeBits()|=Bit2) != bits2 ) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if( ((SafeBits().set(Bit3)^=Bit2)^=Bit3) != bits2 ) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if( ~bits1 != SafeBits().set(Bit4).set(Bit5).set(Bit7).set(Bit8) ) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(bits1 != SafeBits().set(expected)) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(bits2 != Bit2) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(bits1 < bits2) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(!(bits1 > bits2)) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(bits1 <= bits2) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(!(bits1 >= bits2)) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(bits1 == bits2) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(!(bits1 != bits2)) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(Bit2 != bits2) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(!(bits2 == Bit2)) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(!(Bit2 == bits2)) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(bits2 < Bit2) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(bits2 < Bit1) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(!(bits2 < Bit3)) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(Bit2 > bits2) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(Bit1 > bits2) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(!(Bit3 > bits2)) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(Bit2 < bits2) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(!(Bit2 <= bits2)) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(!(Bit1 < bits2)) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(Bit3 < bits2) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(Bit3 <= bits2) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(!(bits2 >= Bit2)) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(!(bits2 >= Bit1)) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(bits2 >= Bit3) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(!(Bit2 >= bits2)) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(Bit1 >= bits2) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(!(Bit3 >= bits2)) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if( (bits2&bits1) != bits2 ) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if( (bits1&Bit2) != bits2 ) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if( (Bit2&bits1) != bits2 ) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if( (SafeBits().set(Bit3)|Bit5) != SafeBits().set(Bit5).set(Bit3) ) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if( (Bit5 | SafeBits().set(Bit3)) != SafeBits().set(Bit5).set(Bit3) ) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if( (Bit5 ^ SafeBits().set(Bit3)) != SafeBits().set(Bit5).set(Bit3) ) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if( (Bit5 ^ SafeBits().set(Bit3).set(Bit5)) != Bit3 ) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
-	if(256 + 255 > bits1.max<int>()) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
-	}
+	dotest(bits1.get<int>() == expected);
+	dotest(!bits1.empty());
+	dotest(!bits2.empty());
+	dotest((SafeBits().set(Bit5)^=Bit5).empty());
+	dotest( (bits1 | bits2) == bits1 );
+	dotest( (bits1 ^ bits2) != bits1 );
+	dotest( ((bits1 ^ bits2) & bits2) == SafeBits() );
+	dotest( (SafeBits().set(Bit2).set(Bit3)&=Bit2) == bits2 );
+	dotest( (SafeBits()|=Bit2) == bits2 );
+	dotest( ((SafeBits().set(Bit3)^=Bit2)^=Bit3) == bits2 );
+	dotest( ~bits1 == SafeBits().set(Bit4).set(Bit5).set(Bit7).set(Bit8) );
+	dotest(bits1 == SafeBits().set(expected));
+	dotest(bits2 == Bit2);
+	dotest(!(bits1 < bits2));
+	dotest(bits1 > bits2);
+	dotest(!(bits1 <= bits2));
+	dotest(bits1 >= bits2);
+	dotest(bits1 != bits2);
+	dotest(bits1 != bits2);
+	dotest(Bit2 == bits2);
+	dotest(!(bits2 != Bit2));
+	dotest(!(Bit2 != bits2));
+	dotest(!(bits2 < Bit2));
+	dotest(!(bits2 < Bit1));
+	dotest(bits2 < Bit3);
+	dotest(!(Bit2 > bits2));
+	dotest(!(Bit1 > bits2));
+	dotest(Bit3 > bits2);
+	dotest(!(Bit2 < bits2));
+	dotest(Bit2 <= bits2);
+	dotest(Bit1 < bits2);
+	dotest(!(Bit3 < bits2));
+	dotest(!(Bit3 <= bits2));
+	dotest(bits2 >= Bit2);
+	dotest(bits2 >= Bit1);
+	dotest(!(bits2 >= Bit3));
+	dotest(Bit2 >= bits2);
+	dotest(!(Bit1 >= bits2));
+	dotest(Bit3 >= bits2);
+	dotest( (bits2&bits1) == bits2 );
+	dotest( (bits1&Bit2) == bits2 );
+	dotest( (Bit2&bits1) == bits2 );
+	dotest( (SafeBits().set(Bit3)|Bit5) == SafeBits().set(Bit5).set(Bit3) );
+	dotest( (Bit5 | SafeBits().set(Bit3)) == SafeBits().set(Bit5).set(Bit3) );
+	dotest( (Bit5 ^ SafeBits().set(Bit3)) == SafeBits().set(Bit5).set(Bit3) );
+	dotest( (Bit5 ^ SafeBits().set(Bit3).set(Bit5)) == Bit3 );
+	dotest(256 + 255 <= bits1.max<int>());
 	try	{
 		bits1.set(256 + 255);
 	} catch(const std::exception &exception) {
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
+		const bool exceptionNotThrown= false;
+		dotest(exceptionNotThrown);
 	}
 	try	{
 		bits1.set(256 + 255 + 1);
-		printf("FAIL: %s:%d\n", __FILE__, __LINE__);
+		const bool exceptionThrown= false;
+		dotest(exceptionThrown);
 	} catch(const std::exception &exception) {
 	}
-	return returnValue;
+	return 0;
 }

@@ -1,6 +1,9 @@
 #ifndef __ReferencedString_h__
 #define __ReferencedString_h__
 
+/** @file ReferencedString.h
+	@todo trace_bool in for loops
+*/
 #include <string>
 
 #ifndef trace_scope

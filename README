@@ -8,10 +8,14 @@ doxygen os.dox
 
 GCC_WARNINGS="-Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings"
 
-g++ -o /tmp/test tests/ReferencedString_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $WARNINGS
+g++ -o /tmp/test tests/ReferencedString_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $GCC_WARNINGS
 printf "ReferencedString: expecting >= 251\n"
 /tmp/test | sort | grep ReferencedString\\.h | uniq | wc -l
 
-g++ -o /tmp/test tests/Hash_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $WARNINGS
-printf "Hash: expecting >= 44\n"
+g++ -o /tmp/test tests/Hash_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $GCC_WARNINGS
+printf "Hash: expecting >= 47\n"
 /tmp/test | sort | grep Hash\\.h | uniq | wc -l
+
+g++ -o /tmp/test tests/TypeSafeEnum_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $GCC_WARNINGS -Wno-non-template-friend
+printf "TypeSafeEnum: expecting >= 169\n"
+/tmp/test | sort | grep TypeSafeEnum\\.h | uniq | wc -l
