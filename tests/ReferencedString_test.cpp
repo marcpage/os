@@ -1,9 +1,7 @@
 #include <stdio.h>
-#include "../ReferencedString.h"
+#include "ReferencedString.h"
 
 // $ g++ -o /tmp/test tests/ReferencedString_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings
-// $ /tmp/test | sort | grep ReferencedString.h | uniq | wc -l
-// 251
 
 #define dotest(condition) \
 	if(!(condition)) { \

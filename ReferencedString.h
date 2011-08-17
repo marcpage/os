@@ -4,10 +4,10 @@
 #include <string>
 
 #ifndef trace_scope
-	#define trace_scope
+	#define trace_scope ///< in case Trace.h is not included
 #endif
 #ifndef trace_bool
-	#define trace_bool(x) x
+	#define trace_bool(x) x ///< in case Trace.h is not included
 #endif
 
 /** String with similar interface as std::string, but doesn't have it's own storage.

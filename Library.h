@@ -238,9 +238,10 @@ namespace sys {
 		return reinterpret_cast<Function>(ptr);
 	}
 	/** Loads a bundle with the given filename from the given directory.
-		@param base	The directory to load from. <b>NOTE</b>: CFRelease <b>will</b> be called on this.
+		@param base	The directory to load from.
+			@note CFRelease <b>will</b> be called on <code>base</code>.
 		@param name	The name of the bundle directory to potentially load.
-						 <b>NOTE</b>: CFRelease <b>will not</b> be called on this.
+			@note CFRelease <b>will not</b> be called on <code>name</code>.
 		@return		true if we were able to load the bundle successfully.
 	*/
 #if __use_bundles__
@@ -262,7 +263,7 @@ namespace sys {
 	/** Searches for a bundle with the given name in the standard locations.
 			Searches in the application bundle locations and user/local/system locations for bundles.
 			See constants at the beginning of the function to see all the places it searches.
-			<b>NOTE</b>: Does nothing unless __use_bundles__
+		@note Does nothing unless __use_bundles__
 		@param name	The name of the bundle to load (including extension).
 		@return		true if we found a bundle by that name
 	*/

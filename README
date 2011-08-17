@@ -6,8 +6,12 @@
 mkdir -p documentation
 doxygen os.dox
 
-g++ -o /tmp/test tests/ReferencedString_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings
-echo ReferencedString: expecting 251
-/tmp/test | sort | grep ReferencedString.h | uniq | wc -l
-# 251
+GCC_WARNINGS="-Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings"
 
+g++ -o /tmp/test tests/ReferencedString_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $WARNINGS
+printf "ReferencedString: expecting >= 251\n"
+/tmp/test | sort | grep ReferencedString\\.h | uniq | wc -l
+
+g++ -o /tmp/test tests/Hash_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $WARNINGS
+printf "Hash: expecting >= 44\n"
+/tmp/test | sort | grep Hash\\.h | uniq | wc -l

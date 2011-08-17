@@ -3,6 +3,7 @@
 
 /** @file Exception.h
 	@todo add __func__ or __FUNCTION__, whichever is more appropriate and only if available
+	@todo write a test file for Exception
 */
 #include <string>
 #include <exception>
@@ -89,12 +90,25 @@ namespace msg {
 		int	_errno; ///< the errono code
 	};
 
+	/**
+		@param message	The reason for the exception
+		@param file		Set to __FILE__
+		@param line		Set to __LINE__
+	*/
 	inline Exception::Exception (const char *message, const char *file, int line) throw()
 		:_message(_init(message, file, line)) {
 	}
+	/**
+		@param message	The reason for the exception
+		@param file		Set to __FILE__
+		@param line		Set to __LINE__
+	*/
 	inline Exception::Exception(const std::string &message, const char *file, int line) throw()
 		:_message(_init(message, file, line)) {
 	}
+	/**
+		@param other	The exception to copy.
+	*/
 	inline Exception::Exception(const Exception &other)
 		:exception(), _message(other._message) {
 		if(NULL != _message) {
@@ -104,6 +118,9 @@ namespace msg {
 			}
 		}
 	}
+	/**
+		@param other	The exception to copy.
+	*/
 	inline Exception &Exception::operator=(const Exception &other) {
 		if(this != &other) {
 			delete _message;
@@ -116,10 +133,15 @@ namespace msg {
 		}
 		return *this;
 	}
+	/** Deletes _message.
+	*/
 	inline Exception::~Exception() throw() {
 		delete _message;
 		_message= NULL;
 	}
+	/**
+		@return	The reason why the exception was thrown.
+	*/
 	inline const char* Exception::what() const throw() {
 		if(NULL != _message) {
 			return _message->c_str();
@@ -127,6 +149,13 @@ namespace msg {
 			return "Unable to allocate message string at exception throw!";
 		}
 	}
+	/** Allows for the same code to be used to initialize, regardless of the string type.
+		@tparam S		The string type, either const char * or std::string
+		@param message	The reason for the exception
+		@param file		Set to __FILE__
+		@param line		Set to __LINE__
+		@return			A std::string of the complete message.
+	*/
 	template<class S>
 	inline std::string *Exception::_init(S message, const char *file, int line) {
 		std::string	*messagePtr= NULL;
@@ -145,15 +174,32 @@ namespace msg {
 		}
 		return messagePtr;
 	}
+	/** Used if you already have the errno code for some reason, errno will not be called.
+		Also calls strerror to get the system string for the errono code.
+		@param errnoCode	from calling errno
+		@param message		The reason for the exception
+		@param file			Set to __FILE__
+		@param line			Set to __LINE__
+	*/
 	inline ErrNoException::ErrNoException(int errnoCode, const char *message, const char *file, int line) throw()
-		:Exception(std::string(message).append(": ").append(strerror(errnoCode)), file, line), _errno(errno) {
+		:Exception(std::string(message).append(": ").append(strerror(errnoCode)), file, line), _errno(errnoCode) {
 	}
+	/** Used if you do not have the errno code, errno will be called.
+		Also calls strerror to get the system string for the errono code.
+		@param message		The reason for the exception
+		@param file			Set to __FILE__
+		@param line			Set to __LINE__
+	*/
 	inline ErrNoException::ErrNoException(const char *message, const char *file, int line) throw()
 		:Exception(std::string(message).append(strerror(errno)), file, line), _errno(errno) {
 	}
+	/** Cleans up _errno.
+	*/
 	inline ErrNoException::~ErrNoException() throw() {
 		_errno= 0;
 	}
+	/** Just call Exception's what().
+	*/
 	inline const char* ErrNoException::what() const throw() {
 		return Exception::what();
 	}
