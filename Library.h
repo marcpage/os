@@ -1,6 +1,13 @@
 #ifndef __Library_h__
 #define __Library_h__
 
+/** @file Library.h
+	Dynamically Loaded Shared Library API.
+	Supports dlopen, CFBundle and HMODULE on the appropriate platforms.
+	@todo Evaluate Windows exception throwing Macros and see if they compile.
+			You can even set it to #if !defined(__FUNCTION__) to see if that works.
+	@todo See if __FUNCTION__ or __func__ is the appropriate macro
+*/
 
 // --- C++ Headers ---
 
@@ -12,28 +19,28 @@
 #if defined(__APPLE__)	// http://predef.sourceforge.net/preos.html#sec20
 	#include <CoreFoundation/CoreFoundation.h>
 	#include <Carbon/Carbon.h>
-	#define __use_bundles__	1
-	#define __use_something__
+	#define __use_bundles__	1 ///< CFBundle API supported
+	#define __use_something__ ///< We've figured out a library API
 #endif
 #if defined(__APPLE__) || defined(linux) // http://predef.sourceforge.net/preos.html#sec18
 	#include <dlfcn.h>
-	#define __use_dlopen__	1
-	#define __use_something__
-	#define __std_lib_prefix__	"lib"
+	#define __use_dlopen__	1				///< dlopen API supported
+	#define __use_something__				///< We've figured out a library API
+	#define __std_lib_prefix__	"lib"		///< dlopen libraries usually start with lib
 	#if  defined(__APPLE__)
-		#define __std_lib_suffix__	".dylib"
+		#define __std_lib_suffix__	".dylib" ///< dlopen libraries on Mac are usually dylib
 	#else
-		#define __std_lib_suffix__	".so"
+		#define __std_lib_suffix__	".so"	///< dlopen libraries on linux are .so
 	#endif
-	#define __path_separator__	'/'
+	#define __path_separator__	'/'			///< UNIX platforms use the / separator
 #endif
 #if defined(_WIN32) // http://predef.sourceforge.net/preos.html#sec25
 	#include <windows.h>
-	#define __use_module__	1
-	#define __use_something__
-	#define __std_lib_prefix__	NULL
-	#define __std_lib_suffix__	".dll"
-	#define __path_separator__	'\\'
+	#define __use_module__	1			///< HMODULE API supported
+	#define __use_something__			///< We've figured out a library API
+	#define __std_lib_prefix__	NULL	///< No prefix for libraries on Windows
+	#define __std_lib_suffix__	".dll"	///< dll is the standard extension
+	#define __path_separator__	'\\'	///< \ is the DOS path separator
 #endif
 #if !defined(__use_something__)
 	#error Need to port to this platform
@@ -200,7 +207,7 @@ namespace sys {
 		#endif
 	}
 	/** Gets a function pointer from the library.
-		@param Function		The typedef for the function expected.
+		@tparam Function	The typedef for the function expected.
 		@param name			The name of the function to lookup.
 		@throw Exception	If the function does not exist, or any other problems.
 	*/
@@ -236,6 +243,7 @@ namespace sys {
 						 <b>NOTE</b>: CFRelease <b>will not</b> be called on this.
 		@return		true if we were able to load the bundle successfully.
 	*/
+#if __use_bundles__
 	inline bool Library::_load(CFURLRef base, CFStringRef name) {
 		CFURLRef	itemPath= (NULL != base) && (NULL != name)
 						? CFURLCreateCopyAppendingPathComponent(kCFAllocatorDefault, base, name, true) : NULL;
@@ -250,6 +258,7 @@ namespace sys {
 		}
 		return NULL != _bundle;
 	}
+#endif // __use_bundles__
 	/** Searches for a bundle with the given name in the standard locations.
 			Searches in the application bundle locations and user/local/system locations for bundles.
 			See constants at the beginning of the function to see all the places it searches.

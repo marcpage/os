@@ -5,7 +5,7 @@
 #include "ExecutionAtomic.h"
 
 namespace exec {
-	
+
 	class ReferenceCounted {
 		public:
 			enum RetainAction {
@@ -53,7 +53,7 @@ namespace exec {
 	inline void ReferenceCounted::release() {
 		//printf("-%08x:%d\n", this, references());
 		int32_t	refs= _references.valueAfterDecrement();
-		
+
 		if(refs <= 0) {
 			free();
 		}
@@ -71,7 +71,7 @@ namespace exec {
 		}
 	}
 	template<typename ReferenceCountedType>
-	ReferenceCounted::Ptr<ReferenceCountedType>::Ptr(const ReferenceCounted::Ptr<ReferenceCountedType>::Ptr &other)
+	ReferenceCounted::Ptr<ReferenceCountedType>::Ptr(const Ptr &other)
 		:_ptr(other._ptr) {
 		_retain();
 	}

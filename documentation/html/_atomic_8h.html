@@ -104,6 +104,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="contents">
 <div class="textblock"><code>#include &lt;stdint.h&gt;</code><br/>
 <code>#include &quot;ExecutionMutex.h&quot;</code><br/>
+<code>#include &lt;libkern/OSAtomic.h&gt;</code><br/>
 </div>
 <p><a href="_atomic_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -116,7 +117,7 @@ Namespaces</h2></td></tr>
 <tr><td colspan="2"><h2><a name="define-members"></a>
 Defines</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_atomic_8h.html#aae7d1e991cc208bb5b6cda5f160e57b3">MACOSX</a>&#160;&#160;&#160;(__APPLE_CC__ || __APPLE__)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_atomic_8h.html#a4ea3839130bdd026e599a34eed030746">ExecutionAtomicInitialize</a>&#160;&#160;&#160;<a class="el" href="classexec_1_1_mutex.html">exec::Mutex</a> *exec::AtomicNumber::_mutex= NULL</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_atomic_8h.html#a4ea3839130bdd026e599a34eed030746">ExecutionAtomicInitialize</a></td></tr>
 </table>
 <hr/><h2>Define Documentation</h2>
 <a class="anchor" id="a4ea3839130bdd026e599a34eed030746"></a><!-- doxytag: member="Atomic.h::ExecutionAtomicInitialize" ref="a4ea3839130bdd026e599a34eed030746" args="" -->
@@ -124,13 +125,13 @@ Defines</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define <a class="el" href="_execution_atomic__test_8cpp.html#abe16a1f2a4be40c81fd3bf5e26d21d63">ExecutionAtomicInitialize</a>&#160;&#160;&#160;<a class="el" href="classexec_1_1_mutex.html">exec::Mutex</a> *exec::AtomicNumber::_mutex= NULL</td>
+          <td class="memname">#define <a class="el" href="_execution_atomic__test_8cpp.html#abe16a1f2a4be40c81fd3bf5e26d21d63">ExecutionAtomicInitialize</a></td>
         </tr>
       </table>
 </div>
 <div class="memdoc">
 
-<p>Definition at line <a class="el" href="_atomic_8h_source.html#l00013">13</a> of file <a class="el" href="_atomic_8h_source.html">Atomic.h</a>.</p>
+<p>Definition at line <a class="el" href="_atomic_8h_source.html#l00011">11</a> of file <a class="el" href="_atomic_8h_source.html">Atomic.h</a>.</p>
 
 </div>
 </div>
@@ -169,7 +170,7 @@ Defines</h2></td></tr>
 </div>
 
 
-    <li class="footer">Generated on Wed Aug 17 2011 10:25:19 for OS Abstraction by
+    <li class="footer">Generated on Wed Aug 17 2011 10:47:42 for OS Abstraction by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.5 </li>
    </ul>

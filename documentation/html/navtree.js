@@ -10,10 +10,10 @@ var NAVTREE =
       [ "BitOutOfRangeException", "class_bit_out_of_range_exception.html", null ],
       [ "Sqlite3::DB", "class_sqlite3_1_1_d_b.html", null ],
       [ "msg::ErrNoException", "classmsg_1_1_err_no_exception.html", null ],
-      [ "sys::Library::Exception", "classsys_1_1_library_1_1_exception.html", null ],
       [ "msg::Exception", "classmsg_1_1_exception.html", null ],
-      [ "Sqlite3::Exception", "class_sqlite3_1_1_exception.html", null ],
       [ "z::Exception", "classz_1_1_exception.html", null ],
+      [ "sys::Library::Exception", "classsys_1_1_library_1_1_exception.html", null ],
+      [ "Sqlite3::Exception", "class_sqlite3_1_1_exception.html", null ],
       [ "io::File", "classio_1_1_file.html", null ],
       [ "Hash", "class_hash.html", null ],
       [ "sys::Library", "classsys_1_1_library.html", null ],
@@ -28,6 +28,7 @@ var NAVTREE =
       [ "exec::ReferenceCounted", "classexec_1_1_reference_counted.html", null ],
       [ "ReferencedString", "class_referenced_string.html", null ],
       [ "exec::RWLock", "classexec_1_1_r_w_lock.html", null ],
+      [ "SHA256Hasher", "struct_s_h_a256_hasher.html", null ],
       [ "exec::Signal", "classexec_1_1_signal.html", null ],
       [ "SpecificHash", "class_specific_hash.html", null ],
       [ "io::Stat", "classio_1_1_stat.html", null ],
@@ -43,11 +44,11 @@ var NAVTREE =
       [ "exec::AtomicNumber", "classexec_1_1_atomic_number.html", null ],
       [ "BitOutOfRangeException", "class_bit_out_of_range_exception.html", null ],
       [ "Sqlite3::DB", "class_sqlite3_1_1_d_b.html", null ],
-      [ "sys::Library::Exception", "classsys_1_1_library_1_1_exception.html", null ],
       [ "msg::Exception", "classmsg_1_1_exception.html", [
         [ "msg::ErrNoException", "classmsg_1_1_err_no_exception.html", null ],
         [ "z::Exception", "classz_1_1_exception.html", null ]
       ] ],
+      [ "sys::Library::Exception", "classsys_1_1_library_1_1_exception.html", null ],
       [ "Sqlite3::Exception", "class_sqlite3_1_1_exception.html", null ],
       [ "io::File", "classio_1_1_file.html", null ],
       [ "Hash", "class_hash.html", [
@@ -65,6 +66,7 @@ var NAVTREE =
       [ "exec::ReferenceCounted", "classexec_1_1_reference_counted.html", null ],
       [ "ReferencedString", "class_referenced_string.html", null ],
       [ "exec::RWLock", "classexec_1_1_r_w_lock.html", null ],
+      [ "SHA256Hasher", "struct_s_h_a256_hasher.html", null ],
       [ "exec::Signal", "classexec_1_1_signal.html", null ],
       [ "io::Stat", "classio_1_1_stat.html", null ],
       [ "exec::ThreadId", "classexec_1_1_thread_id.html", [

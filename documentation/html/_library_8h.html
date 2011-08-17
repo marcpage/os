@@ -104,6 +104,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="contents">
 <div class="textblock"><code>#include &lt;exception&gt;</code><br/>
 <code>#include &lt;string&gt;</code><br/>
+<code>#include &lt;CoreFoundation/CoreFoundation.h&gt;</code><br/>
+<code>#include &lt;Carbon/Carbon.h&gt;</code><br/>
+<code>#include &lt;dlfcn.h&gt;</code><br/>
 </div>
 <p><a href="_library_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -116,12 +119,152 @@ Namespaces</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesys.html">sys</a></td></tr>
 <tr><td colspan="2"><h2><a name="define-members"></a>
 Defines</h2></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_library_8h.html#ae57d0119fb96f36a7e5af0b3e508d070">__use_bundles__</a>&#160;&#160;&#160;1</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">CFBundle API supported.  <a href="#ae57d0119fb96f36a7e5af0b3e508d070"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_library_8h.html#a4a59038eb1c7b4a787bc56cfb0f421c7">__use_something__</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">We've figured out a library API.  <a href="#a4a59038eb1c7b4a787bc56cfb0f421c7"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_library_8h.html#a193d6e2fb7a4efa695e4715ee562ab3b">__use_dlopen__</a>&#160;&#160;&#160;1</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">dlopen API supported  <a href="#a193d6e2fb7a4efa695e4715ee562ab3b"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_library_8h.html#a4a59038eb1c7b4a787bc56cfb0f421c7">__use_something__</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">We've figured out a library API.  <a href="#a4a59038eb1c7b4a787bc56cfb0f421c7"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_library_8h.html#a0e0700c66692c587ff0a671292c549b5">__std_lib_prefix__</a>&#160;&#160;&#160;&quot;lib&quot;</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">dlopen libraries usually start with lib  <a href="#a0e0700c66692c587ff0a671292c549b5"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_library_8h.html#a238f13330bf08ab73af4cc61dfa774e2">__std_lib_suffix__</a>&#160;&#160;&#160;&quot;.dylib&quot;</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">dlopen libraries on Mac are usually dylib  <a href="#a238f13330bf08ab73af4cc61dfa774e2"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_library_8h.html#aa2ce86eb8b2837441425bb3b92a6ce00">__path_separator__</a>&#160;&#160;&#160;'/'</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">UNIX platforms use the / separator.  <a href="#aa2ce86eb8b2837441425bb3b92a6ce00"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_library_8h.html#a1a7bf28253264f675089f5af208d4e8c">sysLibraryAssert</a>(condition, message)&#160;&#160;&#160;if(!(condition)) {throw <a class="el" href="classsys_1_1_library_1_1_exception.html">sys::Library::Exception</a>(std::string(&quot;(&quot;#condition&quot;) failed:&quot;)+(message), __FILE__, __LINE__);} else</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Throw an exception if condition isn't met.  <a href="#a1a7bf28253264f675089f5af208d4e8c"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_library_8h.html#a56277fc0c5b0bb785c16d2f068995b04">sysLibraryAssertNotNULL</a>(variable, message)&#160;&#160;&#160;if(NULL==(variable)) {throw <a class="el" href="classsys_1_1_library_1_1_exception.html">sys::Library::Exception</a>(std::string(#variable &quot; was NULL:&quot;)+message, __FILE__, __LINE__);} else</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Throw an exception if the expression is NULL.  <a href="#a56277fc0c5b0bb785c16d2f068995b04"></a><br/></td></tr>
 </table>
-<hr/><h2>Define Documentation</h2>
+<hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
+<div class="textblock"><p>Dynamically Loaded Shared Library API. Supports dlopen, CFBundle and HMODULE on the appropriate platforms. </p>
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000001">Todo:</a></b></dt><dd><p class="startdd">Evaluate Windows exception throwing Macros and see if they compile. You can even set it to <a class="el" href="_tracer_8h.html#af16f3a6f5b1d40aba923a9f581861fb6" title="Do a trace on all &#39;if&#39; statements.">if</a> !defined(__FUNCTION__) to see if that works. </p>
+<p class="enddd">See if __FUNCTION__ or __func__ is the appropriate macro </p>
+</dd></dl>
+
+<p>Definition in file <a class="el" href="_library_8h_source.html">Library.h</a>.</p>
+</div><hr/><h2>Define Documentation</h2>
+<a class="anchor" id="aa2ce86eb8b2837441425bb3b92a6ce00"></a><!-- doxytag: member="Library.h::__path_separator__" ref="aa2ce86eb8b2837441425bb3b92a6ce00" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define __path_separator__&#160;&#160;&#160;'/'</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>UNIX platforms use the / separator. </p>
+
+<p>Definition at line <a class="el" href="_library_8h_source.html#l00035">35</a> of file <a class="el" href="_library_8h_source.html">Library.h</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a0e0700c66692c587ff0a671292c549b5"></a><!-- doxytag: member="Library.h::__std_lib_prefix__" ref="a0e0700c66692c587ff0a671292c549b5" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define __std_lib_prefix__&#160;&#160;&#160;&quot;lib&quot;</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>dlopen libraries usually start with lib </p>
+
+<p>Definition at line <a class="el" href="_library_8h_source.html#l00029">29</a> of file <a class="el" href="_library_8h_source.html">Library.h</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a238f13330bf08ab73af4cc61dfa774e2"></a><!-- doxytag: member="Library.h::__std_lib_suffix__" ref="a238f13330bf08ab73af4cc61dfa774e2" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define __std_lib_suffix__&#160;&#160;&#160;&quot;.dylib&quot;</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>dlopen libraries on Mac are usually dylib </p>
+
+<p>Definition at line <a class="el" href="_library_8h_source.html#l00031">31</a> of file <a class="el" href="_library_8h_source.html">Library.h</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="ae57d0119fb96f36a7e5af0b3e508d070"></a><!-- doxytag: member="Library.h::__use_bundles__" ref="ae57d0119fb96f36a7e5af0b3e508d070" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define __use_bundles__&#160;&#160;&#160;1</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>CFBundle API supported. </p>
+
+<p>Definition at line <a class="el" href="_library_8h_source.html#l00022">22</a> of file <a class="el" href="_library_8h_source.html">Library.h</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a193d6e2fb7a4efa695e4715ee562ab3b"></a><!-- doxytag: member="Library.h::__use_dlopen__" ref="a193d6e2fb7a4efa695e4715ee562ab3b" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define __use_dlopen__&#160;&#160;&#160;1</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>dlopen API supported </p>
+
+<p>Definition at line <a class="el" href="_library_8h_source.html#l00027">27</a> of file <a class="el" href="_library_8h_source.html">Library.h</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a4a59038eb1c7b4a787bc56cfb0f421c7"></a><!-- doxytag: member="Library.h::__use_something__" ref="a4a59038eb1c7b4a787bc56cfb0f421c7" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define __use_something__</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>We've figured out a library API. </p>
+
+<p>Definition at line <a class="el" href="_library_8h_source.html#l00028">28</a> of file <a class="el" href="_library_8h_source.html">Library.h</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a4a59038eb1c7b4a787bc56cfb0f421c7"></a><!-- doxytag: member="Library.h::__use_something__" ref="a4a59038eb1c7b4a787bc56cfb0f421c7" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define __use_something__</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>We've figured out a library API. </p>
+
+<p>Definition at line <a class="el" href="_library_8h_source.html#l00028">28</a> of file <a class="el" href="_library_8h_source.html">Library.h</a>.</p>
+
+</div>
+</div>
 <a class="anchor" id="a1a7bf28253264f675089f5af208d4e8c"></a><!-- doxytag: member="Library.h::sysLibraryAssert" ref="a1a7bf28253264f675089f5af208d4e8c" args="(condition, message)" -->
 <div class="memitem">
 <div class="memproto">
@@ -149,7 +292,7 @@ Defines</h2></td></tr>
 
 <p>Throw an exception if condition isn't met. </p>
 
-<p>Definition at line <a class="el" href="_library_8h_source.html#l00115">115</a> of file <a class="el" href="_library_8h_source.html">Library.h</a>.</p>
+<p>Definition at line <a class="el" href="_library_8h_source.html#l00122">122</a> of file <a class="el" href="_library_8h_source.html">Library.h</a>.</p>
 
 </div>
 </div>
@@ -180,7 +323,7 @@ Defines</h2></td></tr>
 
 <p>Throw an exception if the expression is NULL. </p>
 
-<p>Definition at line <a class="el" href="_library_8h_source.html#l00117">117</a> of file <a class="el" href="_library_8h_source.html">Library.h</a>.</p>
+<p>Definition at line <a class="el" href="_library_8h_source.html#l00124">124</a> of file <a class="el" href="_library_8h_source.html">Library.h</a>.</p>
 
 </div>
 </div>
@@ -204,7 +347,7 @@ Defines</h2></td></tr>
 </div>
 
 
-    <li class="footer">Generated on Wed Aug 17 2011 10:25:19 for OS Abstraction by
+    <li class="footer">Generated on Wed Aug 17 2011 10:47:42 for OS Abstraction by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.5 </li>
    </ul>
