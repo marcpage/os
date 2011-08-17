@@ -104,24 +104,50 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00004"></a>00004 <span class="preprocessor">#include &lt;stdint.h&gt;</span>
 <a name="l00005"></a>00005 <span class="preprocessor">#include &lt;stdio.h&gt;</span>
 <a name="l00006"></a>00006 
-<a name="l00007"></a>00007 <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Type&gt;
-<a name="l00008"></a><a class="code" href="tracer_8h.html#a751e71d201614095ade0ca5944bfdca6">00008</a> <span class="keyword">const</span> Type &amp;<a class="code" href="tracer_8h.html#a751e71d201614095ade0ca5944bfdca6">passThroughLog</a>(<span class="keyword">const</span> Type &amp;value, <span class="keyword">const</span> <span class="keywordtype">char</span> *expression, <span class="keyword">const</span> <span class="keywordtype">char</span> *file, <span class="keyword">const</span> <span class="keywordtype">char</span> *func, <span class="keywordtype">int</span> line) {
-<a name="l00009"></a>00009         <span class="keywordtype">double</span>  doubleValue;
-<a name="l00010"></a>00010         int64_t integerValue= value;
-<a name="l00011"></a>00011 
-<a name="l00012"></a>00012         doubleValue= integerValue;
-<a name="l00013"></a>00013         printf(<span class="stringliteral">&quot;%s:%d:%s()\t%1.0f (%s)\n&quot;</span>, file, line, func, doubleValue, expression);
-<a name="l00014"></a>00014         <span class="keywordflow">return</span> value;
-<a name="l00015"></a>00015 }
-<a name="l00016"></a><a class="code" href="tracer_8h.html#af5691b2a3213b2fe6bc3ed08cad01209">00016</a> <span class="keywordtype">bool</span> <a class="code" href="tracer_8h.html#af5691b2a3213b2fe6bc3ed08cad01209">passThroughBoolLog</a>(<span class="keywordtype">bool</span> value, <span class="keyword">const</span> <span class="keywordtype">char</span> *expression, <span class="keyword">const</span> <span class="keywordtype">char</span> *file, <span class="keyword">const</span> <span class="keywordtype">char</span> *func, <span class="keywordtype">int</span> line) {
-<a name="l00017"></a>00017         <span class="keywordflow">return</span> <a class="code" href="tracer_8h.html#a751e71d201614095ade0ca5944bfdca6">passThroughLog</a>(value, expression, file, func, line);
-<a name="l00018"></a>00018 }
-<a name="l00019"></a>00019 
-<a name="l00020"></a><a class="code" href="tracer_8h.html#af16f3a6f5b1d40aba923a9f581861fb6">00020</a> <span class="preprocessor">#define if(value) if(passThroughBoolLog((value), #value, __FILE__, __func__, __LINE__))</span>
-<a name="l00021"></a><a class="code" href="tracer_8h.html#aab0e857101dc4e93437de7b8e0ea9075">00021</a> <span class="preprocessor"></span><span class="preprocessor">#define while(value) while(passThroughBoolLog((value), #value, __FILE__, __func__, __LINE__))</span>
-<a name="l00022"></a><a class="code" href="tracer_8h.html#ac4018da0288b0c5088cf382cc5bdfabc">00022</a> <span class="preprocessor"></span><span class="preprocessor">#define switch(value) switch(passThroughLog((value), #value, __FILE__, __func__, __LINE__))</span>
-<a name="l00023"></a>00023 <span class="preprocessor"></span>
-<a name="l00024"></a>00024 <span class="preprocessor">#endif // __tracer_h__</span>
+<a name="l00008"></a><a class="code" href="tracer_8h.html#a96e0bc8f204dbef33b6e6a664c5b5663">00008</a> <span class="preprocessor">#define PASTER(x,y) x ## _ ## y</span>
+<a name="l00009"></a>00009 <span class="preprocessor"></span>
+<a name="l00010"></a><a class="code" href="tracer_8h.html#a2b344f2ba4112d1e35e9328531d7bd38">00010</a> <span class="preprocessor">#define UNIQUE_VARIABLE_NAME(x,y)  PASTER(x,y)</span>
+<a name="l00011"></a>00011 <span class="preprocessor"></span>
+<a name="l00013"></a><a class="code" href="namespacetracer.html">00013</a> <span class="keyword">namespace </span>tracer {
+<a name="l00023"></a>00023         <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Type&gt;
+<a name="l00024"></a><a class="code" href="namespacetracer.html#ad3ee5f0e6f3a4827bbb9a9660ec3bf83">00024</a>         <span class="keyword">const</span> Type &amp;<a class="code" href="namespacetracer.html#ad3ee5f0e6f3a4827bbb9a9660ec3bf83">passThroughLog</a>(<span class="keyword">const</span> Type &amp;value, <span class="keyword">const</span> <span class="keywordtype">char</span> *expression, <span class="keyword">const</span> <span class="keywordtype">char</span> *file, <span class="keyword">const</span> <span class="keywordtype">char</span> *func, <span class="keywordtype">int</span> line) {
+<a name="l00025"></a>00025                 <span class="keywordtype">double</span>  doubleValue;
+<a name="l00026"></a>00026                 int64_t integerValue= value;
+<a name="l00027"></a>00027 
+<a name="l00028"></a>00028                 doubleValue= integerValue;
+<a name="l00029"></a>00029                 printf(<span class="stringliteral">&quot;%s:%d:%s()\t%1.0f (%s)\n&quot;</span>, file, line, func, doubleValue, expression);
+<a name="l00030"></a>00030                 <span class="keywordflow">return</span> value;
+<a name="l00031"></a>00031         }
+<a name="l00041"></a><a class="code" href="namespacetracer.html#a96f20d538044e8e24e15b6aa2c85d3fc">00041</a>         <span class="keywordtype">bool</span> <a class="code" href="namespacetracer.html#a96f20d538044e8e24e15b6aa2c85d3fc">passThroughBoolLog</a>(<span class="keywordtype">bool</span> value, <span class="keyword">const</span> <span class="keywordtype">char</span> *expression, <span class="keyword">const</span> <span class="keywordtype">char</span> *file, <span class="keyword">const</span> <span class="keywordtype">char</span> *func, <span class="keywordtype">int</span> line) {
+<a name="l00042"></a>00042                 <span class="keywordflow">return</span> <a class="code" href="namespacetracer.html#ad3ee5f0e6f3a4827bbb9a9660ec3bf83">passThroughLog</a>(value, expression, file, func, line);
+<a name="l00043"></a>00043         }
+<a name="l00047"></a>00047         <span class="keyword">class </span>LogBlock {
+<a name="l00048"></a>00048                 <span class="keyword">public</span>:
+<a name="l00054"></a><a class="code" href="classtracer_1_1_log_block.html#ad69303bebbc67cc8ac582f37a070da19">00054</a>                         <a class="code" href="classtracer_1_1_log_block.html#ad69303bebbc67cc8ac582f37a070da19">LogBlock</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *file, <span class="keyword">const</span> <span class="keywordtype">char</span> *func, <span class="keywordtype">int</span> line)
+<a name="l00055"></a>00055                                 :_file(file), _func(func), _line(line) {
+<a name="l00056"></a>00056                                 printf(<span class="stringliteral">&quot;%s:%d:%s()\tenter (block)\n&quot;</span>, _file, _line, _func);
+<a name="l00057"></a>00057                         }
+<a name="l00060"></a><a class="code" href="classtracer_1_1_log_block.html#a4c1ceed47de2ef45d1eabd7cdcf673a4">00060</a>                         <a class="code" href="classtracer_1_1_log_block.html#a4c1ceed47de2ef45d1eabd7cdcf673a4">~LogBlock</a>() {
+<a name="l00061"></a>00061                                 printf(<span class="stringliteral">&quot;%s:%d:%s()\tleave (block)\n&quot;</span>, _file, _line, _func);
+<a name="l00062"></a>00062                         }
+<a name="l00063"></a>00063                 <span class="keyword">private</span>:
+<a name="l00064"></a>00064                         <span class="keyword">const</span> <span class="keywordtype">char</span>      *_file; 
+<a name="l00065"></a>00065                         <span class="keyword">const</span> <span class="keywordtype">char</span>      *_func; 
+<a name="l00066"></a>00066                         <span class="keywordtype">int</span>                     _line;  
+<a name="l00067"></a>00067                         <a class="code" href="classtracer_1_1_log_block.html#ad69303bebbc67cc8ac582f37a070da19">LogBlock</a>(<span class="keyword">const</span> <a class="code" href="classtracer_1_1_log_block.html">LogBlock</a> &amp;other); 
+<a name="l00068"></a>00068                         <a class="code" href="classtracer_1_1_log_block.html">LogBlock</a> &amp;operator=(<span class="keyword">const</span> <a class="code" href="classtracer_1_1_log_block.html">LogBlock</a> &amp;other); 
+<a name="l00069"></a>00069         };
+<a name="l00070"></a>00070 }
+<a name="l00071"></a>00071 
+<a name="l00073"></a><a class="code" href="tracer_8h.html#af16f3a6f5b1d40aba923a9f581861fb6">00073</a> <span class="preprocessor">#define if(value) if(tracer::passThroughBoolLog((value), #value, __FILE__, __func__, __LINE__))</span>
+<a name="l00074"></a>00074 <span class="preprocessor"></span>
+<a name="l00075"></a><a class="code" href="tracer_8h.html#aab0e857101dc4e93437de7b8e0ea9075">00075</a> <span class="preprocessor">#define while(value) while(tracer::passThroughBoolLog((value), #value, __FILE__, __func__, __LINE__))</span>
+<a name="l00076"></a>00076 <span class="preprocessor"></span>
+<a name="l00077"></a><a class="code" href="tracer_8h.html#ac4018da0288b0c5088cf382cc5bdfabc">00077</a> <span class="preprocessor">#define switch(value) switch(tracer::passThroughLog((value), #value, __FILE__, __func__, __LINE__))</span>
+<a name="l00078"></a>00078 <span class="preprocessor"></span>
+<a name="l00079"></a><a class="code" href="tracer_8h.html#a3083618a22e6fced60297918fbe0fa6f">00079</a> <span class="preprocessor">#define trace_scope tracer::LogBlock    UNIQUE_VARIABLE_NAME(log_block,__LINE__)(__FILE__,__func__,__LINE__);</span>
+<a name="l00080"></a>00080 <span class="preprocessor"></span>
+<a name="l00081"></a>00081 <span class="preprocessor">#endif // __tracer_h__</span>
 </pre></div></div>
 </div>
   <div id="nav-path" class="navpath">
@@ -142,7 +168,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div>
 
 
-    <li class="footer">Generated on Tue Aug 16 2011 10:21:00 for OS Abstraction by
+    <li class="footer">Generated on Wed Aug 17 2011 08:11:27 for OS Abstraction by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.5 </li>
    </ul>

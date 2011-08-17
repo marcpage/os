@@ -107,7 +107,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00007"></a><a class="code" href="_hash__test_8cpp.html#a81ce304348a420752ee080480d2b3095">00007</a> <span class="keywordtype">int</span> <a class="code" href="client_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97">main</a>(<span class="keywordtype">int</span> <span class="comment">/*argc*/</span>, <span class="keywordtype">char</span> * <span class="comment">/*argv*/</span>[]) {
 <a name="l00008"></a>00008         <span class="keywordflow">try</span> {
 <a name="l00009"></a>00009                 std::string     hash;
-<a name="l00010"></a>00010                 <a class="code" href="class_hash.html">Hash&lt;SHA256Hasher&gt;</a>      <a class="code" href="test___e_string_8cpp.html#a8e2fdc592013a51a350bda90af8952d1">test</a>(<span class="stringliteral">&quot;test&quot;</span>, 4);
+<a name="l00010"></a>00010                 <a class="code" href="class_hash.html">Hash&lt;SHA256Hasher&gt;</a>      test(<span class="stringliteral">&quot;test&quot;</span>, 4);
 <a name="l00011"></a>00011                 
 <a name="l00012"></a>00012                 <span class="keywordflow">if</span>(<a class="code" href="class_hash.html">Hash&lt;SHA256Hasher&gt;</a>(<span class="stringliteral">&quot;test&quot;</span>, 4) != <a class="code" href="class_hash.html">Hash&lt;SHA256Hasher&gt;</a>(<span class="stringliteral">&quot;test&quot;</span>, 4)) {
 <a name="l00013"></a>00013                         printf(<span class="stringliteral">&quot;Test of hash failed\n&quot;</span>);
@@ -123,7 +123,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00023"></a>00023                         printf(<span class="stringliteral">&quot;Hash of data not valid\n&quot;</span>);
 <a name="l00024"></a>00024                 }
 <a name="l00025"></a>00025                 test= <a class="code" href="class_hash.html">Hash&lt;SHA256Hasher&gt;</a>(<span class="stringliteral">&quot;hello&quot;</span>, 5);
-<a name="l00026"></a>00026                 <span class="keywordflow">if</span>(<a class="code" href="class_hash.html">Hash&lt;SHA256Hasher&gt;</a>(<span class="stringliteral">&quot;hello&quot;</span>, 5) != <a class="code" href="test___e_string_8cpp.html#a8e2fdc592013a51a350bda90af8952d1">test</a>) {
+<a name="l00026"></a>00026                 <span class="keywordflow">if</span>(<a class="code" href="class_hash.html">Hash&lt;SHA256Hasher&gt;</a>(<span class="stringliteral">&quot;hello&quot;</span>, 5) != test) {
 <a name="l00027"></a>00027                         printf(<span class="stringliteral">&quot;failed hello assignment test\n&quot;</span>);
 <a name="l00028"></a>00028                 }
 <a name="l00029"></a>00029         } <span class="keywordflow">catch</span>(<span class="keyword">const</span> std::exception &amp;exception) {
@@ -151,7 +151,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div>
 
 
-    <li class="footer">Generated on Tue Aug 16 2011 10:21:00 for OS Abstraction by
+    <li class="footer">Generated on Wed Aug 17 2011 10:25:19 for OS Abstraction by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.5 </li>
    </ul>

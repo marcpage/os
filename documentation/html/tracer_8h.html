@@ -95,6 +95,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div id="doc-content">
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
+<a href="#namespaces">Namespaces</a> &#124;
 <a href="#define-members">Defines</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
@@ -106,16 +108,33 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div>
 <p><a href="tracer_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
+<tr><td colspan="2"><h2><a name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtracer_1_1_log_block.html">tracer::LogBlock</a></td></tr>
+<tr><td colspan="2"><h2><a name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetracer.html">tracer</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight"><p>functions and classes for tracing </p>
+<br/></td></tr>
 <tr><td colspan="2"><h2><a name="define-members"></a>
 Defines</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8h.html#af16f3a6f5b1d40aba923a9f581861fb6">if</a>(value)&#160;&#160;&#160;if(passThroughBoolLog((value), #value, __FILE__, __func__, __LINE__))</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8h.html#aab0e857101dc4e93437de7b8e0ea9075">while</a>(value)&#160;&#160;&#160;while(passThroughBoolLog((value), #value, __FILE__, __func__, __LINE__))</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8h.html#ac4018da0288b0c5088cf382cc5bdfabc">switch</a>(value)&#160;&#160;&#160;switch(passThroughLog((value), #value, __FILE__, __func__, __LINE__))</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8h.html#a96e0bc8f204dbef33b6e6a664c5b5663">PASTER</a>(x, y)&#160;&#160;&#160;x ## _ ## y</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Utility Macro to work preprocessor magic, do not use directly.  <a href="#a96e0bc8f204dbef33b6e6a664c5b5663"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8h.html#a2b344f2ba4112d1e35e9328531d7bd38">UNIQUE_VARIABLE_NAME</a>(x, y)&#160;&#160;&#160;PASTER(x,y)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a unique variable name (per line)  <a href="#a2b344f2ba4112d1e35e9328531d7bd38"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8h.html#af16f3a6f5b1d40aba923a9f581861fb6">if</a>(value)&#160;&#160;&#160;if(tracer::passThroughBoolLog((value), #value, __FILE__, __func__, __LINE__))</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Do a trace on all 'if' statements.  <a href="#af16f3a6f5b1d40aba923a9f581861fb6"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8h.html#aab0e857101dc4e93437de7b8e0ea9075">while</a>(value)&#160;&#160;&#160;while(tracer::passThroughBoolLog((value), #value, __FILE__, __func__, __LINE__))</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Do a trace on all 'while' statements.  <a href="#aab0e857101dc4e93437de7b8e0ea9075"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8h.html#ac4018da0288b0c5088cf382cc5bdfabc">switch</a>(value)&#160;&#160;&#160;switch(tracer::passThroughLog((value), #value, __FILE__, __func__, __LINE__))</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Do a trace on all 'switch' statements.  <a href="#ac4018da0288b0c5088cf382cc5bdfabc"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8h.html#a3083618a22e6fced60297918fbe0fa6f">trace_scope</a>&#160;&#160;&#160;<a class="el" href="classtracer_1_1_log_block.html">tracer::LogBlock</a>	UNIQUE_VARIABLE_NAME(log_block,__LINE__)(__FILE__,__func__,__LINE__);</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Do a trace on any requested scope.  <a href="#a3083618a22e6fced60297918fbe0fa6f"></a><br/></td></tr>
 <tr><td colspan="2"><h2><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr><td class="memTemplParams" colspan="2">template&lt;typename Type &gt; </td></tr>
-<tr><td class="memTemplItemLeft" align="right" valign="top">const Type &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="tracer_8h.html#a751e71d201614095ade0ca5944bfdca6">passThroughLog</a> (const Type &amp;value, const char *expression, const char *file, const char *func, int line)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8h.html#af5691b2a3213b2fe6bc3ed08cad01209">passThroughBoolLog</a> (bool value, const char *expression, const char *file, const char *func, int line)</td></tr>
+<tr><td class="memTemplItemLeft" align="right" valign="top">const Type &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetracer.html#ad3ee5f0e6f3a4827bbb9a9660ec3bf83">tracer::passThroughLog</a> (const Type &amp;value, const char *expression, const char *file, const char *func, int line)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetracer.html#a96f20d538044e8e24e15b6aa2c85d3fc">tracer::passThroughBoolLog</a> (bool value, const char *expression, const char *file, const char *func, int line)</td></tr>
 </table>
 <hr/><h2>Define Documentation</h2>
 <a class="anchor" id="af16f3a6f5b1d40aba923a9f581861fb6"></a><!-- doxytag: member="tracer.h::if" ref="af16f3a6f5b1d40aba923a9f581861fb6" args="(value)" -->
@@ -127,13 +146,46 @@ Functions</h2></td></tr>
           <td>(</td>
           <td class="paramtype">&#160;</td>
           <td class="paramname">value</td><td>)</td>
-          <td>&#160;&#160;&#160;if(passThroughBoolLog((value), #value, __FILE__, __func__, __LINE__))</td>
+          <td>&#160;&#160;&#160;if(tracer::passThroughBoolLog((value), #value, __FILE__, __func__, __LINE__))</td>
         </tr>
       </table>
 </div>
 <div class="memdoc">
 
-<p>Definition at line <a class="el" href="tracer_8h_source.html#l00020">20</a> of file <a class="el" href="tracer_8h_source.html">tracer.h</a>.</p>
+<p>Do a trace on all 'if' statements. </p>
+
+<p>Definition at line <a class="el" href="tracer_8h_source.html#l00073">73</a> of file <a class="el" href="tracer_8h_source.html">tracer.h</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a96e0bc8f204dbef33b6e6a664c5b5663"></a><!-- doxytag: member="tracer.h::PASTER" ref="a96e0bc8f204dbef33b6e6a664c5b5663" args="(x, y)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PASTER</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">x, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">y&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;x ## _ ## y</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Utility Macro to work preprocessor magic, do not use directly. </p>
+
+<p>Definition at line <a class="el" href="tracer_8h_source.html#l00008">8</a> of file <a class="el" href="tracer_8h_source.html">tracer.h</a>.</p>
 
 </div>
 </div>
@@ -146,13 +198,63 @@ Functions</h2></td></tr>
           <td>(</td>
           <td class="paramtype">&#160;</td>
           <td class="paramname">value</td><td>)</td>
-          <td>&#160;&#160;&#160;switch(passThroughLog((value), #value, __FILE__, __func__, __LINE__))</td>
+          <td>&#160;&#160;&#160;switch(tracer::passThroughLog((value), #value, __FILE__, __func__, __LINE__))</td>
         </tr>
       </table>
 </div>
 <div class="memdoc">
 
-<p>Definition at line <a class="el" href="tracer_8h_source.html#l00022">22</a> of file <a class="el" href="tracer_8h_source.html">tracer.h</a>.</p>
+<p>Do a trace on all 'switch' statements. </p>
+
+<p>Definition at line <a class="el" href="tracer_8h_source.html#l00077">77</a> of file <a class="el" href="tracer_8h_source.html">tracer.h</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a3083618a22e6fced60297918fbe0fa6f"></a><!-- doxytag: member="tracer.h::trace_scope" ref="a3083618a22e6fced60297918fbe0fa6f" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define trace_scope&#160;&#160;&#160;<a class="el" href="classtracer_1_1_log_block.html">tracer::LogBlock</a>	UNIQUE_VARIABLE_NAME(log_block,__LINE__)(__FILE__,__func__,__LINE__);</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Do a trace on any requested scope. </p>
+
+<p>Definition at line <a class="el" href="tracer_8h_source.html#l00079">79</a> of file <a class="el" href="tracer_8h_source.html">tracer.h</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a2b344f2ba4112d1e35e9328531d7bd38"></a><!-- doxytag: member="tracer.h::UNIQUE_VARIABLE_NAME" ref="a2b344f2ba4112d1e35e9328531d7bd38" args="(x, y)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define UNIQUE_VARIABLE_NAME</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">x, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">y&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;PASTER(x,y)</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Creates a unique variable name (per line) </p>
+
+<p>Definition at line <a class="el" href="tracer_8h_source.html#l00010">10</a> of file <a class="el" href="tracer_8h_source.html">tracer.h</a>.</p>
 
 </div>
 </div>
@@ -165,110 +267,15 @@ Functions</h2></td></tr>
           <td>(</td>
           <td class="paramtype">&#160;</td>
           <td class="paramname">value</td><td>)</td>
-          <td>&#160;&#160;&#160;while(passThroughBoolLog((value), #value, __FILE__, __func__, __LINE__))</td>
+          <td>&#160;&#160;&#160;while(tracer::passThroughBoolLog((value), #value, __FILE__, __func__, __LINE__))</td>
         </tr>
       </table>
 </div>
 <div class="memdoc">
 
-<p>Definition at line <a class="el" href="tracer_8h_source.html#l00021">21</a> of file <a class="el" href="tracer_8h_source.html">tracer.h</a>.</p>
+<p>Do a trace on all 'while' statements. </p>
 
-</div>
-</div>
-<hr/><h2>Function Documentation</h2>
-<a class="anchor" id="af5691b2a3213b2fe6bc3ed08cad01209"></a><!-- doxytag: member="tracer.h::passThroughBoolLog" ref="af5691b2a3213b2fe6bc3ed08cad01209" args="(bool value, const char *expression, const char *file, const char *func, int line)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool passThroughBoolLog </td>
-          <td>(</td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>value</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>expression</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>file</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>func</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>line</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>Definition at line <a class="el" href="tracer_8h_source.html#l00016">16</a> of file <a class="el" href="tracer_8h_source.html">tracer.h</a>.</p>
-
-</div>
-</div>
-<a class="anchor" id="a751e71d201614095ade0ca5944bfdca6"></a><!-- doxytag: member="tracer.h::passThroughLog" ref="a751e71d201614095ade0ca5944bfdca6" args="(const Type &amp;value, const char *expression, const char *file, const char *func, int line)" -->
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename Type &gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">const Type&amp; passThroughLog </td>
-          <td>(</td>
-          <td class="paramtype">const Type &amp;&#160;</td>
-          <td class="paramname"><em>value</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>expression</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>file</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>func</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>line</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>Definition at line <a class="el" href="tracer_8h_source.html#l00008">8</a> of file <a class="el" href="tracer_8h_source.html">tracer.h</a>.</p>
+<p>Definition at line <a class="el" href="tracer_8h_source.html#l00075">75</a> of file <a class="el" href="tracer_8h_source.html">tracer.h</a>.</p>
 
 </div>
 </div>
@@ -292,7 +299,7 @@ template&lt;typename Type &gt; </div>
 </div>
 
 
-    <li class="footer">Generated on Tue Aug 16 2011 10:21:00 for OS Abstraction by
+    <li class="footer">Generated on Wed Aug 17 2011 08:11:27 for OS Abstraction by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.5 </li>
    </ul>
