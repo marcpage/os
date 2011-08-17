@@ -8,7 +8,7 @@
 
 static void displayResults(const Sqlite3::DB::Results &results) {
 	int	result= 1;
-	
+
 	for(Sqlite3::DB::Results::const_iterator	row= results.begin(); row != results.end(); ++row, ++result) {
 		printf("Result #%d\n", result);
 		for(Sqlite3::DB::Row::const_iterator column= row->begin(); column != row->end(); ++column) {
@@ -19,20 +19,20 @@ static void displayResults(const Sqlite3::DB::Results &results) {
 
 int main(int /*argc*/, const char * /*argv*/[]) {
 	const char * const	kDBPath= "/tmp/test.sqlite3";
-	
+
 	try	{
 		std::string	number;
-		
+
 		try	{
 			io::Stat	stat(kDBPath); // If the file exists
-			errnoAssertMessageException(unlink(kDBPath)); // try to delete it
+			errnoAssertPositiveMessageException(unlink(kDBPath)); // try to delete it
 		} catch(const std::exception &exception) {
 		}
-		
+
 		Sqlite3::DB				db(kDBPath);
 		Sqlite3::DB::Row		row;
 		Sqlite3::DB::Results	results;
-		
+
 		db.exec("CREATE TABLE `storage` ("
 					"`id` INTEGER NOT NULL, "
 					"`sha256` VARCHAR(64) NOT NULL, "

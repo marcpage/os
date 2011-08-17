@@ -1,54 +1,92 @@
 #ifndef __MessageException_h__
 #define __MessageException_h__
 
+/** @file Exception.h
+	@todo add __func__ or __FUNCTION__, whichever is more appropriate and only if available
+*/
 #include <string>
 #include <exception>
 #include <sstream>
 #include <errno.h>
 
-inline void noop() {}
-
-#define ThrowMessageException(message) throw msg::Exception((message), __FILE__, __LINE__)
-#define ThrowMessageExceptionIfNULL(variable) if(NULL == variable) {ThrowMessageException(std::string(#variable).append(" == NULL"));} else noop()
-#define AssertMessageException(condition) if(!(condition)) {ThrowMessageException(#condition);} else noop()
-#define AssertCodeMessageException(call) {int x= (call); if(x != 0) {ThrowMessageException(std::string(#call).append(": ").append(strerror(x)));}}
-#define errnoThrowMessageException(errnoCode, message) throw msg::ErrNoException(errnoCode, message, __FILE__, __LINE__)
-#define errnoCodeThrowMessageException(errnoCode, message) if(0 != errnoCode) {errnoThrowMessageException(errno, message);} else noop()
-#define errnoAssertMessageException(condition) if((condition)) {errnoCodeThrowMessageException(errno, #condition);} else noop()
-#define errnoAssertPositiveMessageException(call) if( (call) < 0) {errnoCodeThrowMessageException(errno, #call);} else noop()
-#define errnoNULLAssertMessageException(call) if( NULL == (call) ) {errnoThrowMessageException(errno, #call);} else noop()
-
-template <bool B> inline void STATIC_ASSERT_IMPL() {
-	char STATIC_ASSERT_FAILURE[B] = {0};
-	void *x[]= {&x, &STATIC_ASSERT_FAILURE};
+namespace msg {
+	inline void noop() {} ///< Used for if() else corrrectness with macros
 }
-#define compileTimeAssert(B) STATIC_ASSERT_IMPL <B>()
+
+/// Throws an exception without condition
+#define ThrowMessageException(message) throw msg::Exception((message), __FILE__, __LINE__)
+/// Throws an exception if an expression is NULL
+#define ThrowMessageExceptionIfNULL(variable) if(NULL == (variable)) {ThrowMessageException(std::string(#variable).append(" == NULL"));} else msg::noop()
+/// Throws and exception if an asserted condition is false
+#define AssertMessageException(condition) if(!(condition)) {ThrowMessageException(#condition);} else msg::noop()
+/// Intended for use in wrapping a function that returns an int, of which zero means no error, and any other value is an error. Only throws on error.
+#define AssertCodeMessageException(call) {int x= (call); if(x != 0) {ThrowMessageException(std::string(#call).append(": ").append(strerror(x)));}}
+/// Inteded for use by other macros, throws an msg::ErrNoException with the given errno code.
+#define errnoThrowMessageExceptionCore(errnoCode, message, File, Line) throw msg::ErrNoException(errnoCode, message, File, Line)
+/// Throws a msg::ErrNoException with the given errno code.
+#define errnoThrowMessageException(errnoCode, message) errnoThrowMessageExceptionCore(errnoCode, message, __FILE__, __LINE__)
+/// Throws a msg::ErrNoException if the errnoCode is not 0 (ie there was an error).
+#define errnoCodeThrowMessageException(errnoCode, message) if(0 != errnoCode) {errnoThrowMessageExceptionCore(errno, message, __FILE__, __LINE__);} else msg::noop()
+/// Throws a msg::ErrNoException with errno as the errnoCode if the assertion fails (ie the condition is false)
+#define errnoAssertMessageException(condition) if(!(condition)) {errnoCodeThrowMessageException(errno, #condition);} else msg::noop()
+/// Throws a msg::ErrNoException with errno as the errnoCode if the result of a call is less than zero (UNIX calls usually return -1 on error and set errno)
+#define errnoAssertPositiveMessageException(call) if( (call) < 0) {errnoCodeThrowMessageException(errno, #call);} else msg::noop()
+/// Throws a msg::ErrNoException with errno as the errnoCode if the result of a call is NULL
+#define errnoNULLAssertMessageException(call) if( NULL == (call) ) {errnoThrowMessageExceptionCore(errno, #call, __FILE__, __LINE__);} else msg::noop()
 
 namespace msg {
+	/// Helper function to break at compile time on an assertion failure.
+	template <bool B> inline void STATIC_ASSERT_IMPL() {
+		char STATIC_ASSERT_FAILURE[B] = {0};
+		void *x[]= {&x, &STATIC_ASSERT_FAILURE};
+	}
+}
 
+/// Assert B at compile time (break the compile if assertion fails).
+#define compileTimeAssert(B) msg::STATIC_ASSERT_IMPL <B>()
+
+/** Contains Exception and helpers.
+*/
+namespace msg {
+
+	/** A general exception the maintains the file and line numbers.
+	*/
 	class Exception : public std::exception {
 	public:
+		/// Get a message
 		Exception(const char *message, const char *file= NULL, int line= 0) throw();
+		/// Get a message
 		Exception(const std::string &message, const char *file= NULL, int line= 0) throw();
+		/// Copy constructor
 		Exception(const Exception &other);
+		/// assignment operator
 		Exception &operator=(const Exception &other);
+		/// destructs _message
 		virtual ~Exception() throw();
+		/// gets the message
 		virtual const char* what() const throw();
 	private:
-		std::string	*_message;
+		std::string	*_message; ///< The message about why the exception was thrown.
 
+		/// Helper function to initialize from the various constructors.
 		template<class S>
 		std::string *_init(S message, const char *file, int line);
 	};
 
+	/** Handles errno specific details for UNIX functions that set errno.
+	*/
 	class ErrNoException : public Exception {
 	public:
+		/// errnoCode and message
 		ErrNoException(int errnoCode, const char *message, const char *file= NULL, int line= 0) throw();
+		/// Just a message, errno will be read for the code
 		ErrNoException(const char *message, const char *file= NULL, int line= 0) throw();
+		/// nothing special here
 		virtual ~ErrNoException() throw();
+		/// again, nothing special
 		virtual const char* what() const throw();
 	private:
-		int	_errno;
+		int	_errno; ///< the errono code
 	};
 
 	inline Exception::Exception (const char *message, const char *file, int line) throw()

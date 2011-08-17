@@ -57,7 +57,7 @@ struct SHA256Hasher {
 
 #endif
 
-#include "MessageException.h"
+#include "Exception.h"
 
 #include <string.h>
 #include <ctype.h>

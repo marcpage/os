@@ -2,7 +2,7 @@
 #define __NonBlockingQueue_h__
 
 #include <libkern/OSAtomic.h>
-#include "MessageException.h"
+#include "Exception.h"
 
 #if sizeof(void*) == sizeof(uint64_t)
 	#define CompareAndSwap	OSAtomicCompareAndSwap64Barrier
@@ -52,7 +52,7 @@ namespace NonBlocking {
 	Queue &Queue<T>::enqueue(const T &value) {
 		AssertMessageException(_active);
 		_Element	*node= new _Element(value);
-		
+
 		do	{
 			node->next= _head;
 		} while(!CompareAndSwap(reinterpret_cast<AddressInt>(_head),

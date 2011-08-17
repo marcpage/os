@@ -1,7 +1,7 @@
 #ifndef __File_h__
 #define __File_h__
 
-#include "MessageException.h"
+#include "Exception.h"
 #include <string>
 
 #if _DEBUG_FILE // Debug
@@ -100,7 +100,7 @@ namespace io {
 		return !_readOnly;
 	}
 	inline void File::moveto(off_t offset, Relative relative) {
-		errnoAssertMessageException(fseeko(_file, offset, _whence(relative)));
+		errnoAssertPositiveMessageException(fseeko(_file, offset, _whence(relative)));
 	}
 	inline void File::move(off_t offset, Relative relative) {
 		move(offset, relative);

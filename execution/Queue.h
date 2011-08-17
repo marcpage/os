@@ -4,7 +4,7 @@
 #include <vector>
 #include <limits>
 #include <pthread.h>
-#include "MessageException.h"
+#include "Exception.h"
 #include "ExecutionMutex.h"
 #include "ExecutionSignal.h"
 
@@ -49,28 +49,28 @@ namespace exec {
 	template<class T>
 	inline bool Queue<T>::empty() {
 		Mutex::Locker	lock(_lock);
-		
+
 		AssertMessageException(-1 != _max);
 		return _queue.size() <= 0;
 	}
 	template<class T>
 	inline bool Queue<T>::full() {
 		Mutex::Locker	lock(_lock);
-		
+
 		AssertMessageException(-1 != _max);
 		return _queue.size() >= _max;
 	}
 	template<class T>
 	inline int Queue<T>::size() {
 		Mutex::Locker	lock(_lock);
-		
+
 		AssertMessageException(-1 != _max);
 		return _queue.size();
 	}
 	template<class T>
 	inline Queue<T> &Queue<T>::enqueue(const T &value) {
 		Mutex::Locker	lock(_lock);
-		
+
 		while( (static_cast<int>(_queue.size()) >= _max) && (-1 != _max) ) {
 			_full.wait(_lock);
 		}
@@ -83,13 +83,13 @@ namespace exec {
 	inline bool Queue<T>::enqueue(const T &value, double timeoutInSeconds) {
 		struct timeval	now;
 		struct timespec	timeoutAt;
-		
+
 		AssertCodeMessageException(gettimeofday(&now, NULL));
 		TIMEVAL_TO_TIMESPEC(&now, &timeoutAt);
 		util::add(timeoutAt, timeoutInSeconds);
 
 		Mutex::Locker	lock(_lock);
-		
+
 		while( (static_cast<int>(_queue.size()) >= _max) && (-1 != _max) ) {
 			if(!_full.wait(_lock, timeoutAt)) {
 				return false;
@@ -105,14 +105,14 @@ namespace exec {
 	template<class T>
 	inline T Queue<T>::dequeue() {
 		Mutex::Locker	lock(_lock);
-		
+
 		while( (_queue.size() == 0) && (-1 != _max) ) {
 			_empty.wait(_lock);
 		}
 		AssertMessageException(-1 != _max);
-		
+
 		T	value= _queue.back();
-		
+
 		_queue.pop_back();
 		_full.broadcast();
 		return value;
@@ -121,13 +121,13 @@ namespace exec {
 	inline bool Queue<T>::dequeue(T &value, double timeoutInSeconds) {
 		struct timeval	now;
 		struct timespec	timeoutAt;
-		
+
 		AssertCodeMessageException(gettimeofday(&now, NULL));
 		TIMEVAL_TO_TIMESPEC(&now, &timeoutAt);
 		util::add(timeoutAt, timeoutInSeconds);
 
 		Mutex::Locker	lock(_lock);
-		
+
 		while( (_queue.size() == 0) && (-1 != _max) ) {
 			if(!_empty.wait(_lock, timeoutAt)) {
 				return false;
@@ -136,9 +136,9 @@ namespace exec {
 			}
 		}
 		AssertMessageException(-1 != _max);
-		
+
 		T	value= _queue.back();
-		
+
 		_queue.pop_back();
 		_full.broadcast();
 		return true;
@@ -148,9 +148,9 @@ namespace exec {
 		_max= -1;
 		_empty.broadcast();
 		_full.broadcast();
-		
+
 	}
-	
+
 };
 
 #endif // __ExecutionQueue_h__

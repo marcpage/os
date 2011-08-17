@@ -3,11 +3,11 @@
 
 #include <vector>
 #include <pthread.h>
-#include "MessageException.h"
+#include "Exception.h"
 #include "ExecutionRWLock.h"
 
 namespace exec {
-	
+
 	class ThreadId {
 	public:
 		static ThreadId current();
@@ -33,7 +33,7 @@ namespace exec {
 		static void _destructor(void *me);
 		static RWLock &_lock();
 	};
-	
+
 	class Thread : public ThreadId {
 	public:
 		enum ThreadTerminationAction {
@@ -66,7 +66,7 @@ namespace exec {
 		try {
 			RWLock::Locker	lock(_lock(), RWLock::Write);
 			List::iterator	found= _managed().begin();
-			
+
 			while( (found != _managed().end()) && (*found != this) ) {
 				++found;
 			}
@@ -100,7 +100,7 @@ namespace exec {
 	inline T &ThreadId::instance() {
 		RWLock::Locker	lock(_lock(), RWLock::Read);
 		List::iterator	found= _managed().begin();
-		
+
 		while( (found != _managed().end()) && (*found != this) ) {
 			++found;
 		}
@@ -112,7 +112,7 @@ namespace exec {
 	bool ThreadId::managed() {
 		RWLock::Locker	lock(_lock(), RWLock::Read);
 		List::iterator	found= _managed().begin();
-		
+
 		while( (found != _managed().end()) && (*found != this) ) {
 			++found;
 		}
@@ -127,7 +127,7 @@ namespace exec {
 	inline void ThreadId::manage() {
 		RWLock::Locker	lock(_lock(), RWLock::Write);
 		List::iterator	found= _managed().begin();
-		
+
 		while( (found != _managed().end()) && (*found != this) ) {
 			++found;
 		}
@@ -137,7 +137,7 @@ namespace exec {
 	}
 	inline ThreadId::List &ThreadId::_managed() {
 		static List	threads;
-		
+
 		return threads;
 	}
 	inline void ThreadId::_destructor(void *me) {
@@ -145,7 +145,7 @@ namespace exec {
 	}
 	inline RWLock &ThreadId::_lock() {
 		static RWLock	lock;
-		
+
 		return lock;
 	}
 	inline Thread::Thread(ThreadTerminationAction action)
@@ -162,10 +162,10 @@ namespace exec {
 	}
 	inline void *Thread::_run(void *me) {
 		void	*result= NULL;
-		
+
 		try {
 			Thread	*theThread= reinterpret_cast<Thread*>(me);
-			
+
 			result= theThread->run();
 			if(DeleteOnFinish == theThread->_action) {
 				delete theThread;
@@ -177,7 +177,7 @@ namespace exec {
 	}
 	inline pthread_t Thread::_create() {
 		pthread_t	tid;
-		
+
 		AssertCodeMessageException(pthread_create(&tid, NULL, _run, this));
 		return tid;
 	}

@@ -1,7 +1,7 @@
 #ifndef __Stat_h__
 #define __Stat_h__
 
-#include "MessageException.h"
+#include "Exception.h"
 #include <string>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -124,7 +124,7 @@ namespace io {
 	}
 	inline std::string &Stat::readlink(std::string &linkParam) const {
 		ssize_t		length;
-		
+
 		linkParam.clear();
 		do	{
 			linkParam.append(256, '\0');
@@ -138,14 +138,14 @@ namespace io {
 	}
 	inline std::string &Stat::user(std::string &name) const {
 		struct passwd	*info;
-		
+
 		errnoNULLAssertMessageException(info= getpwuid(uid()));
 		name.assign(info->pw_name);
 		return name;
 	}
 	inline std::string &Stat::group(std::string &name) const {
 		struct group	*info;
-		
+
 		errnoNULLAssertMessageException(info= getgrgid(gid()));
 		name.assign(info->gr_name);
 		return name;
@@ -192,7 +192,7 @@ namespace io {
 		int				count;
 		struct dirent	**entries;
 		const char		*exception= NULL;
-		
+
 		AssertMessageException(directory());
 		AssertMessageException( (NULL != files) || (NULL != directories) );
 		if(NULL == files) {
@@ -236,7 +236,7 @@ namespace io {
 			ThrowMessageException(exception);
 		}
 	}
-	/** 
+	/**
 		Format: YYYY/MM/DD:HH:MM:SS
 			in GMT time
 	*/
@@ -244,7 +244,7 @@ namespace io {
 		struct tm	info;
 		int			length;
 		const int	kNullTerminationCharacter= 1;
-		
+
 		if(GMT == zone) {
 			gmtime_r(&seconds, &info);
 		} else {

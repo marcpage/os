@@ -3,12 +3,12 @@
 
 #include <vector>
 #include <pthread.h>
-#include "MessageException.h"
+#include "Exception.h"
 #include "ExecutionMutex.h"
 #include "Utilities.h"
 
 namespace exec {
-	
+
 	class Signal {
 	public:
 		Signal();
@@ -44,7 +44,7 @@ namespace exec {
 	}
 	inline bool Signal::wait(Mutex &mutex, time_t untilAbsTime) {
 		int	returnCode= pthread_cond_timedwait(&_signal, mutex, &timeoutAt);
-		
+
 		if(ETIMEDOUT == returnCode) {
 			return false;
 		}
@@ -54,7 +54,7 @@ namespace exec {
 	inline bool Signal::wait(Mutex &mutex, double timeoutInSeconds) {
 		struct timeval	now;
 		struct timespec	timeoutAt;
-		
+
 		AssertCodeMessageException(gettimeofday(&now, NULL));
 		TIMEVAL_TO_TIMESPEC(&now, &timeoutAt);
 		utils::add(timeoutAt, timeoutInSeconds);

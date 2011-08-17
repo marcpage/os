@@ -2,12 +2,12 @@
 #define __ZCompression_h__
 
 #include <zlib.h>
-#include "MessageException.h"
+#include "Exception.h"
 
 #define zlib_handle_error(code) if(0 != code) throw z::Exception(code, __FILE__, __LINE__); else
 
 namespace z {
-	
+
 	class Exception : public msg::Exception {
 		public:
 			typedef msg::Exception	Super;
@@ -21,7 +21,7 @@ namespace z {
 			int	_code;
 			static const char *_codestring(int code);
 	};
-	
+
 	inline Exception::Exception(int zcode, const char *file, int line) throw()
 		:Super(_codestring(zcode), file, line), _code(zcode) {
 	}
@@ -58,38 +58,38 @@ namespace z {
 		}
 		return "";
 	}
-	
+
 	inline size_t compress(const void *source, size_t sourceSize, void *destination, size_t destinationSize, int level=6) {
 		uLong	dSize= destinationSize;
 		AssertMessageException(destinationSize >= compressBound(sourceSize));
-		
+
 		zlib_handle_error(compress2(reinterpret_cast<Bytef*>(destination), &dSize,
 									reinterpret_cast<const Bytef*>(source), static_cast<uLong>(sourceSize), level));
 		return dSize;
 	}
-	
+
 	inline std::string &compress(const std::string &source, std::string &destination, int level= 6) {
 		const size_t	maxDestination= compressBound(source.size());
-		
+
 		destination.assign(static_cast<std::string::size_type>(maxDestination), '\0');
-		
+
 		const size_t	actualDestination= compress(source.data(), source.size(), const_cast<char*>(destination.data()), maxDestination, level);
-		
+
 		destination.resize(static_cast<std::string::size_type>(actualDestination));
 		return destination;
 	}
-	
+
 	inline size_t uncompress(const void *source, size_t sourceSize, void *destination, size_t destinationSize) {
-		zlib_handle_error(uncompress(reinterpret_cast<Bytef*>(destination), static_cast<uLong>(destinationSize), 
+		zlib_handle_error(uncompress(reinterpret_cast<Bytef*>(destination), static_cast<uLong>(destinationSize),
 										const_cast<Bytef*>(reinterpret_cast<const Bytef*>(source)), static_cast<uLong>(sourceSize)));
 		return destinationSize;
 	}
-	
+
 	inline std::string &uncompress(const std::string &source, std::string &destination, std::string::size_type maxDestination= 512 * 1024) {
 		destination.assign(maxDestination, '\0');
-		
+
 		const size_t	actualDestination= uncompress(source.data(), source.size(), const_cast<char*>(destination.data()), destination.size());
-		
+
 		destination.resize(static_cast<std::string::size_type>(actualDestination));
 		return destination;
 	}

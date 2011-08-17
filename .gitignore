@@ -10,10 +10,13 @@ Icon?
 .Trashes
 
 # Windows image file caches
-Thumbs.db 
+Thumbs.db
 
 # Windows Folder config file
 Desktop.ini
+
+# ignore documentation directory
+documentation
 
 # Compiled files
 *.o

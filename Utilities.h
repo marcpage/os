@@ -1,7 +1,7 @@
 #ifndef __Utilities_h__
 #define __Utilities_h__
 
-#include "MessageException.h"
+#include "Exception.h"
 #include <ctype.h>
 #include <string>
 

@@ -3,10 +3,10 @@
 
 #include <vector>
 #include <pthread.h>
-#include "MessageException.h"
+#include "Exception.h"
 
 namespace exec {
-	
+
 	class RWLock {
 	public:
 		enum ReadWrite {
@@ -31,7 +31,7 @@ namespace exec {
 		RWLock(const RWLock&); // prevent usage
 		RWLock &operator=(const RWLock&); // prevent usage
 	};
-	
+
 	inline RWLock::Locker::Locker(RWLock &lock, ReadWrite read)
 		:_lock(lock) {
 		_lock.lock(read);

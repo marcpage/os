@@ -1,7 +1,7 @@
 #ifndef __ExecutionReferenceCounted_h__
 #define __ExecutionReferenceCounted_h__
 
-#include "MessageException.h"
+#include "Exception.h"
 #include "ExecutionAtomic.h"
 
 namespace exec {

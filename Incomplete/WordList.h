@@ -3,7 +3,7 @@
 
 #include <string>
 #include "File.h"
-#include "MessageException.h"
+#include "Exception.h"
 
 class WordList {
 	public:

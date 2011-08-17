@@ -1,14 +1,14 @@
 #ifndef __CPlusPlusUtility_h__
 #define __CPlusPlusUtility_h__
 
-#include "MessageException.h"
+#include "Exception.h"
 
 namespace cppu {
 
 	template<typename Integer>
 	std::string dec(Integer value, int padding= 0, char pad= ' ') {
 		std::stringstream	ss;
-		
+
 		ss.width(padding);
 		ss.fill(pad);
 		ss << value;
@@ -17,7 +17,7 @@ namespace cppu {
 	template<>
 	std::string dec(int8_t value, int padding, char pad) {
 		std::string	suffix;
-		
+
 		if(isprint(value)) {
 			suffix.assign(" (").append(dec(value)).append(")");
 		}
@@ -30,7 +30,7 @@ namespace cppu {
 	template<typename Integer>
 	std::string hex(Integer value, int padding= 0, char pad= ' ') {
 		std::stringstream	ss;
-		
+
 		ss.width(padding);
 		ss.fill(pad);
 		ss << "0x" << std::hex << value;
@@ -47,7 +47,7 @@ namespace cppu {
 	template<typename Integer>
 	std::string oct(Integer value, int padding= 0, char pad= ' ') {
 		std::stringstream	ss;
-		
+
 		ss.width(padding);
 		ss.fill(pad);
 		ss << "0" << std::oct << value;
@@ -97,7 +97,7 @@ namespace cppu {
 		std::istringstream	i(asString);
 		Number				x;
 		bool				ableToConvertStringToNumeric= (i >> x);
-		
+
 		AssertMessageException(ableToConvertStringToNumeric);
 		return x;
 	}
