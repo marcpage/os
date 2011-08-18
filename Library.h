@@ -9,6 +9,13 @@
 	@todo See if __FUNCTION__ or __func__ is the appropriate macro
 */
 
+#ifndef trace_scope
+	#define trace_scope ///< in case Tracer.h is not included
+#endif
+#ifndef trace_bool
+	#define trace_bool(x) x ///< in case Tracer.h is not included
+#endif
+
 // --- C++ Headers ---
 
 #include <exception>
@@ -135,6 +142,8 @@ namespace sys {
 	/** Gets the library at the given path.
 		@param path	The path to the library. <b>Mac OS X</b>: Can also be a bundle identifier.
 		@throw Library::Exception	on error
+		@todo justAName in 1st if is always true. Test it false.
+		@todo test not finding a bundle (for loop always exits from find=true).
 	*/
 	inline Library::Library(const char *path):
 		#if __use_dlopen__
@@ -146,20 +155,20 @@ namespace sys {
 		#if __use_module__
 			_module(NULL)
 		#endif
-	{
+	{trace_scope
 		bool				found= _attempt_core(path, Unmodified); // try a quick and simple load of what they gave us
 		const bool			justAName= (NULL == strchr(path, __path_separator__));
 		const std::string	str(path);
 
-		if(!found && justAName ) {
+		if(trace_bool(!found) && trace_bool(justAName) ) {
 
 			if(NULL != __std_lib_prefix__) { // try adding a prefix
 				found= _attempt_core((__std_lib_prefix__+str).c_str(), Modified);
 			}
-			if(!found && (NULL != __std_lib_suffix__) ) { // try adding a suffix
+			if(trace_bool(!found) && trace_bool(NULL != __std_lib_suffix__) ) { // try adding a suffix
 				found= _attempt_core((str+__std_lib_suffix__).c_str(), Modified);
 			}
-			if(!found && (NULL != __std_lib_prefix__) && (NULL != __std_lib_suffix__) ) { // try adding both
+			if(trace_bool(!found) && trace_bool(NULL != __std_lib_prefix__) && trace_bool(NULL != __std_lib_suffix__) ) { // try adding both
 				found= _attempt_core((__std_lib_prefix__+str+__std_lib_suffix__).c_str(), Modified);
 			}
 		}
@@ -168,7 +177,7 @@ namespace sys {
 				static const char * const bundleSuffixes[]= {
 					"", ".framework", ".bundle", ".plugin", ".app", ".kext"
 				};
-				for(size_t index= 0; !found && index < sizeof(bundleSuffixes)/sizeof(bundleSuffixes[0]); ++index) {
+				for(size_t index= 0; trace_bool(trace_bool(!found) && trace_bool(index < sizeof(bundleSuffixes)/sizeof(bundleSuffixes[0]))); ++index) {
 					if(justAName) {
 						found= _search_bundle(str+bundleSuffixes[index]);
 					} else {
@@ -187,7 +196,7 @@ namespace sys {
 	}
 	/** Close the library.
 	*/
-	inline Library::~Library() {
+	inline Library::~Library() {trace_scope
 		#if __use_module__
 			if(NULL != _module) {
 				FreeLibrary(_module);
@@ -210,6 +219,7 @@ namespace sys {
 		@tparam Function	The typedef for the function expected.
 		@param name			The name of the function to lookup.
 		@throw Exception	If the function does not exist, or any other problems.
+		@todo test function not being found.
 	*/
 	template<class Function> inline Function Library::function(const char *name) {
 		void	*ptr= NULL;
@@ -223,7 +233,7 @@ namespace sys {
 			if(NULL != _bundle) {
 				CFStringRef		str= CFStringCreateWithBytes(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(name), strlen(name), CFStringGetSystemEncoding(), false);
 
-				ptr= (NULL != str) ? CFBundleGetFunctionPointerForName(_bundle, str) : NULL;
+				ptr= trace_bool(NULL != str) ? CFBundleGetFunctionPointerForName(_bundle, str) : NULL;
 				if(NULL != str) {
 					CFRelease(str);
 				}
@@ -245,12 +255,12 @@ namespace sys {
 		@return		true if we were able to load the bundle successfully.
 	*/
 #if __use_bundles__
-	inline bool Library::_load(CFURLRef base, CFStringRef name) {
-		CFURLRef	itemPath= (NULL != base) && (NULL != name)
+	inline bool Library::_load(CFURLRef base, CFStringRef name) {trace_scope
+		CFURLRef	itemPath= trace_bool(trace_bool(NULL != base) && trace_bool(NULL != name))
 						? CFURLCreateCopyAppendingPathComponent(kCFAllocatorDefault, base, name, true) : NULL;
 
-		//CFShow(itemPath ? (CFTypeRef)itemPath : (CFTypeRef)CFSTR("NULL"));
-		_bundle= (NULL != itemPath) ? CFBundleCreate(kCFAllocatorDefault, itemPath) : NULL;
+		//CFShow(trace_bool(itemPath) ? (CFTypeRef)itemPath : (CFTypeRef)CFSTR("NULL"));
+		_bundle= trace_bool(NULL != itemPath) ? CFBundleCreate(kCFAllocatorDefault, itemPath) : NULL;
 		if(NULL != base) {
 			CFRelease(base);
 		}
@@ -266,8 +276,9 @@ namespace sys {
 		@note Does nothing unless __use_bundles__
 		@param name	The name of the bundle to load (including extension).
 		@return		true if we found a bundle by that name
+		@todo Test _load(CFURLCreateFromFSRef) returning true
 	*/
-	inline bool Library::_search_bundle(const std::string &name) {
+	inline bool Library::_search_bundle(const std::string &name) {trace_scope
 		#if __use_bundles__
 			typedef CFURLRef (*BundlePath)(CFBundleRef);
 			static const FSVolumeRefNum	domains[]= {kUserDomain, kLocalDomain, kSystemDomain};
@@ -289,16 +300,16 @@ namespace sys {
 			CFStringRef	str= CFStringCreateWithBytes(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(name.data()), name.length(), CFStringGetSystemEncoding(), false);
 
 			// Search inside the main bundle, if there is one
-			if( (NULL != mainBundle) && (NULL != str) ) {
-				for(size_t index= 0; index < sizeof(paths)/sizeof(paths[0]); ++index) {
+			if(trace_bool( trace_bool(NULL != mainBundle) && trace_bool(NULL != str) )) {
+				for(size_t index= 0; trace_bool(index < sizeof(paths)/sizeof(paths[0])); ++index) {
 					if(false) {// if(_load(paths[index](mainBundle), str)) {
 						return true;
 					}
 				}
 			}
 			// Search in the standard folders
-			for(size_t domain= 0; str && (domain < sizeof(domains)/sizeof(domains[0])); ++domain) {
-				for(size_t folder= 0; folder < sizeof(folders)/sizeof(folders[0]); ++folder) {
+			for(size_t domain= 0; trace_bool(trace_bool(str) && trace_bool(domain < sizeof(domains)/sizeof(domains[0]))); ++domain) {
+				for(size_t folder= 0; trace_bool(folder < sizeof(folders)/sizeof(folders[0])); ++folder) {
 					FSRef	systemFolder;
 
 					if(noErr == FSFindFolder(domains[domain], folders[folder], false /*create*/, &systemFolder)) {
@@ -309,7 +320,7 @@ namespace sys {
 				}
 			}
 			// Search in some hard coded, last ditch locations
-			for(size_t path= 0; str && (path < sizeof(absolutePaths)/sizeof(absolutePaths[0])); ++path) {
+			for(size_t path= 0; trace_bool(trace_bool(str) && trace_bool(path < sizeof(absolutePaths)/sizeof(absolutePaths[0]))); ++path) {
 				if(_load(CFURLCreateFromFileSystemRepresentation(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(absolutePaths[path]), strlen(absolutePaths[path]), true), str)) {
 					return true;
 				}
@@ -325,7 +336,7 @@ namespace sys {
 		@param modified	Is path the one passed in from the client?
 		@return			true if we were able to load the library.
 	*/
-	inline bool Library::_attempt_core(const char *path, PathModified modified) {
+	inline bool Library::_attempt_core(const char *path, PathModified modified) {trace_scope
 		#if __use_module__
 			_module= LoadLibrary(reinterpret_cast<LPCSTR>(path));
 			if(NULL != _module) {
@@ -338,11 +349,11 @@ namespace sys {
 				CFStringRef		str;
 				CFURLRef		url= CFURLCreateFromFileSystemRepresentation(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(path), len, false);
 
-				_bundle= (NULL != url) ? CFBundleCreate(kCFAllocatorDefault, url) : NULL;
+				_bundle= trace_bool(NULL != url) ? CFBundleCreate(kCFAllocatorDefault, url) : NULL;
 
 				 // if not a path, try it as a bundle identifier
-				str= (NULL != _bundle) ? NULL : CFStringCreateWithBytes(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(path), len, CFStringGetSystemEncoding(), false);
-				_bundle= (NULL != str) ? CFBundleGetBundleWithIdentifier(str) : _bundle;
+				str= trace_bool(NULL != _bundle) ? NULL : CFStringCreateWithBytes(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(path), len, CFStringGetSystemEncoding(), false);
+				_bundle= trace_bool(NULL != str) ? CFBundleGetBundleWithIdentifier(str) : _bundle;
 				if(NULL != str) {
 					CFRelease(str);
 				}
@@ -369,7 +380,7 @@ namespace sys {
 		@param line		pass __LINE__
 	*/
 	inline Library::Exception::Exception(const std::string &message, const char *file, int line) throw()
-		:_message(_buildMessage(message, file, line)) {}
+		:_message(_buildMessage(message, file, line)) {trace_scope}
 	/** Creates a new library exception for when you know what function you are in.
 		@param message	The message about what was going on when the exception was thrown.
 		@param file		pass __FILE__
@@ -377,13 +388,13 @@ namespace sys {
 		@param function	pass __FUNCTION__
 	*/
 	inline Library::Exception::Exception(const std::string &message, const char *file, int line, const char *function) throw()
-		:_message(_buildMessage(message, file, line, function)) {}
+		:_message(_buildMessage(message, file, line, function)) {trace_scope}
 	/** Cleans up the _message string.
 	*/
-	inline Library::Exception::~Exception() throw() {}
+	inline Library::Exception::~Exception() throw() {trace_scope}
 	/** Gets the _message string.
 	*/
-	inline const char *Library::Exception::what() const throw() {
+	inline const char *Library::Exception::what() const throw() {trace_scope
 		return _message.c_str();
 	}
 	/** Builds up a message about the exception.
@@ -395,7 +406,7 @@ namespace sys {
 		@param line		__LINE__
 		@param function	__FUNCTION__ or NULL
 	*/
-	inline std::string Library::Exception::_buildMessage(const std::string &message, const char *file, int line, const char *function) {
+	inline std::string Library::Exception::_buildMessage(const std::string &message, const char *file, int line, const char *function) {trace_scope
 		std::string	result(file);
 
 		result.append(1, ':');

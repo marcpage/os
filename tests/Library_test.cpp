@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "../Library.h"
+#include "Library.h"
 
 // g++ Library_test.cpp -o /tmp/test -framework Carbon -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -Wno-empty-body
 
@@ -34,12 +34,22 @@ int main(const int argc, const char * const argv[]) {
 		fprintf(stderr, "EXCEPTION(libz.dylib:zlibVersion): %s\n", exception.what());
 	}
 	try	{
+		printf("libz.dylib:zlibVersion=%s\n", sys::Library("/usr/lib/libz.dylib").function<zlibVersion>("zlibVersion")());
+	} catch(const std::exception &exception) {
+		fprintf(stderr, "EXCEPTION(libz.dylib:zlibVersion): %s\n", exception.what());
+	}
+	try	{
 		printf("Carbon:TickCount=%d\n", sys::Library("Carbon").function<tick_count>("TickCount")());
 	} catch(const std::exception &exception) {
 		fprintf(stderr, "EXCEPTION(Carbon:TickCount): %s\n", exception.what());
 	}
 	try	{
 		printf("Carbon.framework:TickCount=%d\n", sys::Library("Carbon.framework").function<tick_count>("TickCount")());
+	} catch(const std::exception &exception) {
+		fprintf(stderr, "EXCEPTION(Carbon.framework:TickCount): %s\n", exception.what());
+	}
+	try	{
+		printf("Carbon.framework:TickCount=%d\n", sys::Library("/System/Library/Frameworks/Carbon.framework").function<tick_count>("TickCount")());
 	} catch(const std::exception &exception) {
 		fprintf(stderr, "EXCEPTION(Carbon.framework:TickCount): %s\n", exception.what());
 	}

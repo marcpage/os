@@ -19,3 +19,7 @@ printf "Hash: expecting >= 47\n"
 g++ -o /tmp/test tests/TypeSafeEnum_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $GCC_WARNINGS -Wno-non-template-friend
 printf "TypeSafeEnum: expecting >= 169\n"
 /tmp/test | sort | grep TypeSafeEnum\\.h | uniq | wc -l
+
+g++ -o /tmp/test tests/Library_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h -framework Carbon $GCC_WARNINGS
+printf "Library: expecting >= 93\n"
+/tmp/test | sort | grep Library\\.h | uniq | wc -l
