@@ -23,33 +23,59 @@
 	#define trace_bool(x) x ///< in case Trace.h is not included
 #endif
 
+/** Hashing support.
+*/
 namespace hash {
+	/** Pure virtual parent of all specific hashers.
+	*/
 	class Hash {
 		public:
+			/// Default constructor.
 			Hash();
+			/// Nothing to do in destructor.
 			virtual ~Hash();
+			/// Fills <code>value</code> with the hex value of the hash.
 			virtual std::string &hex(std::string &value) const= 0;
+			/// Returns the number of bytes in the hash.
 			virtual uint32_t size() const= 0;
+			/// Returns the pointer to the internal hash buffer.
 			virtual const uint8_t *buffer() const= 0;
+			/// Resets the hash and starts hashing a new string.
 			virtual void reset(const char *hash)= 0;
+			/// Resets the hash and starts hashing new data.
 			virtual void reset(const void *data, size_t count)= 0;
+			/// Resets the hash and starts hashing a new string.
 			virtual void reset(const std::string &data)= 0;
+			/// The name of the hashing function.
 			virtual const char *name() const= 0;
 	};
+	/** The specific instantiation of a Hash.
+		@tparam Hasher	See SHA256Hasher below as an example.
+						Must implement name(), hash() and have a member Size.
+	*/
 	template<class Hasher>
 	class SpecificHash : public Hash {
 		public:
 			enum {
-				Size = Hasher::Size
+				Size = Hasher::Size ///< The number of bytes in the hash.
 			};
+			/// The default constructor.
 			SpecificHash();
+			/// Construct and initialize with hash of a string.
 			SpecificHash(const char *hash);
+			/// Construct and initialize with hash of data.
 			SpecificHash(const void *data, size_t count);
+			/// Construct and initialize with hash of a string.
 			SpecificHash(const std::string &data);
+			/// Copy another hash's data.
 			SpecificHash(const SpecificHash &other);
+			/// Nothing to do in destructor.
 			virtual ~SpecificHash();
+			/// Assign another hasher's data to us.
 			SpecificHash &operator=(const SpecificHash &other);
+			/// Determine if our current hash is the same as another.
 			bool operator==(const SpecificHash &other);
+			/// Determine if we are different than another hash.
 			bool operator!=(const SpecificHash &other);
 			bool valid() const;
 			bool same(const SpecificHash &other);
