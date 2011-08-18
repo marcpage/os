@@ -1,7 +1,7 @@
-#include "TypeSafeEnum.h"
+#include "EnumSet.h"
 
-// g++ -o /tmp/test TypeSafeEnum_test.cpp -I.. -g -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -Wno-non-template-friend
-// /tmp/test | grep TypeSafeEnum.h | sort | uniq | wc -l
+// g++ -o /tmp/test EnumSet_test.cpp -I.. -g -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -Wno-non-template-friend
+// /tmp/test | grep EnumSet.h | sort | uniq | wc -l
 // max = 133
 
 /**
@@ -25,7 +25,7 @@ enum Bits {
 	Bit8
 };
 
-typedef TypeSafeEnum<Bits, Bit8> SafeBits;
+typedef EnumSet<Bits, Bit8> SafeBits;
 
 int main(int,const char*const[]) {
 	SafeBits	bits1, bits2(Bit2);

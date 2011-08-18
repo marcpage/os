@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include "Library.h"
 
-// g++ Library_test.cpp -o /tmp/test -framework Carbon -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -Wno-empty-body
-
 int main(const int argc, const char * const argv[]) {
 	typedef const char *(*zlibVersion)();
 	typedef int (*tick_count)();

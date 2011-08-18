@@ -16,10 +16,14 @@ g++ -o /tmp/test tests/Hash_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -inc
 printf "Hash: expecting >= 47\n"
 /tmp/test | sort | grep Hash\\.h | uniq | wc -l
 
-g++ -o /tmp/test tests/TypeSafeEnum_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $GCC_WARNINGS -Wno-non-template-friend
-printf "TypeSafeEnum: expecting >= 169\n"
-/tmp/test | sort | grep TypeSafeEnum\\.h | uniq | wc -l
+g++ -o /tmp/test tests/EnumSet_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $GCC_WARNINGS -Wno-non-template-friend
+printf "EnumSet: expecting >= 189\n"
+/tmp/test | sort | grep EnumSet\\.h | uniq | wc -l
 
-g++ -o /tmp/test tests/Library_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h -framework Carbon $GCC_WARNINGS
+g++ -o /tmp/test tests/Library_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $GCC_WARNINGS -framework Carbon
 printf "Library: expecting >= 93\n"
 /tmp/test | sort | grep Library\\.h | uniq | wc -l
+
+g++ -o /tmp/test tests/Exception_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $GCC_WARNINGS
+printf "Exception: expecting >= 19\n"
+/tmp/test | sort | grep Exception\\.h | uniq | wc -l
