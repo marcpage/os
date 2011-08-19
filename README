@@ -27,3 +27,7 @@ printf "Library: expecting >= 93\n"
 g++ -o /tmp/test tests/Exception_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $GCC_WARNINGS
 printf "Exception: expecting >= 19\n"
 /tmp/test | sort | grep Exception\\.h | uniq | wc -l
+
+g++ -o /tmp/test tests/Thread_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $GCC_WARNINGS
+printf "Thread: expecting >= 26\n"
+/tmp/test | sort | grep Thread\\.h | uniq | wc -l
