@@ -1,5 +1,5 @@
+#include "Exception.h"
 #include "Sqlite3Plus.h"
-#include "Stat.h"
 #include <stdio.h>
 #include <unistd.h>
 
@@ -24,7 +24,6 @@ int main(int /*argc*/, const char * /*argv*/[]) {
 		std::string	number;
 
 		try	{
-			io::Stat	stat(kDBPath); // If the file exists
 			errnoAssertPositiveMessageException(unlink(kDBPath)); // try to delete it
 		} catch(const std::exception &exception) {
 		}

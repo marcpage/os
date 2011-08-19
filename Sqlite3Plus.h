@@ -6,37 +6,44 @@
 #include <vector>
 #include <map>
 
+#ifndef trace_scope
+	#define trace_scope ///< in case Tracer.h is not included
+#endif
+#ifndef trace_bool
+	#define trace_bool(x) x ///< in case Tracer.h is not included
+#endif
+
 // http://www.iphonesdkarticles.com/2009/02/sqlite-tutorial-saving-images-in.html
 // http://shellbt.wordpress.com/2009/07/14/sqlite3-blob-cecia-ucaauua/
 // blob and sqlite3
 
 /// Throws an Sqlite3::Exception for the given line
 #define Sql3Throw() \
-throw Sqlite3::Exception(__FILE__, __LINE__)
-/// Throws an Sqlite3::Exception if a pointer is NULL
+	throw Sqlite3::Exception(__FILE__, __LINE__)
+	/// Throws an Sqlite3::Exception if a pointer is NULL
 #define Sql3ThrowIfNull(ptr, message) \
-if(NULL == (ptr)) \
-throw Sqlite3::Exception(__FILE__, __LINE__, message); \
-else
+	if(NULL == (ptr)) \
+	throw Sqlite3::Exception(__FILE__, __LINE__, message); \
+	else
 /// Throws an Sqlite3::Exception if 'error' is not NULL, 0, false, etc. 'error' must be a const char* or int
 #define Sql3ThrowIfError(error) \
-if(error) \
-throw Sqlite3::Exception(__FILE__, __LINE__, error); \
-else
+	if(error) \
+	throw Sqlite3::Exception(__FILE__, __LINE__, error); \
+	else
 /// Throws an Sqlite3::Exception if a sqlite3 return code is an error, throws the error string from sqlite3 for the db
 #define Sql3ThrowIfDbError(db, returnCode) \
-if(returnCode) \
-throw Sqlite3::Exception(__FILE__, __LINE__, sqlite3_errmsg(db)); \
-else
+	if(returnCode) \
+	throw Sqlite3::Exception(__FILE__, __LINE__, sqlite3_errmsg(db)); \
+	else
 /// Throws an Sqlite3::Exception if an assertion fails
 #define Sql3Assert(condition) \
-if(!condition) \
-throw Sqlite3::Exception(__FILE__, __LINE__, #condition); \
-else
+	if(!condition) \
+	throw Sqlite3::Exception(__FILE__, __LINE__, #condition); \
+	else
 
 /// Namespace for Sqlite3
 namespace Sqlite3 {
-	
+
 	std::string &escapeValue(std::string &data);
 	template<typename Number>
 	std::string &toString(Number i, std::string &asString);
@@ -81,7 +88,7 @@ namespace Sqlite3 {
 		std::string	_message; ///< Holds the message
 		bool		_exception; ///< true if this is a real exception?
 	};
-	
+
 	/// An Sqlite3 database
 	class DB {
 	public:
@@ -108,7 +115,7 @@ namespace Sqlite3 {
 		void addRow(const std::string &table, const Row &row);
 	private:
 		sqlite3					*_db;	///< The database reference
-		
+
 		DB(const DB&); ///< cannot be used
 		DB &operator=(const DB&); ///< cannot be used
 	};
@@ -118,9 +125,9 @@ namespace Sqlite3 {
 #include <sstream>
 
 namespace Sqlite3 {
-	inline std::string &escapeValue(std::string &data) {
+	inline std::string &escapeValue(std::string &data) {trace_scope
 		std::string::size_type	tick= data.find('\'');
-		
+
 		while(std::string::npos != tick) {
 			data.replace(tick, 1, "''");
 			tick= data.find('\'', tick + 2);
@@ -128,18 +135,18 @@ namespace Sqlite3 {
 		return data;
 	}
 	template<typename Number>
-	std::string &toString(Number i, std::string &asString) {
+	std::string &toString(Number i, std::string &asString) {trace_scope
 		std::stringstream	ss;
-		
+
 		ss << i;
 		asString= ss.str();
 		return asString;
 	}
 	template<typename Number>
-	Number fromString(const std::string &asString) {
+	Number fromString(const std::string &asString) {trace_scope
 		std::istringstream	i(asString);
 		Number				x;
-		
+
 		if( !(i >> x) ) {
 			throw Sqlite3::Exception(__FILE__, __LINE__, "Unable to convert number string to number");
 		}
@@ -147,63 +154,63 @@ namespace Sqlite3 {
 	}
 
 	// ****** Exception implementation ******
-	
+
 	inline Exception::Exception() throw()
-	:std::exception(), _message(NULL), _exception(false) {}
+		:std::exception(), _message(NULL), _exception(false) {trace_scope}
 	inline Exception::Exception(const Exception &exceptionToCopy) throw()
-	:std::exception(exceptionToCopy), _message(exceptionToCopy._message), _exception(exceptionToCopy._exception) {}
+		:std::exception(exceptionToCopy), _message(exceptionToCopy._message), _exception(exceptionToCopy._exception) {trace_scope}
 	inline Exception::Exception(const char *file, int line)
-	:std::exception(), _message(), _exception(true) {
+		:std::exception(), _message(), _exception(true) {trace_scope
 		std::string	number;
-		
+
 		_message= std::string(file)+":"+toString(line, number)+": Error";
 	}
 	inline Exception::Exception(const char *file, int line, int errorCode)
-	:std::exception(), _message(), _exception(true) {
+		:std::exception(), _message(), _exception(true) {trace_scope
 		std::string	number;
-		
+
 		_message= std::string(file)+":"+toString(line, number)+": Error #"+toString(errorCode, number);
 	}
 	inline Exception::Exception(const char *file, int line, const std::string &errorString)
-	:std::exception(), _message(), _exception(true) {
+		:std::exception(), _message(), _exception(true) {trace_scope
 		std::string	number;
-		
+
 		_message= std::string(file)+":"+toString(line, number)+": Error "+errorString;
 	}
-	inline Exception::~Exception() throw() {}
-	inline const char* Exception::what() const throw() {
+	inline Exception::~Exception() throw() {trace_scope}
+	inline const char* Exception::what() const throw() {trace_scope
 		return _message.c_str();
 	}
-	inline Exception &Exception::operator=(const Exception &exceptionToCopy) {
+	inline Exception &Exception::operator=(const Exception &exceptionToCopy) {trace_scope
 		_message= exceptionToCopy._message;
 		_exception= exceptionToCopy._exception;
 		return *this;
 	}
-	inline bool Exception::isException() const {
-		return _exception;
+	inline bool Exception::isException() const {trace_scope
+		return trace_bool(_exception);
 	}
 
 	// ****** DB implementation ******
-	
+
 	inline DB::DB(const char *filepath)
-	:_db(NULL) {
+		:_db(NULL) {trace_scope
 		Sql3ThrowIfDbError(_db, sqlite3_open(filepath, &_db));
 	}
-	inline DB::~DB() {
+	inline DB::~DB() {trace_scope
 		if(sqlite3_close(_db)) {
 			// error, but what can we do?
 		}
 		_db= NULL;
 	}
-	inline void DB::exec(const std::string &command, Results *rows) {
+	inline void DB::exec(const std::string &command, Results *rows) {trace_scope
 		sqlite3_stmt	*statement= NULL;
 		int				stepResult;
-		
+
 		if(NULL != rows) {
 			rows->clear();
 		}
 		Sql3ThrowIfDbError(_db, sqlite3_prepare_v2(_db, command.c_str(), command.length(), &statement, NULL))
-		
+
 		do	{
 			stepResult= sqlite3_step(statement);
 			if(SQLITE_ROW == stepResult) {
@@ -211,10 +218,10 @@ namespace Sqlite3 {
 					const int	columns= sqlite3_column_count(statement);
 					Row			row;
 					std::string	key;
-					
-					for(int column= 0; column < columns; ++column) {
+
+					for(int column= 0; trace_bool(column < columns); ++column) {
 						const int	columnSize= sqlite3_column_bytes(statement, column);
-						
+
 						key= sqlite3_column_name(statement, column);
 						row[key].assign(reinterpret_cast<const char*>(sqlite3_column_blob(statement, column)), columnSize);
 					}
@@ -227,15 +234,15 @@ namespace Sqlite3 {
 		} while(SQLITE_DONE != stepResult);
 		Sql3ThrowIfDbError(_db, sqlite3_finalize(statement));
 	}
-	void DB::addRow(const std::string &table, const Row &row) {
+	void DB::addRow(const std::string &table, const Row &row) {trace_scope
 		sqlite3_stmt				*statement= NULL;
 		std::string					command("INSERT INTO `");
 		std::string					values;
 		char						separator= ' ';
 		std::vector<std::string>	keys;
-		
+
 		command.append(table).append("` (");
-		for(Row::const_iterator column= row.begin(); column != row.end(); ++column) {
+		for(Row::const_iterator column= row.begin(); trace_bool(column != row.end()); ++column) {
 			command.append(1, separator).append(1, '`').append(column->first).append(1, '`');
 			values.append(1, separator).append(1, '?');
 			keys.push_back(column->first);
@@ -244,9 +251,9 @@ namespace Sqlite3 {
 		command.append(") VALUES (").append(values).append(");");
 		Sql3ThrowIfDbError(_db, sqlite3_prepare_v2(_db, command.c_str(), command.length(), &statement, NULL));
 		int	valueIndex= 1;
-		for(std::vector<std::string>::iterator	keyPtr= keys.begin(); keyPtr != keys.end(); ++keyPtr, ++valueIndex) {
+		for(std::vector<std::string>::iterator	keyPtr= keys.begin(); trace_bool(keyPtr != keys.end()); ++keyPtr, ++valueIndex) {
 			const std::string	&value= row.find(*keyPtr)->second;
-			
+
 			sqlite3_bind_blob(statement, valueIndex, value.data(), value.size(), SQLITE_STATIC);
 		}
 		Sql3Assert(SQLITE_DONE == sqlite3_step(statement));
@@ -319,8 +326,8 @@ The sqlite3_prepare_v2() and sqlite3_prepare16_v2() interfaces are recommended f
 		statement, then the statement may be automatically recompiled (as if there had been a schema
 		change) on the first sqlite3_step() call following any change to the bindings of the
 		parameter.
-	
-	
+
+
 int sqlite3_step(sqlite3_stmt*);
 
 After a prepared statement has been prepared using either sqlite3_prepare_v2() or

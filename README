@@ -31,3 +31,12 @@ printf "Exception: expecting >= 19\n"
 g++ -o /tmp/test tests/Thread_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $GCC_WARNINGS
 printf "Thread: expecting >= 26\n"
 /tmp/test | sort | grep Thread\\.h | uniq | wc -l
+
+g++ -o /tmp/test tests/File_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $GCC_WARNINGS
+printf "File: expecting >= 35\n"
+/tmp/test | sort | grep File\\.h | uniq | wc -l
+
+# still need to document what needs to be tested
+g++ -o /tmp/test tests/Sqlite3Plus_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $GCC_WARNINGS -Wno-effc++ -lsqlite3
+printf "Sqlite3Plus: expecting >= 31\n"
+/tmp/test | sort | grep Sqlite3Plus\\.h | uniq | wc -l
