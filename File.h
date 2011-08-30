@@ -8,7 +8,7 @@
 	#define trace_scope ///< in case Tracer.h is not included
 #endif
 #ifndef trace_bool
-	#define trace_bool(x) x ///< in case Tracer.h is not included
+	#define trace_bool(x) (x) ///< in case Tracer.h is not included
 #endif
 
 #if _DEBUG_FILE // Debug

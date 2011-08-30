@@ -10,7 +10,7 @@
 	#define trace_scope ///< in case Tracer.h is not included
 #endif
 #ifndef trace_bool
-	#define trace_bool(x) x ///< in case Tracer.h is not included
+	#define trace_bool(x) (x) ///< in case Tracer.h is not included
 #endif
 
 // http://www.iphonesdkarticles.com/2009/02/sqlite-tutorial-saving-images-in.html
@@ -24,25 +24,27 @@
 #define Sql3ThrowIfNull(ptr, message) \
 	if(NULL == (ptr)) \
 	throw Sqlite3::Exception(__FILE__, __LINE__, message); \
-	else
+	else noop()
 /// Throws an Sqlite3::Exception if 'error' is not NULL, 0, false, etc. 'error' must be a const char* or int
 #define Sql3ThrowIfError(error) \
 	if(error) \
 	throw Sqlite3::Exception(__FILE__, __LINE__, error); \
-	else
+	else noop()
 /// Throws an Sqlite3::Exception if a sqlite3 return code is an error, throws the error string from sqlite3 for the db
 #define Sql3ThrowIfDbError(db, returnCode) \
 	if(returnCode) \
 	throw Sqlite3::Exception(__FILE__, __LINE__, sqlite3_errmsg(db)); \
-	else
+	else noop()
 /// Throws an Sqlite3::Exception if an assertion fails
 #define Sql3Assert(condition) \
 	if(!condition) \
 	throw Sqlite3::Exception(__FILE__, __LINE__, #condition); \
-	else
+	else noop()
 
 /// Namespace for Sqlite3
 namespace Sqlite3 {
+
+	inline void noop() {}
 
 	std::string &escapeValue(std::string &data);
 	template<typename Number>
@@ -209,7 +211,7 @@ namespace Sqlite3 {
 		if(NULL != rows) {
 			rows->clear();
 		}
-		Sql3ThrowIfDbError(_db, sqlite3_prepare_v2(_db, command.c_str(), command.length(), &statement, NULL))
+		Sql3ThrowIfDbError(_db, sqlite3_prepare_v2(_db, command.c_str(), command.length(), &statement, NULL));
 
 		do	{
 			stepResult= sqlite3_step(statement);

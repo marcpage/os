@@ -1,42 +1,56 @@
 
-# Must set $SDK_PATH to where the SDKs are
-
 # bash -e README
 
 mkdir -p documentation
 doxygen os.dox
+#COMPILER=llvm-g++
+COMPILER=g++
 
 GCC_WARNINGS="-Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings"
 
-g++ -o /tmp/test tests/ReferencedString_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $GCC_WARNINGS
+$COMPILER -o /tmp/test tests/ReferencedString_test.cpp -I. $GCC_WARNINGS
+$COMPILER -o /tmp/test tests/ReferencedString_test.cpp -I. -include Tracer.h $GCC_WARNINGS
 printf "ReferencedString: expecting >= 251\n"
 /tmp/test | sort | grep ReferencedString\\.h | uniq | wc -l
 
-g++ -o /tmp/test tests/Hash_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $GCC_WARNINGS
+$COMPILER -o /tmp/test tests/Hash_test.cpp -I. $GCC_WARNINGS
+$COMPILER -o /tmp/test tests/Hash_test.cpp -I. -include Tracer.h $GCC_WARNINGS
 printf "Hash: expecting >= 47\n"
 /tmp/test | sort | grep Hash\\.h | uniq | wc -l
 
-g++ -o /tmp/test tests/EnumSet_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $GCC_WARNINGS -Wno-non-template-friend
+$COMPILER -o /tmp/test tests/EnumSet_test.cpp -I. $GCC_WARNINGS -Wno-non-template-friend
+$COMPILER -o /tmp/test tests/EnumSet_test.cpp -I. -include Tracer.h $GCC_WARNINGS -Wno-non-template-friend
 printf "EnumSet: expecting >= 189\n"
 /tmp/test | sort | grep EnumSet\\.h | uniq | wc -l
 
-g++ -o /tmp/test tests/Library_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $GCC_WARNINGS -framework Carbon
+$COMPILER -o /tmp/test tests/Library_test.cpp -I. $GCC_WARNINGS -framework Carbon
+$COMPILER -o /tmp/test tests/Library_test.cpp -I. -include Tracer.h $GCC_WARNINGS -framework Carbon
 printf "Library: expecting >= 93\n"
 /tmp/test | sort | grep Library\\.h | uniq | wc -l
 
-g++ -o /tmp/test tests/Exception_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $GCC_WARNINGS
+$COMPILER -o /tmp/test tests/Exception_test.cpp -I. $GCC_WARNINGS
+$COMPILER -o /tmp/test tests/Exception_test.cpp -I. -include Tracer.h $GCC_WARNINGS
 printf "Exception: expecting >= 19\n"
 /tmp/test | sort | grep Exception\\.h | uniq | wc -l
 
-g++ -o /tmp/test tests/Thread_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $GCC_WARNINGS
+$COMPILER -o /tmp/test tests/Thread_test.cpp -I. $GCC_WARNINGS
+$COMPILER -o /tmp/test tests/Thread_test.cpp -I. -include Tracer.h $GCC_WARNINGS
 printf "Thread: expecting >= 26\n"
 /tmp/test | sort | grep Thread\\.h | uniq | wc -l
 
-g++ -o /tmp/test tests/File_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $GCC_WARNINGS
+$COMPILER -o /tmp/test tests/File_test.cpp -I. $GCC_WARNINGS
+$COMPILER -o /tmp/test tests/File_test.cpp -I. -include Tracer.h $GCC_WARNINGS
 printf "File: expecting >= 35\n"
 /tmp/test | sort | grep File\\.h | uniq | wc -l
 
 # still need to document what needs to be tested
-g++ -o /tmp/test tests/Sqlite3Plus_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h $GCC_WARNINGS -Wno-effc++ -lsqlite3
+$COMPILER -o /tmp/test tests/Sqlite3Plus_test.cpp -I. $GCC_WARNINGS -Wno-effc++ -lsqlite3
+$COMPILER -o /tmp/test tests/Sqlite3Plus_test.cpp -I. -include Tracer.h $GCC_WARNINGS -Wno-effc++ -lsqlite3
 printf "Sqlite3Plus: expecting >= 31\n"
 /tmp/test | sort | grep Sqlite3Plus\\.h | uniq | wc -l
+
+# still need to document
+$COMPILER -o /tmp/test tests/Mutex_test.cpp -I. $GCC_WARNINGS
+$COMPILER -o /tmp/test tests/Mutex_test.cpp -I. -include Tracer.h $GCC_WARNINGS
+printf "Mutex: expecting >= 15\n"
+/tmp/test | sort | grep Mutex\\.h | uniq | wc -l

@@ -13,7 +13,7 @@
 	#define trace_scope ///< in case Tracer.h is not included
 #endif
 #ifndef trace_bool
-	#define trace_bool(x) x ///< in case Tracer.h is not included
+	#define trace_bool(x) (x) ///< in case Tracer.h is not included
 #endif
 
 // --- C++ Headers ---
@@ -57,6 +57,8 @@
 // --- Library Class ---
 
 namespace sys {
+
+	inline void noop() {}
 
 	/** An abstraction of a system library.
 	*/
@@ -121,14 +123,14 @@ namespace sys {
 
 #if defined(__FUNCTION__)
 	/// Throw an exception if condition isn't met
-	#define sysLibraryAssert(condition,message) if(!(condition)) {throw sys::Library::Exception(std::string(#condition)+(message), __FILE__, __LINE__, __FUNCTION__);} else
+	#define sysLibraryAssert(condition,message) if(!(condition)) {throw sys::Library::Exception(std::string(#condition)+(message), __FILE__, __LINE__, __FUNCTION__);} else sys::noop()
 	/// Throw an exception if the expression is NULL
-	#define sysLibraryAssertNotNULL(variable,message) if(NULL==(variable)) {throw sys::Library::Exception(std::string(#variable " was NULL:")+message, __FILE__, __LINE__, __FUNCTION__);} else
+	#define sysLibraryAssertNotNULL(variable,message) if(NULL==(variable)) {throw sys::Library::Exception(std::string(#variable " was NULL:")+message, __FILE__, __LINE__, __FUNCTION__);} else sys::noop()
 #else
 	/// Throw an exception if condition isn't met
-	#define sysLibraryAssert(condition,message) if(!(condition)) {throw sys::Library::Exception(std::string("("#condition") failed:")+(message), __FILE__, __LINE__);} else
+	#define sysLibraryAssert(condition,message) if(!(condition)) {throw sys::Library::Exception(std::string("("#condition") failed:")+(message), __FILE__, __LINE__);} else sys::noop()
 	/// Throw an exception if the expression is NULL
-	#define sysLibraryAssertNotNULL(variable,message) if(NULL==(variable)) {throw sys::Library::Exception(std::string(#variable " was NULL:")+message, __FILE__, __LINE__);} else
+	#define sysLibraryAssertNotNULL(variable,message) if(NULL==(variable)) {throw sys::Library::Exception(std::string(#variable " was NULL:")+message, __FILE__, __LINE__);} else sys::noop()
 #endif
 
 
