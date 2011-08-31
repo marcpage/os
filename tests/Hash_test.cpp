@@ -1,4 +1,4 @@
-#include "Hash.h"
+#include "os/Hash.h"
 #include <stdio.h>
 
 #define dotest(condition) \

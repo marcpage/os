@@ -1,5 +1,5 @@
-#include "Thread.h"
-#include "Mutex.h"
+#include "os/Thread.h"
+#include "os/Mutex.h"
 #include <stdio.h>
 
 #define dotest(condition) \

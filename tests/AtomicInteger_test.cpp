@@ -1,5 +1,5 @@
-#include "Thread.h"
-#include "AtomicInteger.h"
+#include "os/Thread.h"
+#include "os/AtomicInteger.h"
 #include <stdio.h>
 
 #define dotest(condition) \

@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "ReferencedString.h"
+#include "os/ReferencedString.h"
 
 // $ g++ -o /tmp/test tests/ReferencedString_test.cpp -isysroot $SDK_PATH/MacOSX10.5.sdk -I. -include Tracer.h -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings
 

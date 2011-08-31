@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "Library.h"
+#include "os/Library.h"
 
 int main(const int argc, const char * const argv[]) {
 	typedef const char *(*zlibVersion)();

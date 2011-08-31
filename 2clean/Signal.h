@@ -4,8 +4,7 @@
 #include <vector>
 #include <pthread.h>
 #include "Exception.h"
-#include "ExecutionMutex.h"
-#include "Utilities.h"
+#include "Mutex.h"
 
 namespace exec {
 
