@@ -13,6 +13,11 @@
 	#define trace_bool(x) (x) ///< in case Tracer.h is not included
 #endif
 
+#define AddToConvertToAppleCocoaEpoch	(dt::DateTime(2001,dt::DateTime::Jan,1) - dt::DateTime(0.0))
+#define AddToConvertToDOSEpoch	 		(dt::DateTime(1980,dt::DateTime::Jan,1) - dt::DateTime(0.0))
+#define AddToConvertToUNIXEpoch 		(dt::DateTime(1970,dt::DateTime::Jan,1) - dt::DateTime(0.0))
+#define AddToConvertToAppleMacEpoch 	(dt::DateTime(1904,dt::DateTime::Jan,1) - dt::DateTime(0.0))
+
 namespace dt {
 
 	/**
@@ -27,6 +32,24 @@ namespace dt {
 				Days,
 				Weeks
 			};
+			enum Month {
+				Jan,	January= Jan,
+				Feb,	February= Feb,
+				Mar,	March= Mar,
+				Apr,	April= Apr,
+				May,
+				Jun,	June= Jun,
+				Jul,	July= Jul,
+				Aug,	August= Aug,
+				Sep,	September= Sep,
+				Oct,	October= Oct,
+				Nov,	November= Nov,
+				Dec,	December= Dec,
+			};
+			enum CivilianHour {
+				AM,
+				PM
+			};
 			DateTime();
 			DateTime(const DateTime &time);
 			DateTime(const time_t &time);
@@ -34,11 +57,12 @@ namespace dt {
 			DateTime(const timespec &time);
 			DateTime(tm &time);
 			DateTime(const double &time);
+			DateTime(int year, Month month, int day, int hour24= 0, int minutes= 0, double seconds= 0.0);
+			DateTime(int year, Month month, int day, int hour, CivilianHour ampm, int minutes= 0, double seconds= 0.0);
 			~DateTime();
 			operator time_t() const;
 			operator timeval() const;
-			operator const timespec*() const;
-			operator const timespec&() const;
+			operator const timespec() const;
 			operator double() const;
 			DateTime &operator+=(double secs);
 			DateTime operator+(double secs) const;
@@ -56,9 +80,12 @@ namespace dt {
 			DateTime &add(double value, Span span= Seconds);
 			tm &utc(tm &time) const;
 			tm &local(tm &time) const;
-			timespec &spec(timespec &ts) const;
+			timeval &value(timeval &tv) const;
+			timespec &value(timespec &ts) const;
 		private:
 			timespec	_time;
+			void _init(tm &time, double fractionalSeconds= 0.0);
+			void _init(int year, Month month, int day, int hour24, int minutes, double seconds);
 	};
 	/**
 		@todo look at using mach_absolute_time/mach_timebase_info
@@ -70,7 +97,7 @@ namespace dt {
 		struct timeval	time;
 		errnoAssertMessageException(gettimeofday(&time,NULL));
 		_time.tv_sec= time.tv_sec;
-		_time.tv_nsec= time.tv_usec * 1000;
+		_time.tv_nsec= static_cast<long>(time.tv_usec) * 1000UL;
 	}
 	inline DateTime::DateTime(const DateTime &time)
 		:_time(time._time) {trace_scope;
@@ -78,26 +105,58 @@ namespace dt {
 	inline DateTime::DateTime(const time_t &time)
 		:_time() {trace_scope;
 		_time.tv_sec= time;
-		_time.tv_nsec= 0;
+		_time.tv_nsec= 0UL;
 	}
 	inline DateTime::DateTime(const timeval &time)
 		:_time() {trace_scope;
 		_time.tv_sec= time.tv_sec;
-		_time.tv_nsec= time.tv_usec * 1000;
+		_time.tv_nsec= static_cast<long>(time.tv_usec) * 1000UL;
 	}
 	inline DateTime::DateTime(const timespec &time)
 		:_time(time) {
 	}
+	inline void DateTime::_init(tm &time, double fractionalSeconds) {
+		_time.tv_sec= mktime(&time);
+		_time.tv_nsec= static_cast<long>(fractionalSeconds * 1000000000.0);
+		AssertMessageException(_time.tv_sec != static_cast<time_t>(-1));
+	}
 	inline DateTime::DateTime(tm &time)
 		:_time() {trace_scope;
-		_time.tv_sec= mktime(&time);
-		_time.tv_nsec= 0;
-		AssertMessageException(_time.tv_sec != static_cast<time_t>(-1));
+		_init(time);
 	}
 	inline DateTime::DateTime(const double &time)
 		:_time() {trace_scope;
-		_time.tv_sec= static_cast<time_t>(time);
-		_time.tv_nsec= static_cast<suseconds_t>(1000000000.0 * (time - floor(time)));
+		double	wholeSeconds= floor(time);
+
+		_time.tv_sec= static_cast<time_t>(wholeSeconds);
+		_time.tv_nsec= static_cast<long>(1000000000.0 * (time - wholeSeconds));
+	}
+	inline void DateTime::_init(int year, Month month, int day, int hour24, int minutes, double secs) {
+		struct tm	date;
+		double		wholeSeconds= floor(secs);
+
+		date.tm_year= year - 1900;
+		date.tm_mon= static_cast<int>(month);
+		date.tm_mday= day;
+		date.tm_hour= hour24;
+		date.tm_min= minutes;
+		date.tm_sec= static_cast<int>(wholeSeconds);
+		_init(date, secs - wholeSeconds);
+	}
+	inline DateTime::DateTime(int year, Month month, int day, int hour24, int minutes, double secs)
+		:_time() {
+		_init(year, month, day, hour24, minutes, secs);
+	}
+	inline DateTime::DateTime(int year, Month month, int day, int hour, CivilianHour ampm, int minutes, double secs)
+		:_time() {
+		if(12 == hour) {
+			if(AM == ampm) {
+				hour= 0;
+			}
+		} else if(PM == ampm) {
+			hour+= 12;
+		}
+		_init(year, month, day, hour, minutes, secs);
 	}
 	inline DateTime::~DateTime() {trace_scope;
 	}
@@ -105,13 +164,11 @@ namespace dt {
 		return _time.tv_sec;
 	}
 	inline DateTime::operator timeval() const {trace_scope;
-		struct timeval	time= {_time.tv_sec, _time.tv_nsec / 1000};
+		struct timeval	time;
+		value(time);
 		return time;
 	}
-	inline DateTime::operator const timespec*() const {
-		return &_time;
-	}
-	inline DateTime::operator const timespec&() const {
+	inline DateTime::operator const timespec() const {
 		return _time;
 	}
 	inline DateTime::operator double() const {trace_scope;
@@ -173,22 +230,22 @@ namespace dt {
 	inline double DateTime::seconds() const {trace_scope;
 		return static_cast<double>(_time.tv_sec) + static_cast<double>(_time.tv_nsec) / 1000000000.0;
 	}
-	inline DateTime &DateTime::add(double value, Span span) {trace_scope;
+	inline DateTime &DateTime::add(double amount, Span span) {trace_scope;
 		switch(span) {
 			case Weeks:
-				value*= 7.0;
+				amount*= 7.0;
 			case Days:
-				value*= 24.0;
+				amount*= 24.0;
 			case Hours:
-				value*= 60.0;
+				amount*= 60.0;
 			case Minutes:
-				value*= 60.0;
+				amount*= 60.0;
 			case Seconds:
 				break;
 			default:
 				break;
 		}
-		return *this += value;
+		return *this += amount;
 	}
 	inline tm &DateTime::utc(tm &time) const {trace_scope;
 		return *localtime_r(&_time.tv_sec, &time);
@@ -196,7 +253,12 @@ namespace dt {
 	inline tm &DateTime::local(tm &time) const {trace_scope;
 		return *gmtime_r(&_time.tv_sec, &time);
 	}
-	inline timespec &DateTime::spec(timespec &ts) const {
+	inline timeval &DateTime::value(timeval &tv) const {
+		tv.tv_sec= _time.tv_sec;
+		tv.tv_usec= static_cast<suseconds_t>(_time.tv_nsec / 1000UL);
+		return tv;
+	}
+	inline timespec &DateTime::value(timespec &ts) const {
 		ts= _time;
 		return ts;
 	}

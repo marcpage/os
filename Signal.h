@@ -23,7 +23,7 @@ namespace exec {
 			/// Unlocks the mutex and waits for the signal
 			void wait(Mutex &mutex);
 			/// Unlocks the mutex and waits for the signal or we reach a certain time
-			bool wait(Mutex &mutex, time_t untilAbsTime);
+			bool wait(Mutex &mutex, const dt::DateTime &untilAbsTime);
 			/// Unlocks the mutex and waits for the signal or we timeout
 			bool wait(Mutex &mutex, double timeoutInSeconds);
 		private:
@@ -49,12 +49,11 @@ namespace exec {
 	inline void Signal::wait(Mutex &mutex) {
 		AssertCodeMessageException(pthread_cond_wait(&_signal, mutex));
 	}
-	inline bool Signal::wait(Mutex &mutex, time_t untilAbsTime) {
-		dt::DateTime	timeout(untilAbsTime);
+	inline bool Signal::wait(Mutex &mutex, const dt::DateTime &untilAbsTime) {
 		struct timespec	timeoutAt;
 		int				returnCode;
 
-		returnCode= pthread_cond_timedwait(&_signal, mutex, &timeout.spec(timeoutAt));
+		returnCode= pthread_cond_timedwait(&_signal, mutex, &untilAbsTime.value(timeoutAt));
 		if(ETIMEDOUT == returnCode) {
 			return false;
 		}
@@ -66,7 +65,7 @@ namespace exec {
 		struct timespec	timeoutAt;
 
 		now+= timeoutInSeconds;
-		wait(mutex, &now.spec(timeoutAt));
+		wait(mutex, &now.value(timeoutAt));
 	}
 };
 
