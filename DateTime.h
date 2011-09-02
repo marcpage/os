@@ -31,12 +31,14 @@ namespace dt {
 			DateTime(const DateTime &time);
 			DateTime(const time_t &time);
 			DateTime(const timeval &time);
+			DateTime(const timespec &time);
 			DateTime(tm &time);
 			DateTime(const double &time);
 			~DateTime();
 			operator time_t() const;
-			operator const timeval&() const;
-			operator const timeval*() const;
+			operator timeval() const;
+			operator const timespec*() const;
+			operator const timespec&() const;
 			operator double() const;
 			DateTime &operator+=(double secs);
 			DateTime operator+(double secs) const;
@@ -54,12 +56,21 @@ namespace dt {
 			DateTime &add(double value, Span span= Seconds);
 			tm &utc(tm &time) const;
 			tm &local(tm &time) const;
+			timespec &spec(timespec &ts) const;
 		private:
-			timeval	_time;
+			timespec	_time;
 	};
+	/**
+		@todo look at using mach_absolute_time/mach_timebase_info
+				/usr/include/mach/mach_time.h
+				http://developer.apple.com/library/mac/#qa/qa1398/_index.html
+	*/
 	inline DateTime::DateTime()
 		:_time() {trace_scope;
-		errnoAssertMessageException(gettimeofday(&_time,NULL));
+		struct timeval	time;
+		errnoAssertMessageException(gettimeofday(&time,NULL));
+		_time.tv_sec= time.tv_sec;
+		_time.tv_nsec= time.tv_usec * 1000;
 	}
 	inline DateTime::DateTime(const DateTime &time)
 		:_time(time._time) {trace_scope;
@@ -67,32 +78,41 @@ namespace dt {
 	inline DateTime::DateTime(const time_t &time)
 		:_time() {trace_scope;
 		_time.tv_sec= time;
-		_time.tv_usec= 0;
+		_time.tv_nsec= 0;
 	}
 	inline DateTime::DateTime(const timeval &time)
-		:_time(time) {trace_scope;
+		:_time() {trace_scope;
+		_time.tv_sec= time.tv_sec;
+		_time.tv_nsec= time.tv_usec * 1000;
+	}
+	inline DateTime::DateTime(const timespec &time)
+		:_time(time) {
 	}
 	inline DateTime::DateTime(tm &time)
 		:_time() {trace_scope;
 		_time.tv_sec= mktime(&time);
-		_time.tv_usec= 0;
+		_time.tv_nsec= 0;
 		AssertMessageException(_time.tv_sec != static_cast<time_t>(-1));
 	}
 	inline DateTime::DateTime(const double &time)
 		:_time() {trace_scope;
 		_time.tv_sec= static_cast<time_t>(time);
-		_time.tv_usec= static_cast<suseconds_t>(1000000.0 * (time - floor(time)));
+		_time.tv_nsec= static_cast<suseconds_t>(1000000000.0 * (time - floor(time)));
 	}
 	inline DateTime::~DateTime() {trace_scope;
 	}
 	inline DateTime::operator time_t() const {trace_scope;
 		return _time.tv_sec;
 	}
-	inline DateTime::operator const timeval&() const {trace_scope;
-		return _time;
+	inline DateTime::operator timeval() const {trace_scope;
+		struct timeval	time= {_time.tv_sec, _time.tv_nsec / 1000};
+		return time;
 	}
-	inline DateTime::operator const timeval*() const {trace_scope;
+	inline DateTime::operator const timespec*() const {
 		return &_time;
+	}
+	inline DateTime::operator const timespec&() const {
+		return _time;
 	}
 	inline DateTime::operator double() const {trace_scope;
 		return seconds();
@@ -120,38 +140,38 @@ namespace dt {
 	}
 	inline bool DateTime::operator==(const DateTime &other) const {trace_scope;
 		return (_time.tv_sec == other._time.tv_sec)
-				&& (_time.tv_usec == other._time.tv_usec);
+				&& (_time.tv_nsec == other._time.tv_nsec);
 	}
 	inline bool DateTime::operator!=(const DateTime &other) const {trace_scope;
 		return (_time.tv_sec != other._time.tv_sec)
-				|| (_time.tv_usec != other._time.tv_usec);
+				|| (_time.tv_nsec != other._time.tv_nsec);
 	}
 	inline bool DateTime::operator<(const DateTime &other) const {trace_scope;
 		if(_time.tv_sec == other._time.tv_sec) {
-			return _time.tv_usec < other._time.tv_usec;
+			return _time.tv_nsec < other._time.tv_nsec;
 		}
 		return _time.tv_sec < other._time.tv_sec;
 	}
 	inline bool DateTime::operator>(const DateTime &other) const {trace_scope;
 		if(_time.tv_sec == other._time.tv_sec) {
-			return _time.tv_usec > other._time.tv_usec;
+			return _time.tv_nsec > other._time.tv_nsec;
 		}
 		return _time.tv_sec > other._time.tv_sec;
 	}
 	inline bool DateTime::operator<=(const DateTime &other) const {trace_scope;
 		if(_time.tv_sec == other._time.tv_sec) {
-			return _time.tv_usec <= other._time.tv_usec;
+			return _time.tv_nsec <= other._time.tv_nsec;
 		}
 		return _time.tv_sec <= other._time.tv_sec;
 	}
 	inline bool DateTime::operator>=(const DateTime &other) const {trace_scope;
 		if(_time.tv_sec == other._time.tv_sec) {
-			return _time.tv_usec >= other._time.tv_usec;
+			return _time.tv_nsec >= other._time.tv_nsec;
 		}
 		return _time.tv_sec >= other._time.tv_sec;
 	}
 	inline double DateTime::seconds() const {trace_scope;
-		return static_cast<double>(_time.tv_sec) + static_cast<double>(_time.tv_usec) / 1000000.0;
+		return static_cast<double>(_time.tv_sec) + static_cast<double>(_time.tv_nsec) / 1000000000.0;
 	}
 	inline DateTime &DateTime::add(double value, Span span) {trace_scope;
 		switch(span) {
@@ -175,6 +195,10 @@ namespace dt {
 	}
 	inline tm &DateTime::local(tm &time) const {trace_scope;
 		return *gmtime_r(&_time.tv_sec, &time);
+	}
+	inline timespec &DateTime::spec(timespec &ts) const {
+		ts= _time;
+		return ts;
 	}
 }
 

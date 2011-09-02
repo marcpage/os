@@ -5,23 +5,31 @@
 #include <pthread.h>
 #include "Exception.h"
 #include "Mutex.h"
+#include "DateTime.h"
 
 namespace exec {
 
+	/**
+		@todo Document and test
+	*/
 	class Signal {
-	public:
-		Signal();
-		~Signal();
-		void broadcast();
-		void signal();
-		// Unlocks the mutex and waits for the signal
-		void wait(Mutex &mutex);
-		bool wait(Mutex &mutex, time_t untilAbsTime);
-		bool wait(Mutex &mutex, double timeoutInSeconds);
-	private:
-		pthread_cond_t	_signal;
-		Signal(const Signal&); // prevent usage
-		Signal &operator=(const Signal&); // prevent usage
+		public:
+			Signal();
+			~Signal();
+			/// Wakes up all threads waiting on this Signal
+			void broadcast();
+			/// Wakes up one thread waiting on this Signal
+			void signal();
+			/// Unlocks the mutex and waits for the signal
+			void wait(Mutex &mutex);
+			/// Unlocks the mutex and waits for the signal or we reach a certain time
+			bool wait(Mutex &mutex, time_t untilAbsTime);
+			/// Unlocks the mutex and waits for the signal or we timeout
+			bool wait(Mutex &mutex, double timeoutInSeconds);
+		private:
+			pthread_cond_t	_signal;	///< The signal
+			Signal(const Signal&); ///< prevent usage
+			Signal &operator=(const Signal&); ///< prevent usage
 	};
 
 	inline Signal::Signal()
@@ -42,8 +50,11 @@ namespace exec {
 		AssertCodeMessageException(pthread_cond_wait(&_signal, mutex));
 	}
 	inline bool Signal::wait(Mutex &mutex, time_t untilAbsTime) {
-		int	returnCode= pthread_cond_timedwait(&_signal, mutex, &timeoutAt);
+		dt::DateTime	timeout(untilAbsTime);
+		struct timespec	timeoutAt;
+		int				returnCode;
 
+		returnCode= pthread_cond_timedwait(&_signal, mutex, &timeout.spec(timeoutAt));
 		if(ETIMEDOUT == returnCode) {
 			return false;
 		}
@@ -51,13 +62,11 @@ namespace exec {
 		return true;
 	}
 	inline bool Signal::wait(Mutex &mutex, double timeoutInSeconds) {
-		struct timeval	now;
+		dt::DateTime	now;
 		struct timespec	timeoutAt;
 
-		AssertCodeMessageException(gettimeofday(&now, NULL));
-		TIMEVAL_TO_TIMESPEC(&now, &timeoutAt);
-		utils::add(timeoutAt, timeoutInSeconds);
-		wait(mutex, timeoutAt);
+		now+= timeoutInSeconds;
+		wait(mutex, &now.spec(timeoutAt));
 	}
 };
 
