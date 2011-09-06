@@ -85,3 +85,10 @@ time /tmp/DateTime &> /dev/null
 $COMPILER -o /tmp/DateTime tests/DateTime_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
 printf "DateTime: expecting >= 10\n"
 /tmp/DateTime | sort | grep DateTime\\.h | uniq | wc -l
+
+$COMPILER -o /tmp/RWLock tests/RWLock_test.cpp -I.. $GCC_WARNINGS
+printf "RWLock: real < 7.427s user < 0.017s sys < 0.022s\n"
+time /tmp/RWLock &> /dev/null
+$COMPILER -o /tmp/RWLock tests/RWLock_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
+printf "RWLock: expecting >= 18\n"
+/tmp/RWLock | sort | grep RWLock\\.h | uniq | wc -l
