@@ -4,23 +4,17 @@
 #include <sys/socket.h>
 #include <string>
 #include "Buffer.h"
+#include "Address.h"
 
 namespace net {
-
+	
+	/** Abstraction of a socket.
+	*/
 	class SocketGeneric {
 		public:
-			class Address {
-				public:
-					Address() {}
-					~Address() {}
-					operator struct sockaddr*() {return get();}
-					operator socklen_t() {return size();}
-					struct sockaddr *get()=0;
-					socklen_t size()=0;
-			};
 			void connect(const Address &address);
 			size_t read(size_t bytes, Buffer &buffer);
-			void write(const Buffer &buffer);
+			size_t write(const Buffer &buffer);
 			int descriptor();
 			void close();
 		protected:
@@ -32,26 +26,43 @@ namespace net {
 	};
 
 	inline void SocketGeneric::connect(const Address &address) {
-		errnoAssertPositiveMessageException(socket(_socket, address, address));
+		errnoAssertPositiveMessageException(::connection(_socket, address, address));
 	}
 	inline size_t SocketGeneric::read(size_t bytes, Buffer &buffer) {
-		ssize_t	amount= read(_socket, buffer.start(), buffer.size());
-		return buffer;
+		ssize_t	amount;
+		
+		errnoAssertPositiveMessageException(amount= ::read(_socket, buffer.start(), buffer.size()));
+		return amount;
 	}
-	inline void SocketGeneric::write(const Buffer &buffer) {
+	inline size_t SocketGeneric::write(const Buffer &buffer) {
+		ssize_t	amount;
+		
+		errnoAssertPositiveMessageException(amount= ::write(_socket, buffer.start(), buffer.size()));
+		return amount;
 	}
 	inline int SocketGeneric::descriptor() {
+		return _socket;
 	}
 	inline void SocketGeneric::close() {
+		errnoAssertPositiveMessageException(::close(_socket));
 	}
-	inline SocketGeneric::SocketGeneric() {
+	inline SocketGeneric::SocketGeneric()
+		:_socket(-1) {
 	}
 	inline SocketGeneric::SocketGeneric(int domain, int type, int protocol)
-		:_socket(socket(domain, type, protocol) {
+		:_socket(::socket(domain, type, protocol) {
+		errnoAssertPositiveMessageException(_socket);
 	}
 	inline SocketGeneric::~SocketGeneric() {
+		if(-1 != socket) {
+			try	{
+				close();
+			} catch(const std::exception&) {
+			}
+		}
 	}
 	inline void SocketGeneric::assign(int descriptor) {
+		_socket= descriptor;
 	}
 
 }
