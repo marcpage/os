@@ -6,22 +6,24 @@
 
 class BufferAddress : public Buffer {
 	public:
-		BufferString(void *buffer, size_t size);
-		virtual ~BufferString();
+		BufferAddress(void *buffer, size_t size);
+		virtual ~BufferAddress();
 		virtual void *start();
-		virtual size_t size();
+		virtual size_t size() const;
 	private:
 		void	*_buffer;
 		size_t	_size;
+		BufferAddress(const BufferAddress&); ///< Prevent Usage
+		BufferAddress &operator=(const BufferAddress&); ///< Prevent Usage
 };
 
-inline BufferAddress::BufferAddress(void *buffer, size_t size)
-	:_buffer(buffer), _size(size) {}
+inline BufferAddress::BufferAddress(void *buffer, size_t bufferSize)
+	:_buffer(buffer), _size(bufferSize) {}
 inline BufferAddress::~BufferAddress() {}
 inline void *BufferAddress::start() {
 	return _buffer;
 }
-inline size_t BufferAddress::size() {
+inline size_t BufferAddress::size() const {
 	return _size;
 }
 

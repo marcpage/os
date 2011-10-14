@@ -6,12 +6,12 @@
 
 class BufferManaged : public BufferAddress {
 	public:
-		BufferString(size_t size);
-		virtual ~BufferString();
+		BufferManaged(size_t size);
+		virtual ~BufferManaged();
 };
 
-inline BufferManaged::BufferManaged(size_t size)
-	:BufferAddress(malloc(size), size) {}
+inline BufferManaged::BufferManaged(size_t allocateSize)
+	:BufferAddress(malloc(allocateSize), allocateSize) {}
 inline BufferManaged::~BufferManaged() {
 	free(BufferAddress::start());
 }

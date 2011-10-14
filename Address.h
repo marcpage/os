@@ -6,11 +6,12 @@ namespace net {
 	class Address {
 		public:
 			Address() {}
-			~Address() {}
-			operator struct sockaddr*() {return get();}
-			operator socklen_t() {return size();}
-			struct sockaddr *get()=0;
-			socklen_t size()=0;
+			virtual ~Address() {}
+			operator const struct sockaddr*() const {return get();}
+			const struct sockaddr *get() const {return const_cast<Address*>(this)->get();}
+			virtual struct sockaddr *get()=0;
+			virtual socklen_t size() const=0;
+			virtual sa_family_t family() const=0;
 	};
 
 }

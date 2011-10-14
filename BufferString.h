@@ -9,7 +9,7 @@ class BufferString : public Buffer {
 		BufferString(std::string &string);
 		virtual ~BufferString();
 		virtual void *start();
-		virtual size_t size();
+		virtual size_t size() const;
 	private:
 		std::string	&_buffer;
 };
