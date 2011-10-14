@@ -4,23 +4,42 @@
 #include "Buffer.h"
 #include <string>
 
+#ifndef trace_scope
+	#define trace_scope ///< @brief in case Tracer.h is not included
+#endif
+#ifndef trace_bool
+	#define trace_bool(x) (x) ///< @brief in case Tracer.h is not included
+#endif
+
+/** Adapts a std::string to the Buffer interface.
+	@note If the referenced string changes, <code>start()</code> and <code>size()</code>
+		may no longer be valid.
+*/
 class BufferString : public Buffer {
 	public:
+		/// @brief Holds the references to the string.
 		BufferString(std::string &string);
+		/// @brief noop.
 		virtual ~BufferString();
+		/// @brief <code>data()</code>
 		virtual void *start();
+		/// @brief <code>size()</code>
 		virtual size_t size() const;
 	private:
+		/// @brief Reference to the string
 		std::string	&_buffer;
 };
 
+/** @param string	The string to adapt to Buffer interface. */
 inline BufferString::BufferString(std::string &string)
-	:_buffer(string) {}
-inline BufferString::~BufferString() {}
-inline void *BufferString::start() {
+	:_buffer(string) {trace_scope}
+inline BufferString::~BufferString() {trace_scope}
+/** @return <code>std::string.data()</code> */
+inline void *BufferString::start() {trace_scope
 	return _buffer.data();
 }
-inline size_t BufferString::size() {
+/** @return <code>std::string.size()</code> */
+inline size_t BufferString::size() {trace_scope
 	return _buffer.size();
 }
 
