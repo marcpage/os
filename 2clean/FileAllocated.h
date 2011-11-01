@@ -17,8 +17,6 @@ namespace io {
 		\r\n
 		0x1A
 		\n
-		<number of bytes of uncompressed data, 8 bytes, Big Endian>
-		<number of bytes of compressed data, 8 bytes, Big Endian>
 		<allocated header size, 4 bytes, Big Endian>
 		Allocated Header
 			See allocated block description
@@ -30,15 +28,6 @@ namespace io {
 
 			Flags byte: negative number is the size of the empty space including this byte
 						(used for empty blocks from 1 to 127 bytes including flags byte)
-
-			- or -
-
-			Flags byte: positive odd is compressed
-			size, 4 bytes, big endian: number of compressed bytes
-			checksum, 1 byte: rotated xor of all bytes
-			uncompressed size, 4 bytes, big endian: number of uncompressed bytes
-			checksum, 1 byte: rotated xor of all uncompressed bytes
-			<data>
 
 			- or -
 
@@ -77,9 +66,7 @@ namespace io {
 					Allocation(FileAllocated *file, off_t offset);
 			};
 			enum Errors {
-				RawChecksumFailed,
-				CompressedSizeIncorrect,
-				UncompressedSizeIncorrect,
+				ChecksumFailed,
 			};
 			typedef std::pair<Allocation, Errors>	Error;
 			typedef std::vector<Error>				ErrorList;
@@ -95,13 +82,10 @@ namespace io {
 			off_t size();
 			/// Size of the data saved in the file
 			off_t data();
-			/// Size of the data compressed on disk
-			off_t dataOnDisk();
 			bool validate(ErrorList &errors);
 		private:
 			File		_file;
 			off_t		_dataSize;
-			off_t		_diskSize;
 			off_t		_header;
 			off_t		_first;
 			std::string	_signature;
@@ -193,7 +177,7 @@ namespace io {
 		@todo Implement empty file case
 	*/
 	inline FileAllocated::FileAllocated(const std::string &path, uint32_t headerSize, uint32_t version, const std::string &signature)
-		:_file(path, File::Binary, File::WriteIfPossible), _dataSize(0), _diskSize(0), _header(0), _first(0), _signature(signature), _version(version) {
+		:_file(path, File::Binary, File::WriteIfPossible), _dataSize(0), _header(0), _first(0), _signature(signature), _version(version) {
 		const size_t			kMinimumAllocatedHeaderSize= sizeof(int8_t) + sizeof(uint32_t) + sizeof(uint8_t);
 		std::string				header;
 		std::string::size_type	endOfSignature, endOfHeader;
@@ -216,7 +200,6 @@ namespace io {
 			endOfHeader+= sizeof(kCorruptionMarker) - 1; // -1 for EOS \0
 			_dataSize= _file.read<uint64_t>(File::BigEndian, endOfHeader, File::FromStart);
 			endOfHeader+= sizeof(uint64_t);
-			_diskSize= _file.read<uint64_t>(File::BigEndian);
 			endOfHeader+= sizeof(uint64_t);
 			_header= endOfHeader;
 			headerSize= _file.read<uint32_t>(File::BigEndian);
@@ -226,8 +209,7 @@ namespace io {
 			_file.write(kEndOfSignatureMarker, File::BigEndian);
 			_file.write<uint8_t>(_version, File::BigEndian);
 			_file.write(kCorruptionMarker);
-			_file.write<uint64_t>(0, File::BigEndian); // uncompressed data size
-			_file.write<uint64_t>(0, File::BigEndian); // compressed data size
+			_file.write<uint64_t>(0, File::BigEndian); // data size
 			_header= _file.location();
 			_file.write<uint32_t>(headerSize, File::BigEndian);
 			_first= _header + sizeof(uint32_t) + headerSize;
@@ -241,6 +223,7 @@ namespace io {
 		return Allocation(this, _header);
 	}
 	/**
+		@param allowGrowth	If true, the file can grow in size
 		@todo Implement
 	*/
 	inline FileAllocated::Allocation FileAllocated::allocate(const std::string &data, bool allowGrowth) {
@@ -270,12 +253,6 @@ namespace io {
 	inline off_t FileAllocated::data() {
 	}
 	/**
-		@todo Implement compressed
-	*/
-	inline off_t FileAllocated::dataOnDisk() {
-	}
-	/**
-		@todo handle compressed blocks
 	*/
 	inline bool FileAllocated::validate(ErrorList &errors) {
 		off_t		dataOffset, next, block= _first;
@@ -284,7 +261,6 @@ namespace io {
 		off_t		filesize= _file.size();
 		std::string	data;
 		off_t		totalDataSize= 0;
-		off_t		totalDiskSize= 0;
 
 		while(_readBlockHeader(block, &dataSize, &compressedSize, NULL, NULL, &dataOffset, &next, NULL, &checksum, &compressedChecksum)
 				&& (next > _first) && (next <= filesize) ) {
@@ -293,19 +269,12 @@ namespace io {
 				errors.push_back(Error(Allocation(this, block), RawChecksumFailed));
 			}
 			totalDataSize+= dataSize;
-			totalDiskSize+= compressedSize;
-			// decompress if compressed and check here
 			block= next;
 		}
 		if(_dataSize != totalDataSize) {
 			_dataSize= totalDataSize;	// correct the problem
 			_file.write<uint64_t>(_dataSize, File::BigEndian, _header - sizeof(uint64_t) - sizeof(uin64_t), File::FromStart);
 			errors.push_back(Error(Allocation(this, static_cast<off_t>(-1)), UncompressedSizeIncorrect));
-		}
-		if(_diskSize != totalDiskSize) {
-			_diskSize= totalDiskSize;	// correct the problem
-			_file.write<uint64_t>(_diskSize, File::BigEndian, _header - sizeof(uin64_t), File::FromStart);
-			errors.push_back(Error(Allocation(this, static_cast<off_t>(-1)), CompressedSizeIncorrect));
 		}
 	}
 	/**
