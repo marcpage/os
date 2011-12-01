@@ -20,6 +20,7 @@ class KeyStore {
 		*/
 		virtual bool set(const std::string &key, const std::string &value)= 0;
 		/** 
+			@param key		The key to store data for.
 			@param value	Receives the value of key, or remains unchanged if the key
 								does not exist.
 			@return			Reference to value parameter

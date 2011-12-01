@@ -22,8 +22,11 @@ namespace exec {
 			typedef ::pthread_t	SystemID; ///< Abstract System ID
 			/// Get current thread ID
 			static ThreadId current();
+			enum TimeUnits {
+				Years, Weeks, Days, Hours, Minutes, Seconds, Milliseconds, Microseconds
+			};
 			/// Sleep current thread by n seconds
-			static void sleep(double seconds);
+			static void sleep(double time, TimeUnits units= Seconds);
 			/// No thread
 			ThreadId();
 			/// Wrap a system thread ID
@@ -139,9 +142,21 @@ namespace exec {
 	inline void ThreadId::exit(void *value) {trace_scope
 		::pthread_exit(value);
 	}
-	inline void ThreadId::sleep(double seconds) {trace_scope
+	inline void ThreadId::sleep(double time, TimeUnits units) {trace_scope
 		static const double 		FourBillionMicrosecondsInSeconds= 4000.0;
-
+		double	seconds;
+		
+		switch(units) {
+			case Years:				seconds= time * 365.2525 * 24.0 * 60.0 * 60.0;	break;
+			case Weeks:				seconds= time * 7.0 * 24.0 * 60.0 * 60.0;		break;
+			case Days:				seconds= time * 24.0 * 60.0 * 60.0;				break;
+			case Hours:				seconds= time * 60.0 * 60.0;					break;
+			case Minutes:			seconds= time * 60.0;							break;
+			case Seconds: default:	seconds= time;									break;
+			case Milliseconds:		seconds= time / 1000.0;							break;
+			case Microseconds:		seconds= time / 1000.0 / 1000.0;				break;
+		}
+		//printf("time=%f units=%d seconds=%f\n", time, static_cast<int>(units), seconds);
 		if(seconds > FourBillionMicrosecondsInSeconds) {
 			static const unsigned int	MaxTries= 10;
 			unsigned int				integerSeconds= static_cast<unsigned int>(seconds);

@@ -78,5 +78,6 @@ namespace Tracer {
 /// Do a trace on any requested scope
 #define trace_scope Tracer::LogBlock	UNIQUE_VARIABLE_NAME(log_scope,__LINE__)(__FILE__,__func__,__LINE__);
 #define trace_bool(exp) Tracer::passThroughBoolLog((exp), #exp, __FILE__, __func__, __LINE__)
+#define trace_value(value) Tracer::passThroughLog((value), #value, __FILE__, __func__, __LINE__)
 
 #endif // __Tracer_h__

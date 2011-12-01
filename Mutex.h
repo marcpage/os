@@ -67,7 +67,7 @@ namespace exec {
 		_mutex.unlock();
 	}
 	/** Creates a mutex.
-		@throws msg::MessageException	If initing the mutex fails.
+		@throw msg::MessageException	If initing the mutex fails.
 	*/
 	inline Mutex::Mutex()
 	:_mutex() {trace_scope;
@@ -81,14 +81,14 @@ namespace exec {
 	}
 	/** Prevents others from locking this mutex.
 		If someone already has this mutex lock()'ed,
-		@throws msg::MessageException	If locking the mutex fails.
+		@throw msg::MessageException	If locking the mutex fails.
 	*/
 	inline void Mutex::lock() {trace_scope;
 		AssertCodeMessageException(pthread_mutex_lock(&_mutex));
 	}
 	/** Allows others to lock this mutex.
 		If someone is already trying to lock() this mutex, they may be allowed to.
-		@throws msg::MessageException	If unlocking the mutex fails.
+		@throw msg::MessageException	If unlocking the mutex fails.
 	*/
 	inline void Mutex::unlock() {trace_scope;
 		AssertCodeMessageException(pthread_mutex_unlock(&_mutex));
