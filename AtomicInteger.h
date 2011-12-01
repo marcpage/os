@@ -148,4 +148,4 @@ namespace exec {
 
 #undef AtomicAddFunction
 
-#endif __AtomicInteger_h__
+#endif // __AtomicInteger_h__

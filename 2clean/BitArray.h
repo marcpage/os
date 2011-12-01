@@ -73,8 +73,8 @@ BitArray::ConstReference BitArray::ConstReference::operator--(int) {
 	--_index;
 	return r;
 }
-BitArray::ConstReference(BitArray &array, size_t index)
-	:_{
+BitArray::ConstReference::ConstReference(BitArray &array, size_t index)
+	:{
 }
 BitArray::Reference::Reference() {
 }
@@ -82,7 +82,7 @@ BitArray::Reference &BitArray::Reference::operator=(bool value) {
 }
 BitArray::Reference::~Reference() {
 }
-BitArray::Reference(BitArray &array, size_t index) {
+BitArray::Reference::Reference(BitArray &array, size_t index) {
 }
 BitArray::BitArray(size_t bits) {
 }

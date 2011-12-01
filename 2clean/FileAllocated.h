@@ -14,9 +14,9 @@ namespace io {
 		Signature
 		0x89
 		version
-		\r\n
+		"\r\n"
 		0x1A
-		\n
+		"\n"
 		<allocated header size, 4 bytes, Big Endian>
 		Allocated Header
 			See allocated block description
@@ -34,7 +34,7 @@ namespace io {
 			Flags byte: positive even
 			size, 4 bytes, big endian: number of bytes after checksum
 			checksum, 1 byte: rotated xor of all bytes
-			<data>
+			[data]
 		</pre>
 		@todo Add free size, block count, allocated block count, compressed block count
 	*/
@@ -92,7 +92,7 @@ namespace io {
 			uint8_t		_version;
 			FileAllocated(const FileAllocated&); ///< Prevent Usage
 			FileAllocated &operator=(const FileAllocated&); ///< Prevent Usage
-			bool _readBlockHeader(off_t offset, size_t *dataSize, size_t *compressedSize, bool *compressed, off_t *data, off_t *next, int8_t *flags, uint8_t *checksum, uint8_t *compressedChecksum);
+			bool _readBlockHeader(off_t offset, size_t *dataSize, size_t *compressedSize, bool *compressed, bool *free, off_t *data, off_t *next, int8_t *flags, uint8_t *checksum, uint8_t *compressedChecksum);
 			bool _previousHeader(off_t &offset, size_t *dataSize, size_t *compressedSize, bool *compressed, off_t *data, off_t *next, int8_t *flags, uint8_t *checksum, uint8_t *compressedChecksum);
 			void _writeBlock(off_t offset, const std::string &data, int8_t flags);
 			static uint8_t _checksum(const std::string &data);
@@ -224,6 +224,7 @@ namespace io {
 	}
 	/**
 		@param allowGrowth	If true, the file can grow in size
+		@param data			The data to allocate
 		@todo Implement
 	*/
 	inline FileAllocated::Allocation FileAllocated::allocate(const std::string &data, bool allowGrowth) {
@@ -357,7 +358,6 @@ namespace io {
 										is the same as <code>dataSize</code>. For a free block
 										receives the size of uncompressed data that could be stored here.
 		@param compressed			Set to true if the data is compressed
-		@param free					Set to true if the block is a free block
 		@param data					The offset of the data in the file
 		@param next					The offset in the file of the next header (or the size of the file)
 		@param flags				The actual flags for the block. bit #1 and #8 are reserved and should

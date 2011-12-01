@@ -59,7 +59,7 @@ class ReferencedString {
 		/// Get a std::string representation.
 		std::string string() const;
 		/// Get the raw pointer to the beginning of this string.
-		const char * const data() const;
+		const char * data() const;
 		/// Determines if two strings point to the same memory location.
 		bool sameAddress(const ReferencedString &str) const;
 		/// Gets the length of the string.
@@ -250,7 +250,7 @@ inline std::string ReferencedString::string() const {trace_scope
 /** Gets the raw pointer to the beginning of <code>this</code>.
 	@return	The address of the buffer, or NULL if the string is empty.
 */
-inline const char * const ReferencedString::data() const {trace_scope
+inline const char * ReferencedString::data() const {trace_scope
 	if(_size > 0) {trace_scope
 		return reinterpret_cast<const char * const>(_buffer);
 	}

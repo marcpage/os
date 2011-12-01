@@ -77,18 +77,18 @@ namespace exec {
 		private:
 			AtomicInteger	_references;	///< The number of references to this object
 	};
-	
-	/** 
+
+	/**
 		@param initialCount	The initial number of references
 	*/
 	inline ReferenceCounted::ReferenceCounted(int32_t initialCount)
 		:_references(initialCount) {trace_scope;
 	}
-	/** 
+	/**
 		@return	The number of references to the object
 	*/
 	inline int32_t ReferenceCounted::references() {trace_scope;
-		return _references.value();
+		return trace_value(_references.value());
 	}
 	/** Increments the reference count.
 		@return The number of references after we increment the count
@@ -120,12 +120,13 @@ namespace exec {
 	inline void ReferenceCounted::free() {trace_scope;
 		delete this;
 	}
-	/** 
+	/**
 		@param ptr		The reference counted pointer to manage. Can be NULL
 		@param action	If Retain then the reference count will be incremented.
 							Note the reference count on the pointer <b>will</b> be
 							decremented at some point (either before being assigned
 							another value, or upon zero reference count).
+		@todo TEST when action == DoNotRetain
 	*/
 	template<typename ReferenceCountedType>
 	ReferenceCounted::Ptr<ReferenceCountedType>::Ptr(ReferenceCountedType *ptr, ReferenceCounted::RetainAction action)
@@ -134,7 +135,7 @@ namespace exec {
 			_retain();
 		}
 	}
-	/** 
+	/**
 		@param other	The "Smart Pointer" to copy. Note that the pointer is copied
 							and not the smart object. Both other and *this will point
 							to the same Reference Counted object.
@@ -153,6 +154,7 @@ namespace exec {
 	/** Accesses members of the reference counted object.
 		@return The referenced member.
 		@throw msg::MessageException if the pointer is NULL.
+		@todo TEST dereferencing a NULL Ptr
 	*/
 	template<typename ReferenceCountedType>
 	ReferenceCountedType *ReferenceCounted::Ptr<ReferenceCountedType>::operator->() {trace_scope;
@@ -162,6 +164,8 @@ namespace exec {
 	/** Accesses members of the reference counted object.
 		@return The referenced member.
 		@throw msg::MessageException if the pointer is NULL.
+		@todo TEST dereferencing a NULL Ptr
+		@todo TEST const dereference
 	*/
 	template<typename ReferenceCountedType>
 	const ReferenceCountedType *ReferenceCounted::Ptr<ReferenceCountedType>::operator->() const {trace_scope;
@@ -172,6 +176,7 @@ namespace exec {
 		If the "Smart Pointer" is not NULL, the value will be Released() before the assignment.
 		@param ptr		The pointer to now reference.
 		@param action	If Retain, the ptr will be retained, otherwise just assigned.
+		@todo TEST when action == DoNotRetain
 	*/
 	template<typename ReferenceCountedType>
 	ReferenceCounted::Ptr<ReferenceCountedType> &ReferenceCounted::Ptr<ReferenceCountedType>::assign(ReferenceCountedType *ptr, ReferenceCounted::RetainAction action) {trace_scope;
@@ -201,14 +206,14 @@ namespace exec {
 	*/
 	template<typename ReferenceCountedType>
 	ReferenceCounted::Ptr<ReferenceCountedType>::operator bool() const {trace_scope;
-		return valid();
+		return trace_bool(valid());
 	}
-	/** 
+	/**
 		@return true if the pointer is not NULL.
 	*/
 	template<typename ReferenceCountedType>
 	bool ReferenceCounted::Ptr<ReferenceCountedType>::valid() const {trace_scope;
-		return NULL != _ptr;
+		return trace_bool(NULL != _ptr);
 	}
 	/** NULL safe retain.
 	*/

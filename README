@@ -3,8 +3,15 @@
 
 mkdir -p documentation
 doxygen os.dox
-#COMPILER=llvm-g++
-COMPILER=g++
+COMPILER=clang++	# 46.041s, in compile terms along, clang++ is about 20% faster than g++
+#COMPILER=g++		# 49.597s
+#COMPILER=llvm-g++	# 50.588s
+
+if [ "$COMPILER" = "clang++" ]; then
+  NONTEMPLATEFRIENDWARNING=
+else
+  NONTEMPLATEFRIENDWARNING=-Wno-non-template-friend
+fi
 
 GCC_WARNINGS="-Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings"
 
@@ -22,10 +29,10 @@ $COMPILER -o /tmp/Hash tests/Hash_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
 printf "Hash: expecting >= 47\n"
 /tmp/Hash | sort | grep Hash\\.h | uniq | wc -l
 
-$COMPILER -o /tmp/EnumSet tests/EnumSet_test.cpp -I.. $GCC_WARNINGS -Wno-non-template-friend
+$COMPILER -o /tmp/EnumSet tests/EnumSet_test.cpp -I.. $GCC_WARNINGS $NONTEMPLATEFRIENDWARNING
 printf "EnumSet: real < 0.007s user < 0.001s sys < 0.002s\n"
 time /tmp/EnumSet &> /dev/null
-$COMPILER -o /tmp/EnumSet tests/EnumSet_test.cpp -I.. -include Tracer.h $GCC_WARNINGS -Wno-non-template-friend
+$COMPILER -o /tmp/EnumSet tests/EnumSet_test.cpp -I.. -include Tracer.h $GCC_WARNINGS $NONTEMPLATEFRIENDWARNING
 printf "EnumSet: expecting >= 189\n"
 /tmp/EnumSet | sort | grep EnumSet\\.h | uniq | wc -l
 
@@ -101,8 +108,8 @@ $COMPILER -o /tmp/SocketServer tests/SocketServer_test.cpp -I.. -include Tracer.
 #/tmp/SocketServer | sort | grep SocketServer\\.h | uniq | wc -l
 
 $COMPILER -o /tmp/ReferenceCounted tests/ReferenceCounted_test.cpp -I.. $GCC_WARNINGS
-printf "ReferenceCounted: real < 0.246s user < 0.066s sys < 0.161s\n"
-time /tmp/ReferenceCounted &> /dev/null
+printf "ReferenceCounted: real < 3.061s user < 4.185s sys < 5.845s\n"
+time /tmp/ReferenceCounted 100000 &> /dev/null
 $COMPILER -o /tmp/ReferenceCounted tests/ReferenceCounted_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
-printf "ReferenceCounted: expecting >= 762\n"
-/tmp/ReferenceCounted | sort | grep ReferenceCounted\\.h | uniq | wc -l
+printf "ReferenceCounted: expecting >= 196\n"
+/tmp/ReferenceCounted 10 | sort | grep ReferenceCounted\\.h | uniq | wc -l

@@ -1,6 +1,7 @@
 #include "os/Thread.h"
 #include "os/ReferenceCounted.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 #define dotest(condition) \
 	if(!(condition)) { \
@@ -10,17 +11,17 @@
 class Tester : public exec::Thread {
 	public:
 		typedef exec::ReferenceCounted::Ptr<exec::ReferenceCounted>	Ptr;
-		Tester(const Ptr &ptr)
-			:exec::Thread(KeepAroundAfterFinish), _value(ptr) {
+		Tester(const Ptr &ptr, int count)
+			:exec::Thread(KeepAroundAfterFinish), _value(ptr), _count(count) {
 			start();
 			//printf("Started\n");
 		}
 		virtual ~Tester() {}
 	protected:
 		virtual void *run() {
-			Ptr	bunch[50];
-			
-			for(int set= 0; set < 50; ++set) {
+			Ptr	bunch[10];
+
+			for(int set= 0; set < _count; ++set) {
 				//printf("set=%d\n",set);
 				for(unsigned int index= 0; index < sizeof(bunch)/sizeof(bunch[0]); ++index) {
 					//printf("first assign=%d\n",index);
@@ -44,14 +45,19 @@ class Tester : public exec::Thread {
 		}
 	private:
 		Ptr	_value;
+		int	_count;
 };
 
-int main(const int /*argc*/, const char * const /*argv*/[]) {
+int main(const int argc, const char * const argv[]) {
 	exec::ReferenceCounted	*item= new exec::ReferenceCounted();
-	
+	int						count= 50;
+
+	if(argc == 2) {
+		count= atoi(argv[1]);
+	}
 	do	{
 		Tester::Ptr	test(item); // retains, references goes to 2
-		Tester		t1(test), t2(test), t3(test), t4(test), t5(test), t6(test), t7(test);
+		Tester		t1(test, count), t2(test, count), t3(test, count), t4(test, count), t5(test, count), t6(test, count), t7(test, count);
 		//printf("All Started\n");
 		t1.join();
 		t2.join();
