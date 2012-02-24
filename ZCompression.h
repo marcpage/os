@@ -4,9 +4,11 @@
 #include <zlib.h>
 #include "Exception.h"
 
-#define zlib_handle_error(code) if(0 != code) throw z::Exception(code, __FILE__, __LINE__); else
+#define zlib_handle_error(code) if(0 != code) throw z::Exception(code, __FILE__, __LINE__); else z::noop()
 
 namespace z {
+
+	inline void noop() {}
 
 	class Exception : public msg::Exception {
 		public:
@@ -63,7 +65,7 @@ namespace z {
 		uLong	dSize= destinationSize;
 		AssertMessageException(destinationSize >= compressBound(sourceSize));
 
-		zlib_handle_error(compress2(reinterpret_cast<Bytef*>(destination), &dSize,
+		zlib_handle_error(::compress2(reinterpret_cast<Bytef*>(destination), &dSize,
 									reinterpret_cast<const Bytef*>(source), static_cast<uLong>(sourceSize), level));
 		return dSize;
 	}
@@ -80,7 +82,7 @@ namespace z {
 	}
 
 	inline size_t uncompress(const void *source, size_t sourceSize, void *destination, size_t destinationSize) {
-		zlib_handle_error(uncompress(reinterpret_cast<Bytef*>(destination), static_cast<uLong>(destinationSize),
+		zlib_handle_error(::uncompress(reinterpret_cast<Bytef*>(destination), static_cast<uLong*>(&destinationSize),
 										const_cast<Bytef*>(reinterpret_cast<const Bytef*>(source)), static_cast<uLong>(sourceSize)));
 		return destinationSize;
 	}

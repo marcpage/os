@@ -50,7 +50,7 @@ class BlockFile {
 		/// Retrieve the data associated with a Tag.
 		std::string &read(Tag location, std::string &data);
 		/// Recycle the space used by this Tag
-		void free(Tag location);
+		void deallocate(Tag location);
 		/// Determine if the data for the Tag was compressed when written to disk
 		bool compressed(Tag location);
 		/// Get the size of the data on disk for this tag (includes headers)
@@ -143,7 +143,7 @@ inline BlockFile::~BlockFile() {}
 	@throw msg::MessageException	If the file is corrupted or data.size() is too big (see kMaxDataSize).
 */
 inline BlockFile::Tag BlockFile::allocate(const std::string &data, bool canCompress) {
-	std::string			compressed;
+	std::string			compressedValue;
 	const std::string	*towrite= &data;
 	Tag					location= 0;
 	Size				blockSize;
@@ -152,10 +152,10 @@ inline BlockFile::Tag BlockFile::allocate(const std::string &data, bool canCompr
 
 	AssertMessageException(data.size() <= kMaxDataSize);
 	if(canCompress) {
-		z::compress(data, compressed, 9);
-		canCompress= (compressed.size() < data.size());
+		z::compress(data, compressedValue, 9);
+		canCompress= (compressedValue.size() < data.size());
 		if(canCompress) {
-			towrite= &compressed;
+			towrite= &compressedValue;
 		}
 	}
 	blockSize= towrite->size();
@@ -164,7 +164,7 @@ inline BlockFile::Tag BlockFile::allocate(const std::string &data, bool canCompr
 	_file.write<uint8_t>(type, io::File::BigEndian, static_cast<off_t>(location), io::File::FromStart);
 	_file.write<uint16_t>(towrite->size(), io::File::BigEndian);
 	_file.write(hash.buffer(), Hash::Size);
-	_file.write(data);
+	_file.write(*towrite);
 	_usedSize+= kBlockHeaderSize + towrite->size();
 	++_count;
 	_updateFileHeaderAndFlush();
@@ -178,20 +178,20 @@ inline BlockFile::Tag BlockFile::allocate(const std::string &data, bool canCompr
 									If the file is corrupt (hash doesn't match, etc.)
 */
 inline std::string &BlockFile::read(Tag location, std::string &data) {
-	bool		free, compressed;
+	bool		free, isCompressed;
 	Size		blockSize;
 	Hash		hash, dataHash;
 	off_t		offset;
 	std::string	compressedData;
 	std::string	*toRead= &data;
 
-	_readBlockHeader(location, free, compressed, blockSize, hash, offset);
+	_readBlockHeader(location, free, isCompressed, blockSize, hash, offset);
 	AssertMessageException(!free);
-	if(compressed) {
+	if(isCompressed) {
 		toRead= &compressedData;
 	}
 	_file.read(data, blockSize, offset, io::File::FromStart);
-	if(compressed) {
+	if(isCompressed) {
 		z::uncompress(compressedData, data, kMaxDataSize);
 	}
 	dataHash.reset(data);
@@ -202,13 +202,13 @@ inline std::string &BlockFile::read(Tag location, std::string &data) {
 	@param location					The location of an allocated block to free
 	@throw msg::MessageException	If the block is not free
 */
-inline void BlockFile::free(BlockFile::Tag location) {
-	bool	free, compressed;
+inline void BlockFile::deallocate(BlockFile::Tag location) {
+	bool	free, isCompressed;
 	Size	blockSize;
 	Hash	hash;
 	off_t	data;
 
-	_readBlockHeader(location, free, compressed, blockSize, hash, data);
+	_readBlockHeader(location, free, isCompressed, blockSize, hash, data);
 	AssertMessageException(!free);
 	_writeFree(location, kBlockHeaderSize + blockSize);
 	_usedSize-= (kBlockHeaderSize + blockSize);
@@ -223,12 +223,12 @@ inline void BlockFile::free(BlockFile::Tag location) {
 	@return			The number of bytes taken up on disk for this block
 */
 BlockFile::Size BlockFile::sizeOnDisk(BlockFile::Tag location) {
-	bool	free, compressed;
+	bool	free, isCompressed;
 	Size	blockSize;
 	Hash	hash;
 	off_t	data;
 
-	_readBlockHeader(location, free, compressed, blockSize, hash, data);
+	_readBlockHeader(location, free, isCompressed, blockSize, hash, data);
 	AssertMessageException(!free);
 	return kBlockHeaderSize + blockSize;
 }
@@ -240,53 +240,54 @@ BlockFile::Size BlockFile::sizeOnDisk(BlockFile::Tag location) {
 	@todo have a headers cache so things like this don't have to read from disk
 */
 inline bool BlockFile::compressed(BlockFile::Tag location) {
-	bool	free, compressed;
+	bool	free, isCompressed;
 	Size	blockSize;
 	Hash	hash;
 	off_t	data;
 
-	_readBlockHeader(location, free, compressed, blockSize, hash, data);
+	_readBlockHeader(location, free, isCompressed, blockSize, hash, data);
 	AssertMessageException(!free);
-	return compressed;
+	return isCompressed;
 }
 inline off_t BlockFile::size() {
 	return _file.size();
 }
 /** Finds a free block for a given payload data size.
-	@param size	On call: The size of the payload that needs to be stored.
-				On Return: The size of the entire block found
-	@return		The location of the block that can be allocated
+	@param theSize	On call: The size of the payload that needs to be stored.
+					On Return: The size of the entire block found
+	@return			The location of the block that can be allocated
 	@todo Keep track of how far we've scanned the file. Start off
 			again where we left off. When we free a block, see
 			if there are surrounding blocks in the cache that can be merged.
 			Keep track of how many frees have been done and reset scan
 			after certain number.
 */
-inline BlockFile::Tag BlockFile::_findFreeBlock(BlockFile::Size &size) {
-	Tag	found= _findCachedFreeBlock(size);
+inline BlockFile::Tag BlockFile::_findFreeBlock(BlockFile::Size &theSize) {
+	Tag	found= _findCachedFreeBlock(theSize);
 
 	if(!found) { // we don't have a cached block big enough
-		found= _scanFreeBlock(size); // scan disk for a free block
+		found= _scanFreeBlock(theSize); // scan disk for a free block
 	}
 	return found;
 }
 /** Scans the BlockFile for a free block for a given payload data size.
-	@param size	On call: The size of the payload that needs to be stored.
-				On Return: The size of the entire block found
+	@param theSize	On call: The size of the payload that needs to be stored.
+					On Return: The size of the entire block found
 	@return		The location of the block that can be allocated
 	@todo Keep track of how far we've scanned the file. Start off
 			again where we left off.
 */
-inline BlockFile::Tag BlockFile::_scanFreeBlock(BlockFile::Size &size) {
+inline BlockFile::Tag BlockFile::_scanFreeBlock(BlockFile::Size &theSize) {
 	Tag		next, found, freeSince= 0, freeSize= 0, current= _freeScan;
-	bool	free, compressed;
+	bool	free, isCompressed;
 	Size	blockSize;
 	Hash	hash;
 	off_t	data, max= _file.size();
+	std::string	___debug___;
 
 	found= max;
 	while(current < found) { // walk through all blocks on disk until found or end reached
-		next= _readBlockHeader(current, free, compressed, blockSize, hash, data);
+		next= _readBlockHeader(current, free, isCompressed, blockSize, hash, data);
 		if(free) { // is it a free block
 			if(0 == freeSince) { // last block was not a free block, so this begins the run
 				freeSince= current;
@@ -297,8 +298,8 @@ inline BlockFile::Tag BlockFile::_scanFreeBlock(BlockFile::Size &size) {
 					_free.erase(has);
 				}
 			}
-			freeSize= size + (current - freeSince); // size of previous free blocks added in
-			if(kBlockHeaderSize + size <= freeSize) {
+			freeSize= theSize + (current - freeSince); // size of previous free blocks added in
+			if(static_cast<Tag>(kBlockHeaderSize + theSize) <= freeSize) {
 				found= freeSince;
 			}
 		} else { // not a free block
@@ -313,25 +314,25 @@ inline BlockFile::Tag BlockFile::_scanFreeBlock(BlockFile::Size &size) {
 		current= next; // go to the next block
 	}
 	if(static_cast<off_t>(found) == max) {
-		freeSize= kBlockHeaderSize + size;
+		freeSize= kBlockHeaderSize + theSize;
 		_freeScan= _first;
 	} else {
 		_freeScan= found;
 	}
-	size= freeSize;
+	theSize= freeSize;
 	return found;
 }
 /** Finds a free block for a given size.
-	@param size	On call: The size of the payload that needs to be stored.
-				On Return: The size of the entire block found
+	@param theSize	On call: The size of the payload that needs to be stored.
+					On Return: The size of the entire block found
 	@return		The location of the block that can be allocated
 */
-inline BlockFile::Tag BlockFile::_findCachedFreeBlock(BlockFile::Size &size) {
+inline BlockFile::Tag BlockFile::_findCachedFreeBlock(BlockFile::Size &theSize) {
 	for(FreeList::iterator free= _free.begin(); free != _free.end(); ++free) {
-		if(kBlockHeaderSize + size <= free->second) {
+		if(kBlockHeaderSize + theSize <= free->second) {
 			Tag	found= free->first;
 
-			size= free->second;
+			theSize= free->second;
 			_free.erase(free);
 			return found;
 		}
@@ -341,8 +342,8 @@ inline BlockFile::Tag BlockFile::_findCachedFreeBlock(BlockFile::Size &size) {
 /** Reads the block header at the given location.
 	@param location					The location of the block
 	@param free	`					Receives if the block is a free block
-	@param compressed				Receives if the block is compressed
-	@param size						Receives the size of the data.
+	@param isCompressed				Receives if the block is compressed
+	@param theSize					Receives the size of the data.
 										For free blocks it's the entire size of the block including headers.
 										For allocated blocks, is the size of the payload on disk
 											(after compression for compressed blocks).
@@ -351,7 +352,7 @@ inline BlockFile::Tag BlockFile::_findCachedFreeBlock(BlockFile::Size &size) {
 	@return							The next block after this one.
 	@throw msg::MessageException	If the type at location is not a valid type or if the next block is past the end of the file.
 */
-inline BlockFile::Tag BlockFile::_readBlockHeader(BlockFile::Tag location, bool &free, bool &compressed, Size &size, Hash hash, off_t &data) {
+inline BlockFile::Tag BlockFile::_readBlockHeader(BlockFile::Tag location, bool &free, bool &isCompressed, Size &theSize, Hash hash, off_t &data) {
 	BlockType	type= static_cast<BlockType>(_file.read<uint8_t>(io::File::BigEndian, static_cast<off_t>(location), io::File::FromStart));
 	Tag			next= 0;
 
@@ -359,42 +360,42 @@ inline BlockFile::Tag BlockFile::_readBlockHeader(BlockFile::Tag location, bool 
 	free= true;
 	data= 0;
 	if(FreeByte == type) {
-		compressed= true;
-		size= kHeaderMinSize;
-		return location + size;
+		isCompressed= true;
+		theSize= kHeaderMinSize;
+		return location + theSize;
 	}
-	size= _file.read<Size>(io::File::BigEndian);
+	theSize= _file.read<Size>(io::File::BigEndian);
 	if(FreeBlock == type) {
-		compressed= false;
-		size= kFreeHeaderSize + size; // calculate the size of the entire block
-		return location + size;
+		isCompressed= false;
+		theSize= kFreeHeaderSize + theSize; // calculate the size of the entire block
+		return location + theSize;
 	}
 	free= false;
-	compressed= (AllocatedCompressed == type);
+	isCompressed= (AllocatedCompressed == type);
 	data= location + kBlockHeaderSize;
 	_file.read(hash.buffer(), Hash::Size);
-	next= location + kBlockHeaderSize + size;
+	next= location + kBlockHeaderSize + theSize;
 	AssertMessageException( static_cast<off_t>(next) <= _file.size() );
 	return next;
 }
 /** Writes out a free block.
 	@param location	The location to commit to being a free block
-	@param size		The size of the entire block (including all headers)
+	@param theSize	The size of the entire block (including all headers)
 	@todo Check the cache for adjacent or even overlapping blocks with this
 			one and join them.
 	@todo Keep track of how many frees have been done and reset scan offset after certain number.
 */
-inline void BlockFile::_writeFree(BlockFile::Tag location, BlockFile::Size size) {
+inline void BlockFile::_writeFree(BlockFile::Tag location, BlockFile::Size theSize) {
 	_file.moveto(static_cast<off_t>(location));
-	if(size < kFreeHeaderSize) { // too small to write a full header, write FreeByte types
-		for(Size block= 0; block < size; ++block) {
+	if(theSize < kFreeHeaderSize) { // too small to write a full header, write FreeByte types
+		for(Size block= 0; block < theSize; ++block) {
 			_file.write<uint8_t>(static_cast<uint8_t>(FreeByte), io::File::BigEndian);
 		}
 	} else {
 		_file.write<uint8_t>(static_cast<uint8_t>(FreeBlock), io::File::BigEndian);
-		_file.write<Size>(size - kFreeHeaderSize, io::File::BigEndian);
+		_file.write<Size>(theSize - kFreeHeaderSize, io::File::BigEndian);
 	}
-	_free[location]= size;
+	_free[location]= theSize;
 }
 /** Updates any stats that need to be stored in the file header and flushes the file.
 	This is very dependenant on the structure of the header of the file.
