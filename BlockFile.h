@@ -31,6 +31,10 @@ Block Types
 2 = Free Block
 3 = Allocated zlib compressed
 all others are reserved for future use
+
+	@todo Test
+	@todo add instrumentation
+	@todo add to README
 */
 class BlockFile {
 	public:
