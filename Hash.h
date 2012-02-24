@@ -94,7 +94,24 @@ namespace hash {
 
 #if __APPLE_CC__ || __APPLE__
 
-	/// An example of a hasher. See SpecificHash.
+	/// An MD5 example of a hasher. See SpecificHash.
+	struct MD5Hasher {
+		enum {
+			Size= CC_MD5_DIGEST_LENGTH ///< Every SpecificHash hasher must have a Size enum. This is the number of bytes in the hash.
+		};
+		/** Every SpecificHash hasher must have a name() method. This is the name of this hash.
+			@return	The name of this hash method.
+		*/
+		static const char *name() {trace_scope return "md5";}
+		/** Every SpecificHash hasher must have a hash() method. This computes the hash of the given data.
+			@param data		The data to hash.
+			@param dataSize	The number of bytes in <code>data</code> to hash.
+			@param hash		An area of memory, at least <code>Size</code> bytes in length that will hold the hash.
+		*/
+		static void hash(const void *data, size_t dataSize, void *hash) {trace_scope CC_MD5(data, dataSize, reinterpret_cast<unsigned char*>(hash));}
+	};
+
+	/// A SHA256 example of a hasher. See SpecificHash.
 	struct SHA256Hasher {
 		enum {
 			Size= CC_SHA256_DIGEST_LENGTH ///< Every SpecificHash hasher must have a Size enum. This is the number of bytes in the hash.
