@@ -132,7 +132,7 @@ inline BitOutOfRangeException::~BitOutOfRangeException() throw() {trace_scope}
 inline const char* BitOutOfRangeException::what() const throw() {trace_scope /* Not Tested */
 	return _message.c_str();
 }
-std::string BitOutOfRangeException::_numbersToMessage(int bit, int max) {trace_scope
+inline std::string BitOutOfRangeException::_numbersToMessage(int bit, int max) {trace_scope
 	std::ostringstream stream;
 
 	stream << "Bit Index out of range: Bit= " << bit << " Max=" << max;

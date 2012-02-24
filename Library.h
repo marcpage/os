@@ -58,8 +58,6 @@
 
 namespace sys {
 
-	inline void noop() {}
-
 	/** An abstraction of a system library.
 	*/
 	class Library {
@@ -116,6 +114,9 @@ namespace sys {
 			Library(const Library&); ///< Prevent Usage
 			Library &operator=(const Library&); ///< Prevent Usage
 	};
+
+	inline void noop() {}
+
 }
 
 

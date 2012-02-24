@@ -15,11 +15,11 @@ class KeyStore {
 			@return	true if the key has a value (or is linked to a key that has a value).
 		*/
 		virtual bool has(const std::string &key)= 0;
-		/** 
+		/**
 			@return true if key already existed and was replaced
 		*/
 		virtual bool set(const std::string &key, const std::string &value)= 0;
-		/** 
+		/**
 			@param key		The key to store data for.
 			@param value	Receives the value of key, or remains unchanged if the key
 								does not exist.
@@ -37,7 +37,7 @@ class KeyStore {
 				and they are peers, treated equally.
 				The link can be broken by doing a set on either key, or removing a key.
 		*/
-		virtual void link(const std::string &linkKey, const std::string &existingKey);
+		virtual void link(const std::string &linkKey, const std::string &existingKey)= 0;
 };
 
 inline KeyStore::KeyStore() {}
