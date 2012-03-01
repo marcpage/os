@@ -3,14 +3,32 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdarg.h>
+#include <string>
 
 /// Utility Macro to work preprocessor magic, do not use directly
 #define PASTER(x,y) __ ## x ## _ ## y
 /// Creates a unique variable name (per line)
 #define UNIQUE_VARIABLE_NAME(x,y)  PASTER(x,y)
 
+#ifndef Tracer_log
+	#define Tracer_log printf // just needs to take a const char *
+#endif
+
 /// functions and classes for tracing
 namespace Tracer {
+	static inline const char *format_print(std::string &buffer, size_t size, const char * const format, ...) {
+		va_list	args;
+
+		buffer.assign(size, '\0');
+		va_start(args, format);
+
+		size= vsnprintf(const_cast<char*>(buffer.data()), size, format, args);
+
+		va_end(args);
+		buffer.erase(size);
+		return buffer.c_str();
+	}
 	/** Prints to stdout the file, line, function, value (as a double) and the expression.
 		This function can be called around any value or expression, and it will return the value of the expression inline.
 		@param value		The value to print.
@@ -22,11 +40,12 @@ namespace Tracer {
 	*/
 	template<typename Type>
 	const Type &passThroughLog(const Type &value, const char *expression, const char *file, const char *func, int line) {
-		double	doubleValue;
-		int64_t	integerValue= value;
+		double		doubleValue;
+		int64_t		integerValue= value;
+		std::string	buffer;
 
 		doubleValue= integerValue;
-		printf("%s:%d:%s()\t%1.0f (%s)\n", file, line, func, doubleValue, expression);
+		Tracer_log(format_print(buffer, 4096, "%s:%d:%s()\t%1.0f (%s)\n", file, line, func, doubleValue, expression));
 		return value;
 	}
 	/** Prints to stdout the file, line, function, value (as a double) and the expression.
@@ -53,12 +72,26 @@ namespace Tracer {
 			*/
 			LogBlock(const char *file, const char *func, int line)
 				:_file(file), _func(func), _line(line) {
-				printf("%s:%d:%s()\tenter (scope)\n", _file, _line, _func);
+				std::string	buffer;
+
+				Tracer_log(format_print(buffer, 4096, "%s:%d:%s()\tenter (scope)\n", _file, _line, _func));
 			}
 			/** Print to stdout that we are exiting the scope we entered on construction.
 			*/
 			~LogBlock() {
-				printf("%s:%d:%s()\tleave (scope)\n", _file, _line, _func);
+				try {
+					std::string	buffer;
+
+					Tracer_log(format_print(buffer, 4096, "%s:%d:%s()\tleave (scope)\n", _file, _line, _func));
+				} catch(const std::exception &exception) {
+					Tracer_log("Exception thrown in ~LogBlock");
+					Tracer_log(":");
+					Tracer_log(_file);
+					Tracer_log(":");
+					Tracer_log(_func);
+					Tracer_log(":");
+					Tracer_log(exception.what());
+				}
 			}
 		private:
 			const char	*_file;	///< The file that we entered scope in.
