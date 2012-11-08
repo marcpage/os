@@ -11,10 +11,6 @@
 /// Creates a unique variable name (per line)
 #define UNIQUE_VARIABLE_NAME(x,y)  PASTER(x,y)
 
-#ifndef Tracer_log
-	#define Tracer_log printf // just needs to take a const char *
-#endif
-
 /// functions and classes for tracing
 namespace Tracer {
 	static inline const char *format_print(std::string &buffer, size_t size, const char * const format, ...) {
@@ -45,7 +41,7 @@ namespace Tracer {
 		std::string	buffer;
 
 		doubleValue= integerValue;
-		Tracer_log(format_print(buffer, 4096, "%s:%d:%s()\t%1.0f (%s)\n", file, line, func, doubleValue, expression));
+		printf(format_print(buffer, 4096, "%s:%d:%s()\t%1.0f (%s)\n", file, line, func, doubleValue, expression));
 		return value;
 	}
 	/** Prints to stdout the file, line, function, value (as a double) and the expression.
@@ -74,7 +70,7 @@ namespace Tracer {
 				:_file(file), _func(func), _line(line) {
 				std::string	buffer;
 
-				Tracer_log(format_print(buffer, 4096, "%s:%d:%s()\tenter (scope)\n", _file, _line, _func));
+				printf(format_print(buffer, 4096, "%s:%d:%s()\tenter (scope)\n", _file, _line, _func));
 			}
 			/** Print to stdout that we are exiting the scope we entered on construction.
 			*/
@@ -82,15 +78,15 @@ namespace Tracer {
 				try {
 					std::string	buffer;
 
-					Tracer_log(format_print(buffer, 4096, "%s:%d:%s()\tleave (scope)\n", _file, _line, _func));
+					printf(format_print(buffer, 4096, "%s:%d:%s()\tleave (scope)\n", _file, _line, _func));
 				} catch(const std::exception &exception) {
-					Tracer_log("Exception thrown in ~LogBlock");
-					Tracer_log(":");
-					Tracer_log(_file);
-					Tracer_log(":");
-					Tracer_log(_func);
-					Tracer_log(":");
-					Tracer_log(exception.what());
+					printf("Exception thrown in ~LogBlock");
+					printf(":");
+					printf(_file);
+					printf(":");
+					printf(_func);
+					printf(":");
+					printf(exception.what());
 				}
 			}
 		private:

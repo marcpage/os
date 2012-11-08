@@ -124,6 +124,7 @@ namespace msg {
 			try {
 				_message= new std::string(*_message);
 			} catch(const std::exception&) {
+				_message= NULL;
 			}
 		}
 	}
@@ -132,12 +133,18 @@ namespace msg {
 	*/
 	inline Exception &Exception::operator=(const Exception &other) {trace_scope
 		if(this != &other) {
-			delete _message;
 			if(NULL != other._message) {
 				try {
-					_message= new std::string(*other._message);
+					if(NULL != _message) {
+						_message->assign(*other._message);
+					} else {
+						_message= new std::string(*other._message);
+					}
 				} catch(const std::exception&) {
 				}
+			} else {
+				delete _message;
+				_message= NULL;
 			}
 		}
 		return *this;
