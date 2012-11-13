@@ -3,7 +3,7 @@
 
 mkdir -p documentation
 doxygen os.dox
-COMPILER=clang++	# 46.041s, in compile terms along, clang++ is about 20% faster than g++
+COMPILER=clang++	# 46.041s, in compile terms alone, clang++ is about 20% faster than g++
 #COMPILER=g++		# 49.597s
 #COMPILER=llvm-g++	# 50.588s
 
@@ -113,3 +113,11 @@ time /tmp/ReferenceCounted 100000 &> /dev/null
 $COMPILER -o /tmp/ReferenceCounted tests/ReferenceCounted_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
 printf "ReferenceCounted: expecting >= 196\n"
 /tmp/ReferenceCounted 10 | sort | grep ReferenceCounted\\.h | uniq | wc -l
+
+$COMPILER -o /tmp/Bencode tests/Bencode_test.cpp -I.. $GCC_WARNINGS
+printf "Bencode: real < 0.002s user < 0.001s sys < 0.001s\n"
+time /tmp/Bencode 100000 &> /dev/null
+$COMPILER -o /tmp/Bencode tests/Bencode_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
+printf "Bencode: expecting >= 20\n"
+/tmp/Bencode | sort | grep Bencode\\.h | uniq | wc -l
+

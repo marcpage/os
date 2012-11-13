@@ -11,6 +11,10 @@
 
 #define bencodeNULLEntry	"0:"
 
+/**
+	@todo Only allow string keys for Dictionary
+	@todo Allow whitespace before e and before i/l/d
+*/
 namespace bencode {
 
 	enum Type {
@@ -175,7 +179,8 @@ namespace bencode {
 					bool operator<=(const key_iterator &other) const;
 					bool operator>(const key_iterator &other) const;
 					bool operator>=(const key_iterator &other) const;
-					Item::Ptr operator*();
+					Item &operator*();
+					Item::Ptr operator->();
 					operator bool() const;
 				private:
 					Dictionary	*_container;
@@ -204,7 +209,7 @@ namespace bencode {
 	};
 
 	/**
-		@param IntegerType requires:
+		template parameter IntegerType requires:
 							operator<(int)
 							operator=(IntegerType)
 							size_t std::abs(operator%(int))
@@ -456,7 +461,7 @@ namespace bencode {
 	}
 	inline Item::Ptr List::remove(uint32_t index) {
 		Item::Ptr	item= index < _items.size() ? _items[index] : NULL;
-
+		
 		_items.erase(_items.begin() + index);
 		return item;
 	}
@@ -519,9 +524,12 @@ namespace bencode {
 		_index-= increment;
 		return key_iterator(_container, _index + increment);
 	}
+	/** 
+		@todo count can be negative, += and -= need to check we don't go below zero
+	*/
 	inline Dictionary::key_iterator &Dictionary::key_iterator::operator+=(int count) {_index+= count; return *this;}
 	inline Dictionary::key_iterator &Dictionary::key_iterator::operator-=(int count) {
-		_index= (count > _index) ? 0 : _index - count; return *this;
+		_index= (count > static_cast<int>(_index)) ? 0 : _index - count; return *this;
 	}
 	inline Dictionary::key_iterator Dictionary::key_iterator::operator+(int count) {
 		key_iterator result(*this); return result+= count;
@@ -546,7 +554,10 @@ namespace bencode {
 	}
 	inline bool Dictionary::key_iterator::operator>(const key_iterator &other) const {return other < *this;}
 	inline bool Dictionary::key_iterator::operator>=(const key_iterator &other) const {return other <= *this;}
-	inline Item::Ptr Dictionary::key_iterator::operator*() {
+	inline Item &Dictionary::key_iterator::operator*() {
+		return *_container->_items[_index].first;
+	}
+	inline Item::Ptr Dictionary::key_iterator::operator->() {
 		return _valid() ? _container->_items[_index].first : NULL;
 	}
 	inline Dictionary::key_iterator::operator bool() const {return _valid();}
@@ -587,6 +598,7 @@ namespace bencode {
 
 		if(!_find(key, position)) {
 			_items.insert(position, _Element(NULL == key ? NULL : key->clone(), NULL));
+			_find(key, position);
 		}
 		return Assignment(position->second);
 	}
@@ -608,9 +620,10 @@ namespace bencode {
 	Item::Ptr Dictionary::remove(Item::Ptr key) {
 		_Items::iterator	position= _items.end();
 
-		if(!_find(key, position)) {
+		if(_find(key, position)) {
 			Item::Ptr	value= position->second;
-
+			
+			delete position->first;
 			_items.erase(position);
 			return value;
 		}
@@ -673,7 +686,7 @@ namespace bencode {
 	*/
 	bool Dictionary::_find(Item::Ptr key, _Items::iterator &position) {
 		position= _items.begin();
-		while( (position != _items.end()) && (key->compare(*position->first) < 0) ) {
+		while( (position != _items.end()) && (key->compare(*position->first) > 0) ) {
 			++position;
 		}
 		if(position == _items.end()) {

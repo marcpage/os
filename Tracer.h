@@ -41,7 +41,7 @@ namespace Tracer {
 		std::string	buffer;
 
 		doubleValue= integerValue;
-		printf(format_print(buffer, 4096, "%s:%d:%s()\t%1.0f (%s)\n", file, line, func, doubleValue, expression));
+		printf("%s",format_print(buffer, 4096, "%s:%d:%s()\t%1.0f (%s)\n", file, line, func, doubleValue, expression));
 		return value;
 	}
 	/** Prints to stdout the file, line, function, value (as a double) and the expression.
@@ -70,7 +70,7 @@ namespace Tracer {
 				:_file(file), _func(func), _line(line) {
 				std::string	buffer;
 
-				printf(format_print(buffer, 4096, "%s:%d:%s()\tenter (scope)\n", _file, _line, _func));
+				printf("%s",format_print(buffer, 4096, "%s:%d:%s()\tenter (scope)\n", _file, _line, _func));
 			}
 			/** Print to stdout that we are exiting the scope we entered on construction.
 			*/
@@ -78,15 +78,15 @@ namespace Tracer {
 				try {
 					std::string	buffer;
 
-					printf(format_print(buffer, 4096, "%s:%d:%s()\tleave (scope)\n", _file, _line, _func));
+					printf("%s",format_print(buffer, 4096, "%s:%d:%s()\tleave (scope)\n", _file, _line, _func));
 				} catch(const std::exception &exception) {
 					printf("Exception thrown in ~LogBlock");
 					printf(":");
-					printf(_file);
+					printf("%s",_file);
 					printf(":");
-					printf(_func);
+					printf("%s",_func);
 					printf(":");
-					printf(exception.what());
+					printf("%s",exception.what());
 				}
 			}
 		private:

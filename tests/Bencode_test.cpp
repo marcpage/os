@@ -35,14 +35,14 @@ int main(const int /*argc*/, const char * const /*argv*/[]) {
 	dotest(dict["dict"]->type() == bencode::TypeDictionary);
 	dotest(dict["list"]->type() == bencode::TypeList);
 	dotest(dict["remove"]->type() == bencode::TypeString);
-	dotest(**(dict.keys()+0) == bencode::String("answer"));
-	dotest(**(dict.keys()+1) == bencode::String("dict"));
-	dotest(**(dict.keys()+2) == bencode::String("list"));
-	dotest(**(dict.keys()+3) == bencode::String("remove"));
+	dotest(*(dict.keys()+0) == bencode::String("answer")); //
+	dotest(*(dict.keys()+1) == bencode::String("dict"));	//
+	dotest(*(dict.keys()+2) == bencode::String("list"));
+	dotest(*(dict.keys()+3) == bencode::String("remove"));	//
 	dict.remove("remove");
 	dotest(!dict.has_key("remove"));
-	dotest(**(dict.keys()+0) == bencode::String("answer"));
-	dotest(**(dict.keys()+1) == bencode::String("dict"));
-	dotest(**(dict.keys()+2) == bencode::String("list"));
+	dotest(*(dict.keys()+0) == bencode::String("answer"));	//
+	dotest(*(dict.keys()+1) == bencode::String("dict"));	//
+	dotest(*(dict.keys()+2) == bencode::String("list"));	//
 	return 0;
 }
