@@ -10,27 +10,65 @@
 void dump(const bencode::Item &item, const std::string &indent= "") {
 	switch(item.type()) {
 		case bencode::TypeString:
-			printf("%s '%s'\n", indent.c_str(), item.as<bencode::String>().value().c_str());
+			fprintf(stderr, "%s '%s'\n", indent.c_str(), item.as<bencode::String>().value().c_str());
 			break;
 		case bencode::TypeInteger:
-			printf("%s %ld\n", indent.c_str(), item.as<bencode::Integer>().value());
+			fprintf(stderr, "%s %ld\n", indent.c_str(), item.as<bencode::Integer>().value());
 			break;
 		case bencode::TypeList:
-			printf("%s List[%d]\n", indent.c_str(), item.as<bencode::List>().componentCount());
+			fprintf(stderr, "%s List[%d]\n", indent.c_str(), item.as<bencode::List>().componentCount());
 			for(uint32_t index= 0; index < item.as<bencode::List>().componentCount(); ++index) {
 				dump(*item.as<bencode::List>().value(index), indent+"\t");
 			}
 			break;
 		case bencode::TypeDictionary:
-			printf("%s Dictionary[%d]\n", indent.c_str(), item.as<bencode::List>().componentCount());
+			fprintf(stderr, "%s Dictionary[%d]\n", indent.c_str(), item.as<bencode::List>().componentCount());
 			for(bencode::Dictionary::key_iterator key= item.as<bencode::Dictionary>().keys(); key; ++key) {
 				dump(*key, indent+"\t");
 				dump(*item.as<bencode::Dictionary>()[&*key], indent+"\t\t");
 			}
 			break;
 		default:
-			printf("%s Unknown\n", indent.c_str());
+			fprintf(stderr, "%s Unknown\n", indent.c_str());
 			break;
+	}
+}
+
+bool equals(const bencode::Item &i1, const bencode::Item &i2) {
+	if(i1.type() != i2.type()) {
+		return false;
+	}
+	switch(i1.type()) {
+		case bencode::TypeString:
+			return i1.as<bencode::String>().value() == i2.as<bencode::String>().value();
+		case bencode::TypeInteger:
+			return i1.as<bencode::Integer>().value() == i2.as<bencode::Integer>().value();
+		case bencode::TypeList:
+			if(i1.as<bencode::List>().count() != i2.as<bencode::List>().count()) {
+				return false;
+			}
+			for(uint32_t index= 0; index < i1.as<bencode::List>().count(); ++index) {
+				if(!equals(*i1.as<bencode::List>().value(index), *i2.as<bencode::List>().value(index))) {
+					return false;
+				}
+			}
+			return true;
+		case bencode::TypeDictionary: {
+			bencode::Dictionary::key_iterator	k1= i1.as<bencode::Dictionary>().keys();
+			bencode::Dictionary::key_iterator	k2= i2.as<bencode::Dictionary>().keys();
+
+			while(k1 && k2) {
+				if(!equals(*k1, *k2)) {
+					return false;
+				}
+				if(!equals(*i1.as<bencode::Dictionary>()[&*k1], *i2.as<bencode::Dictionary>()[&*k2])) {
+					return false;
+				}
+			}
+			return true;
+		}
+		default:
+			return false;
 	}
 }
 
@@ -88,11 +126,9 @@ int main(const int /*argc*/, const char * const /*argv*/[]) {
 	dotest(*(decoded->as<bencode::Dictionary>().keys()+2) == bencode::String("list"));
 	dotest(*decoded == dict);
 	dotest(dict == *decoded);
-
-	//printf("original\n");
-	//dump(dict);
-
-	//printf("\ncopy\n");
-	//dump(*decoded);
+	//dotest(equals(dict, *decoded));
+	//dotest(equals(*decoded, dict));
+	dump(dict);
+	dump(*decoded);
 	return 0;
 }
