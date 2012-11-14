@@ -61,18 +61,20 @@ namespace bencode {
 			virtual void write(const std::string &data);
 			virtual void write(char byte);
 		private:
-			std::string	_buffer;
+			std::string	&_buffer;
 	};
 
 	class Item {
 		public:
-			typedef Item *Ptr;
+			typedef Item 		*Ptr;
+			typedef const Item	*ConstPtr;
 			static Item::Ptr read(Input &in);
 			Item();
 			virtual ~Item();
 			virtual Type type() const;
 			virtual void write(Output &);
 			template<typename I> I &as();
+			template<typename I> const I &as() const;
 			bool operator<(const Item &other) const;
 			bool operator<=(const Item &other) const;
 			bool operator>(const Item &other) const;
@@ -141,7 +143,9 @@ namespace bencode {
 			virtual void write(Output &out);
 			uint32_t count() const;
 			Assignment operator[](uint32_t index);
+			Item::ConstPtr operator[](uint32_t index) const;
 			Assignment value(uint32_t index);
+			Item::ConstPtr value(uint32_t index) const;
 			void insert(Item::Ptr item, uint32_t before= 0);
 			void insert(const std::string &value, uint32_t before= 0);
 			void insert(intmax_t value, uint32_t before= 0);
@@ -163,7 +167,7 @@ namespace bencode {
 			class key_iterator {
 				public:
 					key_iterator(const key_iterator &other);
-					key_iterator(Dictionary *c, uint32_t i);
+					key_iterator(const Dictionary *c, uint32_t i);
 					~key_iterator();
 					key_iterator &operator++();
 					key_iterator operator++(int);
@@ -183,7 +187,7 @@ namespace bencode {
 					Item::Ptr operator->();
 					operator bool() const;
 				private:
-					Dictionary	*_container;
+					const Dictionary	*_container;
 					uint32_t	_index;
 					bool _valid() const;
 			};
@@ -191,9 +195,11 @@ namespace bencode {
 			virtual ~Dictionary();
 			virtual Type type() const;
 			virtual void write(Output &out);
-			key_iterator keys();
-			Assignment operator[](Item::Ptr key);
+			key_iterator keys() const;
+			Assignment operator[](Item::ConstPtr key);
+			Item::ConstPtr operator[](Item::ConstPtr key) const;
 			Assignment operator[](const std::string &key);
+			Item::ConstPtr operator[](const std::string &key) const;
 			bool has_key(Item::Ptr key);
 			bool has_key(const std::string &key);
 			Item::Ptr remove(Item::Ptr key);
@@ -205,7 +211,7 @@ namespace bencode {
 			typedef std::pair<Item::Ptr,Item::Ptr>	_Element;
 			typedef std::vector<_Element>			_Items;
 			_Items	_items;
-			bool _find(Item::Ptr key, _Items::iterator &position);
+			bool _find(Item::ConstPtr key, _Items::iterator &position) const;
 	};
 
 	/**
@@ -231,11 +237,10 @@ namespace bencode {
 	inline ReferencedStringInput::~ReferencedStringInput() {}
 	inline std::string &ReferencedStringInput::read(size_t bytes, std::string &storage) {
 		if(_position < _buffer.size()) {
-			storage.assign(_buffer, _position,
-				_position + bytes < _buffer.size()
+			bytes= _position + bytes < _buffer.size()
 					? bytes
-					: _buffer.size() - _position
-			);
+					: _buffer.size() - _position;
+			storage.assign(_buffer, _position, bytes);
 			_position+= bytes;
 		} else {
 			storage.clear();
@@ -304,6 +309,7 @@ namespace bencode {
 	inline Type Item::type() const {return TypeInvalid;}
 	inline void Item::write(Output &) {}
 	template<typename I> inline I &Item::as() {return *reinterpret_cast<I*>(this);}
+	template<typename I> inline const I &Item::as() const {return *reinterpret_cast<const I*>(this);}
 	inline bool Item::operator<(const Item &other) const {return compare(other) < 0;}
 	inline bool Item::operator<=(const Item &other) const {return compare(other) <= 0;}
 	inline bool Item::operator>(const Item &other) const {return compare(other) > 0;}
@@ -330,9 +336,9 @@ namespace bencode {
 		Item::Ptr				result= NULL;
 		char					byte;
 		std::string::size_type	size;
-
 		switch(type) {
 			case 'i':
+				buffer.clear();
 				while('e' != (byte= in.read())) {
 					buffer.append(1, byte);
 				}
@@ -341,6 +347,7 @@ namespace bencode {
 			case '0':case '1':case '2':case '3':case '4':
 			case '5':case '6':case '7':case '8':case '9':
 				byte= type;
+				buffer.clear();
 				do {
 					if( (byte < '0') || (byte > '9') ) {
 						return NULL;
@@ -349,6 +356,7 @@ namespace bencode {
 					byte= in.read();
 				} while(':' != byte);
 				size= strtoimax(buffer.c_str(), static_cast<char**>(NULL), 10);
+				buffer.clear();
 				in.read(size, buffer);
 				result= new String(buffer);
 				break;
@@ -449,7 +457,14 @@ namespace bencode {
 		}
 		return Assignment(_items[index]);
 	}
+	inline Item::ConstPtr List::operator[](uint32_t index) const {
+		for(size_t fill= _items.size(); fill <= index; ++fill) {
+			const_cast<List*>(this)->push(NULL);
+		}
+		return _items[index];
+	}
 	inline Item::Assignment List::value(uint32_t index) {return (*this)[index];}
+	inline Item::ConstPtr List::value(uint32_t index) const {return (*this)[index];}
 	inline void List::insert(Item::Ptr item, uint32_t before) {
 		_items.insert(_items.begin()+before, item);
 	}
@@ -561,7 +576,7 @@ namespace bencode {
 		return _valid() ? _container->_items[_index].first : NULL;
 	}
 	inline Dictionary::key_iterator::operator bool() const {return _valid();}
-	inline Dictionary::key_iterator::key_iterator(Dictionary *c, uint32_t i)
+	inline Dictionary::key_iterator::key_iterator(const Dictionary *c, uint32_t i)
 		:_container(c),_index(i) {}
 	inline bool Dictionary::key_iterator::_valid() const {
 		return _index < _container->_items.size();
@@ -592,8 +607,8 @@ namespace bencode {
 		}
 		out.write('e');
 	}
-	Dictionary::key_iterator Dictionary::keys() {return key_iterator(this, 0);}
-	Item::Assignment Dictionary::operator[](Item::Ptr key) {
+	Dictionary::key_iterator Dictionary::keys() const {return key_iterator(this, 0);}
+	Item::Assignment Dictionary::operator[](Item::ConstPtr key) {
 		_Items::iterator	position= _items.end();
 
 		if(!_find(key, position)) {
@@ -602,7 +617,21 @@ namespace bencode {
 		}
 		return Assignment(position->second);
 	}
+	Item::ConstPtr Dictionary::operator[](Item::ConstPtr key) const {
+		_Items::iterator	position= const_cast<Dictionary*>(this)->_items.end();
+
+		if(!_find(key, position)) {
+			const_cast<Dictionary*>(this)->_items.insert(position, _Element(NULL == key ? NULL : key->clone(), NULL));
+			_find(key, position);
+		}
+		return position->second;
+	}
 	Item::Assignment Dictionary::operator[](const std::string &key) {
+		String	keyString(key);
+
+		return (*this)[reinterpret_cast<Item::Ptr>(&keyString)];
+	}
+	Item::ConstPtr Dictionary::operator[](const std::string &key) const {
 		String	keyString(key);
 
 		return (*this)[reinterpret_cast<Item::Ptr>(&keyString)];
@@ -684,12 +713,12 @@ namespace bencode {
 	/**
 		@todo Improve speed with binary search
 	*/
-	bool Dictionary::_find(Item::Ptr key, _Items::iterator &position) {
-		position= _items.begin();
-		while( (position != _items.end()) && (key->compare(*position->first) > 0) ) {
+	bool Dictionary::_find(Item::ConstPtr key, _Items::iterator &position) const {
+		position= const_cast<Dictionary*>(this)->_items.begin();
+		while( (position != const_cast<Dictionary*>(this)->_items.end()) && (key->compare(*position->first) > 0) ) {
 			++position;
 		}
-		if(position == _items.end()) {
+		if(position == const_cast<Dictionary*>(this)->_items.end()) {
 			return false;
 		}
 		if(position->first == key) {
