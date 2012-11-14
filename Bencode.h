@@ -345,7 +345,7 @@ namespace bencode {
 					if( (byte < '0') || (byte > '9') ) {
 						return NULL;
 					}
-					buffer.assign(1, byte);
+					buffer.append(1, byte);
 					byte= in.read();
 				} while(':' != byte);
 				size= strtoimax(buffer.c_str(), static_cast<char**>(NULL), 10);
@@ -461,7 +461,7 @@ namespace bencode {
 	}
 	inline Item::Ptr List::remove(uint32_t index) {
 		Item::Ptr	item= index < _items.size() ? _items[index] : NULL;
-		
+
 		_items.erase(_items.begin() + index);
 		return item;
 	}
@@ -524,7 +524,7 @@ namespace bencode {
 		_index-= increment;
 		return key_iterator(_container, _index + increment);
 	}
-	/** 
+	/**
 		@todo count can be negative, += and -= need to check we don't go below zero
 	*/
 	inline Dictionary::key_iterator &Dictionary::key_iterator::operator+=(int count) {_index+= count; return *this;}
@@ -622,7 +622,7 @@ namespace bencode {
 
 		if(_find(key, position)) {
 			Item::Ptr	value= position->second;
-			
+
 			delete position->first;
 			_items.erase(position);
 			return value;
