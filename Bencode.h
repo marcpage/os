@@ -11,68 +11,110 @@
 
 #define bencodeNULLEntry	"0:"
 
-/**
+/** Allows encoding and decoding Bit Torrent originated b-encoded data.
 	@todo Only allow string keys for Dictionary
 	@todo Allow whitespace before e and before i/l/d
 */
 namespace bencode {
 
+	/** Benocde Item types
+	*/
 	enum Type {
-		TypeString,
-		TypeInteger,
-		TypeList,
-		TypeDictionary,
-		TypeInvalid
+		TypeString,		//< String or buffer type
+		TypeInteger,	//< Signed Integer type
+		TypeList,		//< List of Items
+		TypeDictionary,	//< Dictionary from String to Item
+		TypeInvalid		//< Not a valid Type
 	};
 
+	/** Interface for reading Bencode data.
+	*/
 	class Input {
 		public:
 			Input();
 			virtual ~Input();
+			/** Reads a number of bytes from source.
+				@param bytes	The number of bytes to read from the source
+				@param storage	The buffer to hold the bytes read (appended, never cleared)
+				@return			Reference to storage
+			*/
 			virtual std::string &read(size_t bytes, std::string &storage);
+			/** Reads one byte from the source.
+				@return The byte read
+			*/
 			virtual char read()= 0;
+			/** Are we at the end of the source?
+				@return	true if there are no more bytes to be read, false if you can read more data
+			*/
 			virtual bool end()= 0;
 	};
 
+	/** An example Input class that reads Bencode data from a std::string.
+	*/
 	class ReferencedStringInput : public Input {
 		public:
+			/**
+				@param buffer	Reference to buffer that will be read.
+			*/
 			ReferencedStringInput(const std::string &buffer);
 			virtual ~ReferencedStringInput();
 			virtual std::string &read(size_t bytes, std::string &storage);
 			virtual char read();
+			/**
+				@return true if we've reached the end of the string.
+			*/
 			virtual bool end();
 		private:
-			const std::string		&_buffer;
-			std::string::size_type	_position;
+			const std::string		&_buffer;	//< Reference to the original buffer
+			std::string::size_type	_position;	//< The position to read from next
 	};
 
+	/** Interface for writing Bencode data
+	*/
 	class Output {
 		public:
 			Output();
 			virtual ~Output();
+			/** @param data	The bencoded data to write to the destination */
 			virtual void write(const std::string &data);
+			/** @param byte	The bencoded byte to write to the destination */
 			virtual void write(char byte)= 0;
 	};
 
+	/** An example Ouput class that writes Bencode data to a std::string.
+	*/
 	class ReferencedStringOutput : public Output {
 		public:
+			/** @param buffer	The string to fill with bencoded data.
+									Never cleared, always appended
+			*/
 			ReferencedStringOutput(std::string &buffer);
 			virtual ~ReferencedStringOutput();
 			virtual void write(const std::string &data);
 			virtual void write(char byte);
 		private:
-			std::string	&_buffer;
+			std::string	&_buffer;	//< Bencode data is appended to this string
 	};
 
+	/** Interface for all nodes in a Benocoded data structure
+	*/
 	class Item {
 		public:
 			typedef Item 		*Ptr;
 			typedef const Item	*ConstPtr;
+			/** Creates a root Item for bencoded data.
+				@param in	Source that contains at least one bencoded data element.
+				@return		The next bencoded element from in, although it may be complex
+			*/
 			static Item::Ptr read(Input &in);
 			Item();
 			virtual ~Item();
 			virtual Type type() const;
 			virtual void write(Output &);
+			/** Cast this Item to a specific node to call node specific methods.
+				<code>I</code> is the type, like String, Integer, List or Dictionary.
+				Make sure you check type() before calling as().
+			*/
 			template<typename I> I &as();
 			template<typename I> const I &as() const;
 			bool operator<(const Item &other) const;
@@ -228,7 +270,7 @@ namespace bencode {
 	inline Input::~Input() {}
 	inline std::string &Input::read(size_t bytes, std::string &storage) {
 		storage.clear();
-		while(bytes > 0) {storage.append(1, read()); --bytes;}
+		while( (bytes > 0) && !end() ) {storage.append(1, read()); --bytes;}
 		return storage;
 	}
 
