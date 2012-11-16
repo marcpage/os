@@ -35,24 +35,24 @@ namespace io {
 			File(const char *path, Method method, Protection protection);
 			File(const std::string &path, Method method, Protection protection);
 			~File();
-			off_t size();
+			off_t size() const;
 			void flush();
-			off_t location();
+			off_t location() const;
 			bool writable() const;
-			void moveto(off_t offset, Relative relative= FromStart);
-			void move(off_t offset, Relative relative= FromHere);
-			void read(void *buffer, size_t bufferSize, off_t offset= 0, Relative relative= FromHere);
+			void moveto(off_t offset, Relative relative= FromStart) const;
+			void move(off_t offset, Relative relative= FromHere) const;
+			void read(void *buffer, size_t bufferSize, off_t offset= 0, Relative relative= FromHere) const;
 			void write(const void *buffer, size_t bufferSize, off_t offset= 0, Relative relative= FromHere);
-			std::string &read(std::string &buffer, size_t bufferSize= static_cast<size_t>(-1), off_t offset= 0, Relative relative= FromHere);
+			std::string &read(std::string &buffer, size_t bufferSize= static_cast<size_t>(-1), off_t offset= 0, Relative relative= FromHere) const;
 			void write(const std::string &buffer, off_t offset= 0, Relative relative= FromHere);
-			template<class Int> Int read(Endian endian, off_t offset= 0, Relative relative= FromHere);
+			template<class Int> Int read(Endian endian, off_t offset= 0, Relative relative= FromHere) const;
 			template<class Int> void write(Int number, Endian endian, off_t offset= 0, Relative relative= FromHere);
 		private:
 			FILE	*_file;
 			bool	_readOnly;
-			int _whence(Relative relative);
-			void _goto(off_t offset, Relative relative);
-			Endian _actualEndian(Endian endian);
+			static int _whence(Relative relative);
+			void _goto(off_t offset, Relative relative) const;
+			static Endian _actualEndian(Endian endian);
 			static FILE *_open(const char *path, Method method, Protection protection, bool &readOnly);
 			File(const File&); ///< Mark as unusable
 			File &operator=(const File&); ///< Mark as unusable
@@ -94,7 +94,7 @@ namespace io {
 	/**
 		@todo Test!
 	*/
-	inline off_t File::size() {trace_scope
+	inline off_t File::size() const {trace_scope
 		off_t	here= location();
 		off_t	end;
 
@@ -112,7 +112,7 @@ namespace io {
 	/**
 		@todo Test!
 	*/
-	inline off_t File::location() {trace_scope
+	inline off_t File::location() const {trace_scope
 		off_t	currentPos;
 
 		errnoAssertPositiveMessageException(currentPos= ftello(_file));
@@ -124,19 +124,19 @@ namespace io {
 	inline bool File::writable() const {trace_scope
 		return trace_bool(!_readOnly);
 	}
-	inline void File::moveto(off_t offset, Relative relative) {trace_scope
+	inline void File::moveto(off_t offset, Relative relative) const {trace_scope
 		errnoAssertPositiveMessageException(fseeko(_file, offset, _whence(relative)));
 	}
 	/**
 		@todo Test!
 	*/
-	inline void File::move(off_t offset, Relative relative) {trace_scope
+	inline void File::move(off_t offset, Relative relative) const {trace_scope
 		move(offset, relative);
 	}
 	/**
 		@todo Test!
 	*/
-	inline void File::read(void *buffer, size_t bufferSize, off_t offset, Relative relative) {trace_scope
+	inline void File::read(void *buffer, size_t bufferSize, off_t offset, Relative relative) const {trace_scope
 		off_t	amount;
 		int		fileError;
 
@@ -158,7 +158,7 @@ namespace io {
 	/**
 		@todo Test!
 	*/
-	inline std::string &File::read(std::string &buffer, size_t bufferSize, off_t offset, Relative relative) {trace_scope
+	inline std::string &File::read(std::string &buffer, size_t bufferSize, off_t offset, Relative relative) const {trace_scope
 		if(static_cast<size_t>(-1) == bufferSize) {
 			bufferSize= size();
 		}
@@ -175,7 +175,7 @@ namespace io {
 	/**
 		@todo Test!
 	*/
-	template<class Int> inline Int File::read(Endian endian, off_t offset, Relative relative) {trace_scope
+	template<class Int> inline Int File::read(Endian endian, off_t offset, Relative relative) const {trace_scope
 		uint8_t	buffer[sizeof(Int)];
 		Int		value= 0;
 
@@ -230,7 +230,7 @@ namespace io {
 		AssertMessageException(FromEnd == relative);
 		return SEEK_END;
 	}
-	inline void File::_goto(off_t offset, Relative relative) {trace_scope
+	inline void File::_goto(off_t offset, Relative relative) const {trace_scope
 		if( trace_bool(0 != offset) || trace_bool(relative != FromHere) ) {
 			moveto(offset, relative);
 		}
