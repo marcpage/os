@@ -182,6 +182,7 @@ namespace io {
 	inline AllocatableFile::_Block AllocatableFile::_Block::use(uint64_t size, uint8_t flags) {
 		const size_t	kHeaderSize= sizeof(uint8_t) + sizeof(uint64_t);
 		const uint8_t	kFreeBit= 0x80;
+		const bool		isEnd= end();
 		_Block			tail;
 
 		AssertMessageException(!_const);
@@ -194,6 +195,12 @@ namespace io {
 			_writeFreeBlock(_header + _size, _size - size);
 			tail= (*this) + 1U;
 			tail.free(); // merge with any future free blocks
+		}
+		_size= size;
+		_flags= flags;
+		_free= false;
+		if(isEnd) {
+			_writeFreeBlock(_header + _size, 1);
 		}
 		return tail;
 	}
@@ -247,6 +254,7 @@ namespace io {
 		const bool 		fitsInCompactFreeBlock= (size <= kMaxCompactFreeBlockSize);
 		const uint8_t	flags= kFreeBit | static_cast<uint8_t>(fitsInCompactFreeBlock ? size : 0);
 
+		AssertMessageException(size > 0);
 		AssertMessageException(!_const);
 		_file->write<uint8_t>(flags, BigEndian, offset, FromStart);
 		if(!fitsInCompactFreeBlock) {
