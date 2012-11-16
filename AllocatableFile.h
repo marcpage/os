@@ -86,6 +86,8 @@ namespace io {
 	inline AllocatableFile::_Block::_Block()
 			:_file(NULL), _free(true), _const(true), _header(0), _size(0), _flags(0) {}
 	/**
+		@param file			The file we are referencing
+		@param offset		The offset on the file of the block, see headerOffset
 		@param headerOffset	Is offset the start of the block?
 								This is *always* true for free blocks.
 	*/
@@ -235,7 +237,8 @@ namespace io {
 		}
 	}
 	/**
-		@param size	The size of the entire free block
+		@param offset	The offset at which to write the free block header
+		@param size		The size of the entire free block
 	*/
 	inline uint8_t AllocatableFile::_Block::_writeFreeBlock(off_t offset, uint64_t size) {
 		const size_t	kHeaderSize= sizeof(uint8_t) + sizeof(uint64_t);

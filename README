@@ -116,8 +116,15 @@ printf "ReferenceCounted: expecting >= 196\n"
 
 $COMPILER -o /tmp/Bencode tests/Bencode_test.cpp -I.. $GCC_WARNINGS
 printf "Bencode: real < 0.002s user < 0.001s sys < 0.001s\n"
-time /tmp/Bencode 100000 &> /dev/null
+time /tmp/Bencode &> /dev/null
 $COMPILER -o /tmp/Bencode tests/Bencode_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
 printf "Bencode: expecting >= 60\n"
 /tmp/Bencode 2> /dev/null | sort | grep Bencode\\.h | uniq | wc -l
+
+$COMPILER -o /tmp/AllocatableFile tests/AllocatableFile_test.cpp -I.. $GCC_WARNINGS
+printf "AllocatableFile: real < 0.002s user < 0.001s sys < 0.001s\n"
+time /tmp/AllocatableFile &> /dev/null
+$COMPILER -o /tmp/AllocatableFile tests/AllocatableFile_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
+printf "AllocatableFile: expecting >= 5\n"
+/tmp/AllocatableFile 2> /dev/null | sort | grep AllocatableFile\\.h | uniq | wc -l
 
