@@ -48,6 +48,10 @@ namespace exec {
 					ReferenceCountedType *operator->();
 					/// const dereference the "Smart Pointer"
 					const ReferenceCountedType *operator->() const;
+					/// Dereference the "Smart Pointer"
+					ReferenceCountedType &operator*();
+					/// const dereference the "Smart Pointer"
+					const ReferenceCountedType &operator*() const;
 					/// Assign another actual pointer to this smart pointer
 					Ptr &assign(ReferenceCountedType *ptr= NULL, RetainAction action=Retain);
 					/// Copy the given pointer
@@ -56,6 +60,8 @@ namespace exec {
 					operator bool() const;
 					/// Is it non-NULL
 					bool valid() const;
+					operator ReferenceCountedType*();
+					operator const ReferenceCountedType*() const;
 				private:
 					ReferenceCountedType	*_ptr; ///< The actual reference counted pointer, or NULL
 					void _retain();	///< Handle retain without worrying about NULL
@@ -172,6 +178,26 @@ namespace exec {
 		ThrowMessageExceptionIfNULL(_ptr);
 		return _ptr;
 	}
+	/** Accesses the reference counted object.
+		@return The referenced object.
+		@throw msg::MessageException if the pointer is NULL.
+		@todo TEST
+	*/
+	template<typename ReferenceCountedType>
+	ReferenceCountedType &ReferenceCounted::Ptr<ReferenceCountedType>::operator*() {trace_scope;
+		ThrowMessageExceptionIfNULL(_ptr);
+		return *_ptr;
+	}
+	/** Accesses the reference counted object.
+		@return The referenced object.
+		@throw msg::MessageException if the pointer is NULL.
+		@todo TEST
+	*/
+	template<typename ReferenceCountedType>
+	const ReferenceCountedType &ReferenceCounted::Ptr<ReferenceCountedType>::operator*() const {trace_scope;
+		ThrowMessageExceptionIfNULL(_ptr);
+		return *_ptr;
+	}
 	/** Assigns a new reference counted pointer to the smart pointer.
 		If the "Smart Pointer" is not NULL, the value will be Released() before the assignment.
 		@param ptr		The pointer to now reference.
@@ -214,6 +240,14 @@ namespace exec {
 	template<typename ReferenceCountedType>
 	bool ReferenceCounted::Ptr<ReferenceCountedType>::valid() const {trace_scope;
 		return trace_bool(NULL != _ptr);
+	}
+	template<typename ReferenceCountedType>
+	ReferenceCounted::Ptr<ReferenceCountedType>::operator ReferenceCountedType*() {trace_scope;
+		return _ptr;
+	}
+	template<typename ReferenceCountedType>
+	ReferenceCounted::Ptr<ReferenceCountedType>::operator const ReferenceCountedType*() const {trace_scope;
+		return _ptr;
 	}
 	/** NULL safe retain.
 	*/
