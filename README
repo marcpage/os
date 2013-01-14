@@ -54,7 +54,7 @@ $COMPILER -o /tmp/Thread tests/Thread_test.cpp -I.. $GCC_WARNINGS
 printf "Thread: real < 0.058s user < 0.001s sys < 0.004s\n"
 time /tmp/Thread &> /dev/null
 $COMPILER -o /tmp/Thread tests/Thread_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
-printf "Thread: expecting >= 26\n"
+printf "Thread: expecting >= 27\n"
 /tmp/Thread | sort | grep Thread\\.h | uniq | wc -l
 
 $COMPILER -o /tmp/File tests/File_test.cpp -I.. $GCC_WARNINGS
@@ -111,7 +111,7 @@ $COMPILER -o /tmp/ReferenceCounted tests/ReferenceCounted_test.cpp -I.. $GCC_WAR
 printf "ReferenceCounted: real < 3.061s user < 4.185s sys < 5.845s\n"
 time /tmp/ReferenceCounted 100000 &> /dev/null
 $COMPILER -o /tmp/ReferenceCounted tests/ReferenceCounted_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
-printf "ReferenceCounted: expecting >= 196\n"
+printf "ReferenceCounted: expecting >= 210\n"
 /tmp/ReferenceCounted 10 | sort | grep ReferenceCounted\\.h | uniq | wc -l
 
 $COMPILER -o /tmp/Bencode tests/Bencode_test.cpp -I.. $GCC_WARNINGS
@@ -125,6 +125,13 @@ $COMPILER -o /tmp/AllocatableFile tests/AllocatableFile_test.cpp -I.. $GCC_WARNI
 printf "AllocatableFile: real < 0.002s user < 0.001s sys < 0.001s\n"
 time /tmp/AllocatableFile &> /dev/null
 $COMPILER -o /tmp/AllocatableFile tests/AllocatableFile_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
-printf "AllocatableFile: expecting >= 5\n"
+printf "AllocatableFile: expecting >= 15\n"
 /tmp/AllocatableFile 2> /dev/null | sort | grep AllocatableFile\\.h | uniq | wc -l
+
+$COMPILER -o /tmp/CompactNumber tests/CompactNumber_test.cpp -I.. $GCC_WARNINGS
+printf "CompactNumber: real < 0.002s user < 0.001s sys < 0.001s\n"
+time /tmp/CompactNumber &> /dev/null
+$COMPILER -o /tmp/CompactNumber tests/CompactNumber_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
+printf "CompactNumber: expecting >= 12\n"
+/tmp/CompactNumber 2> /dev/null | sort | grep CompactNumber\\.h | uniq | wc -l
 
