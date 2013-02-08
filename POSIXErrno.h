@@ -80,10 +80,10 @@ namespace posix { namespace err {
 	ErrnoException(ENOMSG);			ErrnoException(ENOPOLICY);		ErrnoException(ENOPROTOOPT);
 	ErrnoException(ENOSPC);			ErrnoException(ENOSR);			ErrnoException(ENOSTR);
 	ErrnoException(ENOSYS);			ErrnoException(ENOTBLK);		ErrnoException(ENOTCONN);
-	ErrnoException(ENOTDIR);		ErrnoException(ENOTEMPTY);		ErrnoException(ENOTRECOVERABLE);
+	ErrnoException(ENOTDIR);		ErrnoException(ENOTEMPTY);
 	ErrnoException(ENOTSOCK);		ErrnoException(ENOTSUP);		ErrnoException(ENOTTY);
 	ErrnoException(ENXIO);			ErrnoException(EOPNOTSUPP);		ErrnoException(EOVERFLOW);
-	ErrnoException(EOWNERDEAD);		ErrnoException(EPERM);			ErrnoException(EPFNOSUPPORT);
+	ErrnoException(EPERM);			ErrnoException(EPFNOSUPPORT);
 	ErrnoException(EPIPE);			ErrnoException(EPROCLIM);		ErrnoException(EPROCUNAVAIL);
 	ErrnoException(EPROGMISMATCH);	ErrnoException(EPROGUNAVAIL);	ErrnoException(EPROTO);
 	ErrnoException(EPROTONOSUPPORT);ErrnoException(EPROTOTYPE);		ErrnoException(EPWROFF);
@@ -93,6 +93,10 @@ namespace posix { namespace err {
 	ErrnoException(ESTALE);			ErrnoException(ETIME);			ErrnoException(ETIMEDOUT);
 	ErrnoException(ETOOMANYREFS);	ErrnoException(ETXTBSY);		ErrnoException(EUSERS);
 	ErrnoException(EWOULDBLOCK);	ErrnoException(EXDEV);
+#if 0
+	ErrnoException(ENOTRECOVERABLE);
+	ErrnoException(EOWNERDEAD);
+#endif
 #undef ErrnoException
 
 	inline Errno::Errno(int value, const char *file, int line) throw()
@@ -100,7 +104,7 @@ namespace posix { namespace err {
 	inline Errno::Errno(const std::string &message, int value, const char *file, int line) throw()
 		:_message(_init(message, file, line, value)), _errno(value) {}
 	inline Errno::Errno(const Errno &other)
-		:_message(other._message) {
+		:std::exception(), _message(other._message), _errno(other._errno) {
 		if(NULL != _message) {
 			try {
 				_message= new std::string(*_message);
@@ -165,10 +169,10 @@ namespace posix { namespace err {
 		ErrnoCaseClass(ENOATTR);		ErrnoCaseClass(ENOBUFS);		ErrnoCaseClass(ENODATA);
 		ErrnoCaseClass(ENODEV);			ErrnoCaseClass(ENOENT);			ErrnoCaseClass(ENOEXEC);
 		ErrnoCaseClass(ENOLCK);			ErrnoCaseClass(ENOLINK);		ErrnoCaseClass(ENOMEM);
-		ErrnoCaseClass(ENOMSG);			ErrnoCaseClass(ENOPOLICY);		ErrnoCaseClass(ENOPROTOOPT);
+		ErrnoCaseClass(ENOMSG);			/*ErrnoCaseClass(ENOPOLICY);*/	ErrnoCaseClass(ENOPROTOOPT);
 		ErrnoCaseClass(ENOSPC);			ErrnoCaseClass(ENOSR);			ErrnoCaseClass(ENOSTR);
 		ErrnoCaseClass(ENOSYS);			ErrnoCaseClass(ENOTBLK);		ErrnoCaseClass(ENOTCONN);
-		ErrnoCaseClass(ENOTDIR);		ErrnoCaseClass(ENOTEMPTY);		ErrnoCaseClass(ENOTRECOVERABLE);
+		ErrnoCaseClass(ENOTDIR);		ErrnoCaseClass(ENOTEMPTY);
 		ErrnoCaseClass(ENOTSOCK);		ErrnoCaseClass(ENOTSUP);		ErrnoCaseClass(ENOTTY);
 		ErrnoCaseClass(ENXIO);			ErrnoCaseClass(EOPNOTSUPP);		ErrnoCaseClass(EOVERFLOW);
 		/*ErrnoCaseClass(EOWNERDEAD);*/	ErrnoCaseClass(EPERM);			ErrnoCaseClass(EPFNOSUPPORT);
@@ -181,6 +185,9 @@ namespace posix { namespace err {
 		ErrnoCaseClass(ESTALE);			ErrnoCaseClass(ETIME);			ErrnoCaseClass(ETIMEDOUT);
 		ErrnoCaseClass(ETOOMANYREFS);	ErrnoCaseClass(ETXTBSY);		ErrnoCaseClass(EUSERS);
 		/*ErrnoCaseClass(EWOULDBLOCK);*/ErrnoCaseClass(EXDEV);
+#if 0
+		ErrnoCaseClass(ENOTRECOVERABLE);
+#endif
 #undef ErrnoCase
 				default:
 					throw Errno(message, errnoCode, file, line);
