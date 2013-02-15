@@ -219,6 +219,7 @@ namespace bencode {
 					key_iterator operator+(int count);
 					key_iterator operator-(int count);
 					key_iterator &operator-=(int count);
+					key_iterator &operator=(const key_iterator &other);
 					bool operator==(const key_iterator &other) const;
 					bool operator!=(const key_iterator &other) const;
 					bool operator<(const key_iterator &other) const;
@@ -454,9 +455,9 @@ namespace bencode {
 	}
 	inline Item::Ptr String::clone() const {return new String(_value);}
 
-	inline Integer::Integer(intmax_t value):_value(value) {}
-	inline Integer::Integer(const std::string &value)
-		:_value(strtoimax(value.c_str(), static_cast<char**>(NULL), 10)) {}
+	inline Integer::Integer(intmax_t intValue):_value(intValue) {}
+	inline Integer::Integer(const std::string &strValue)
+		:_value(strtoimax(strValue.c_str(), static_cast<char**>(NULL), 10)) {}
 	inline Integer::~Integer() {}
 	inline Type Integer::type() const {return TypeInteger;}
 	inline void Integer::write(Output &out) {
@@ -495,13 +496,13 @@ namespace bencode {
 	inline uint32_t List::count() const {return static_cast<uint32_t>(_items.size());}
 	inline Item::Assignment List::operator[](uint32_t index) {
 		for(size_t fill= _items.size(); fill <= index; ++fill) {
-			push(NULL);
+			push(reinterpret_cast<Item::Ptr>(NULL));
 		}
 		return Assignment(_items[index]);
 	}
 	inline Item::ConstPtr List::operator[](uint32_t index) const {
 		for(size_t fill= _items.size(); fill <= index; ++fill) {
-			const_cast<List*>(this)->push(NULL);
+			const_cast<List*>(this)->push(reinterpret_cast<Item::Ptr>(NULL));
 		}
 		return _items[index];
 	}
@@ -510,11 +511,11 @@ namespace bencode {
 	inline void List::insert(Item::Ptr item, uint32_t before) {
 		_items.insert(_items.begin()+before, item);
 	}
-	inline void List::insert(const std::string &value, uint32_t before) {
-		insert(new String(value), before);
+	inline void List::insert(const std::string &strValue, uint32_t before) {
+		insert(new String(strValue), before);
 	}
-	inline void List::insert(intmax_t value, uint32_t before) {
-		insert(new Integer(value), before);
+	inline void List::insert(intmax_t intValue, uint32_t before) {
+		insert(new Integer(intValue), before);
 	}
 	inline Item::Ptr List::remove(uint32_t index) {
 		Item::Ptr	item= index < _items.size() ? _items[index] : NULL;
@@ -523,11 +524,11 @@ namespace bencode {
 		return item;
 	}
 	inline void List::push(Item::Ptr item) {insert(item, _items.size());}
-	inline void List::push(const std::string &value) {
-		push(reinterpret_cast<Item::Ptr>(new String(value)));
+	inline void List::push(const std::string &strValue) {
+		push(reinterpret_cast<Item::Ptr>(new String(strValue)));
 	}
-	inline void List::push(intmax_t value) {
-		push(reinterpret_cast<Item::Ptr>(new Integer(value)));
+	inline void List::push(intmax_t intValue) {
+		push(reinterpret_cast<Item::Ptr>(new Integer(intValue)));
 	}
 	inline Item::Ptr List::pop() {return remove(_items.size() - 1);}
 	inline uint32_t List::componentCount() const {
@@ -593,6 +594,11 @@ namespace bencode {
 	}
 	inline Dictionary::key_iterator Dictionary::key_iterator::operator-(int count) {
 		key_iterator result(*this); return result-= count;
+	}
+	inline Dictionary::key_iterator &Dictionary::key_iterator::operator=(const key_iterator &other) {
+		_container= other._container;
+		_index= other._index;
+		return *this;
 	}
 	inline bool Dictionary::key_iterator::operator==(const key_iterator &other) const {
 		return (_container == other._container)

@@ -18,7 +18,7 @@ int main(const int /*argc*/, const char * const /*argv*/[]) {
 		1048575, 1048576, 2097151, 2097152, 4194303, 4194304, 8388607, 8388608,
 		16777215, 16777216, 33554431, 33554432, 67108863, 67108864, 134217727, 134217728,
 		268435455, 268435456, 536870911, 536870912, 1073741823, 173741824,
-		2147483647, 2147483648, 4294967295, 4294967296
+		2147483647, 2147483648UL, 4294967295UL, 4294967296ULL
 	};
 	std::string	buffer(135, '\0');
 	char		*pointer= const_cast<char*>(buffer.data());
@@ -31,7 +31,7 @@ int main(const int /*argc*/, const char * const /*argv*/[]) {
 		}
 	}
 	end= pointer;
-	printf("%lu bytes compressed to %ld bytes\n", sizeof(testNumbers), pointer - const_cast<char*>(buffer.data()));
+	printf("%lu bytes compressed to %ld bytes\n", sizeof(testNumbers), static_cast<long>(pointer - const_cast<char*>(buffer.data())));
 	pointer= const_cast<char*>(buffer.data());
 	for(size_t i= 0; i < sizeof(testNumbers)/sizeof(testNumbers[0]); ++i) {
 		uint64_t	value= compactNumber::read<uint64_t>(reinterpret_cast<const void**>(const_cast<const char**>(&pointer)), end);

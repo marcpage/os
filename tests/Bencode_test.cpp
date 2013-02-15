@@ -13,7 +13,7 @@ void dump(const bencode::Item &item, const std::string &indent= "") {
 			fprintf(stderr, "%s '%s'\n", indent.c_str(), item.as<bencode::String>().value().c_str());
 			break;
 		case bencode::TypeInteger:
-			fprintf(stderr, "%s %ld\n", indent.c_str(), item.as<bencode::Integer>().value());
+			fprintf(stderr, "%s %ld\n", indent.c_str(), static_cast<long>(item.as<bencode::Integer>().value()));
 			break;
 		case bencode::TypeList:
 			fprintf(stderr, "%s List[%d]\n", indent.c_str(), item.as<bencode::List>().componentCount());

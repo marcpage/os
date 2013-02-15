@@ -2,6 +2,7 @@
 #define __Socket_h__
 
 #include "SocketGeneric.h"
+#include "Buffer.h"
 
 #ifndef trace_scope
 	#define trace_scope ///< @brief in case Tracer.h is not included

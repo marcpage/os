@@ -98,6 +98,8 @@ namespace io {
 			ArchiveFile(const char *path, Protection protection= WriteIfPossible, uint16_t version= 1, const std::string &signature= io_ArchiveFile_DefaultSignature);
 			/// Open or Create ArchiveFile at given path
 			ArchiveFile(const std::string &path, Protection protection= WriteIfPossible, uint16_t version= 1, const std::string &signature= io_ArchiveFile_DefaultSignature);
+			/// Destructor
+			virtual ~ArchiveFile();
 			/// Allocate a block from the file for user writing
 			Block allocate(int64_t dataSize, uint8_t flags= 0);
 			/// Allocate a block from the file and write data to it
@@ -417,6 +419,7 @@ namespace io {
 			:File(path, File::Binary, protection), _headerSize(0) {trace_scope
 		_init(version, signature);
 	}
+	inline ArchiveFile::~ArchiveFile() {trace_scope}
 	/// @todo Test
 	inline ArchiveFile::ArchiveFile(const std::string &path, Protection protection, uint16_t version, const std::string &signature)
 			:File(path, File::Binary, protection), _headerSize(0) {trace_scope

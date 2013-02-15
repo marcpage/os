@@ -3,7 +3,6 @@
 
 #include <sys/socket.h>
 #include <string>
-#include "Buffer.h"
 #include "Address.h"
 #include "Exception.h"
 

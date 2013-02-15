@@ -34,7 +34,7 @@ namespace io {
 			enum Endian		{BigEndian, LittleEndian, NativeEndian};
 			File(const char *path, Method method, Protection protection);
 			File(const std::string &path, Method method, Protection protection);
-			~File();
+			virtual ~File();
 			off_t size() const;
 			void flush();
 			off_t location() const;
