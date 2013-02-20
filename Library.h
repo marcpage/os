@@ -58,6 +58,90 @@
 
 namespace sys {
 
+#if defined(__APPLE__) && (__MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_8)
+static inline OSErr FSFindFolder(FSVolumeRefNum vRefNum, OSType folderType, Boolean /*createFolder*/, FSRef *foundRef) {
+	OSErr				err= badFolderDescErr;
+	CFURLRef			home= NULL;
+	CFURLRef			base= NULL;
+	CFURLRef			url= NULL;
+	const char * const	kUserLibraryName=			"Library";
+	const char * const	kLocalDomainPath=			"/Library";
+	const char * const	kSystemDomainPath=			"/System/Library";
+	const char * const	kHomeDirectory=				getenv("HOME");
+	const char * const	kApplicationSupportName=	"Application Support";
+	const char * const	kExtensionName=				"Extensions";
+	const char * const	kInternetPlugInName=		"Internet Plug-Ins";
+	const char * const	kSharedLibrariesName=		"Frameworks";
+	const char * const	kContextualMenuItemsName=	"Contextual Menu Items";
+	const char * const	kQuickTimeExtensionsName=	"QuickTime";
+	const char * const	kDisplayExtensionsName=		"Displays";
+	const char * const	kPrintingPlugInsName=		"Printers";
+
+	switch(vRefNum) {
+		case kUserDomain:
+			if(NULL != kHomeDirectory) {
+				home= CFURLCreateFromFileSystemRepresentation(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kHomeDirectory), strlen(kHomeDirectory), TRUE);
+			}
+			if(NULL != home) {
+				base= CFURLCreateFromFileSystemRepresentationRelativeToBase(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kUserLibraryName), strlen(kUserLibraryName), TRUE, home);
+			}
+			break;
+		case kLocalDomain:
+			base= CFURLCreateFromFileSystemRepresentation(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kLocalDomainPath), strlen(kLocalDomainPath), TRUE);
+			break;
+		case kSystemDomain:
+			base= CFURLCreateFromFileSystemRepresentation(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kSystemDomainPath), strlen(kSystemDomainPath), TRUE);
+			break;
+		default:
+			break;
+	}
+	if(NULL != base) {
+		switch(folderType) {
+			case kExtensionFolderType:
+				url= CFURLCreateFromFileSystemRepresentationRelativeToBase(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kExtensionName), strlen(kExtensionName), TRUE, base);
+				break;
+			case kApplicationSupportFolderType:
+				url= CFURLCreateFromFileSystemRepresentationRelativeToBase(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kApplicationSupportName), strlen(kApplicationSupportName), TRUE, base);
+				break;
+			case kInternetPlugInFolderType:
+				url= CFURLCreateFromFileSystemRepresentationRelativeToBase(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kInternetPlugInName), strlen(kInternetPlugInName), TRUE, base);
+				break;
+			case kSharedLibrariesFolderType:
+				url= CFURLCreateFromFileSystemRepresentationRelativeToBase(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kSharedLibrariesName), strlen(kSharedLibrariesName), TRUE, base);
+				break;
+			case kContextualMenuItemsFolderType:
+				url= CFURLCreateFromFileSystemRepresentationRelativeToBase(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kContextualMenuItemsName), strlen(kContextualMenuItemsName), TRUE, base);
+				break;
+			case kQuickTimeExtensionsFolderType:
+				url= CFURLCreateFromFileSystemRepresentationRelativeToBase(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kQuickTimeExtensionsName), strlen(kQuickTimeExtensionsName), TRUE, base);
+				break;
+			case kDisplayExtensionsFolderType:
+				url= CFURLCreateFromFileSystemRepresentationRelativeToBase(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kDisplayExtensionsName), strlen(kDisplayExtensionsName), TRUE, base);
+				break;
+			case kPrintingPlugInsFolderType:
+				url= CFURLCreateFromFileSystemRepresentationRelativeToBase(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kPrintingPlugInsName), strlen(kPrintingPlugInsName), TRUE, base);
+				break;
+			default:
+				break;
+		}
+	}
+	if( (NULL != url) && CFURLGetFSRef(url, foundRef) ) {
+		err= noErr;
+	}
+	if(NULL != url) {
+		CFRelease(url);
+	}
+	if(NULL != base) {
+		CFRelease(base);
+	}
+	if(NULL != home) {
+		CFRelease(home);
+	}
+	return err;
+}
+#define FSFindFolder sys::FSFindFolder
+#endif
+
 	/** An abstraction of a system library.
 	*/
 	class Library {
