@@ -11,7 +11,9 @@
 	#define trace_bool(x) (x) ///< @brief in case Tracer.h is not included
 #endif
 
-/** Adapt an arbitrary buffer to the Buffer protocol. */
+/** Adapt an arbitrary buffer to the Buffer protocol.
+	@todo Test!
+*/
 class BufferAddress : public Buffer {
 	public:
 		/// @brief Adapt an Arbitrary Buffer

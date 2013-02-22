@@ -9,6 +9,7 @@
 #endif
 
 /** Abstract away buffers.
+	@todo Test!
 */
 class Buffer {
 	public:

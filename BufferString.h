@@ -14,6 +14,7 @@
 /** Adapts a std::string to the Buffer interface.
 	@note If the referenced string changes, <code>start()</code> and <code>size()</code>
 		may no longer be valid.
+	@todo Test!
 */
 class BufferString : public Buffer {
 	public:
@@ -36,10 +37,10 @@ inline BufferString::BufferString(std::string &string)
 inline BufferString::~BufferString() {trace_scope}
 /** @return <code>std::string.data()</code> */
 inline void *BufferString::start() {trace_scope
-	return _buffer.data();
+	return reinterpret_cast<void*>(const_cast<char*>(_buffer.data()));
 }
 /** @return <code>std::string.size()</code> */
-inline size_t BufferString::size() {trace_scope
+inline size_t BufferString::size() const {trace_scope
 	return _buffer.size();
 }
 

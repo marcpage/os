@@ -11,7 +11,9 @@
 	#define trace_bool(x) (x) ///< @brief in case Tracer.h is not included
 #endif
 
-/** Allocates (and deallocates) a buffer. */
+/** Allocates (and deallocates) a buffer.
+	@todo Test!
+*/
 class BufferManaged : public BufferAddress {
 	public:
 		/// @brief Allocates a buffer of the given size.

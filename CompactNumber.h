@@ -51,6 +51,8 @@ namespace compactNumber {
 		@return				Zero if a complete compact number could not be read
 								or it doesn't fit in sizeof(Integer), or if successful
 								the value of the compact number.
+		@todo Test *buffer == bufferEnd
+		@todo Test reading number bigger than Integer
 	*/
 	template<typename Integer>
 	Integer read(const void **buffer, const void *bufferEnd) {trace_scope
@@ -112,6 +114,7 @@ namespace compactNumber {
 								If NULL, behavior is undefined.
 		@return				true if we were able to write the number to the buffer
 							or false if there is not enough room in the buffer.
+		@todo Test *buffer == bufferEnd
 	*/
 	template<typename Integer>
 	bool write(Integer integer, void **buffer, const void *bufferEnd) {trace_scope

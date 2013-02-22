@@ -15,6 +15,9 @@
 	#define trace_bool(x) (x) ///< @brief in case Tracer.h is not included
 #endif
 
+/**
+	@todo Test!
+*/
 namespace net {
 
 	/** An IPv6 Internet Address (AF_INET6, sockaddr_in6).

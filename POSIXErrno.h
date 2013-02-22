@@ -22,6 +22,9 @@
 /// Throw errno value if condition is not met
 #define ErrnoAssert(condition) if(!(condition)) {ErrnoCodeThrow(errno, #condition);} else posix::err::Errno::_noop()
 
+/**
+	@todo Test!
+*/
 namespace posix { namespace err {
 
 	class Errno : public std::exception {

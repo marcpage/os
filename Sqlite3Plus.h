@@ -41,7 +41,9 @@
 	throw Sqlite3::Exception(__FILE__, __LINE__, #condition); \
 	else noop()
 
-/// Namespace for Sqlite3
+/**
+	@todo Test!
+*/
 namespace Sqlite3 {
 
 	inline void noop() {}

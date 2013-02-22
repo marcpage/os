@@ -11,6 +11,9 @@
 	#define trace_bool(x) (x) ///< @brief in case Tracer.h is not included
 #endif
 
+/**
+	@todo Test!
+*/
 namespace net {
 
 	/** A socket that listens for incoming connections. */
@@ -37,17 +40,24 @@ namespace net {
 		:SocketGeneric(domain, type, protocol) {trace_scope
 	}
 	inline SocketServer::~SocketServer() {trace_scope}
-	/** @param address	The address to listen for connections */
+	/**
+		@param address	The address to listen for connections
+		@todo Test bind fails
+	*/
 	inline void SocketServer::bind(Address &address) {trace_scope
 		errnoAssertPositiveMessageException(::bind(_socket, address, address.size()));
 	}
-	/** @param backlog	The number of connects that can be waiting between calls to <code>accept</code>. */
+	/**
+		@param backlog	The number of connects that can be waiting between calls to <code>accept</code>.
+		@todo Test listen fails
+	*/
 	inline void SocketServer::listen(int backlog) {trace_scope
 		errnoAssertPositiveMessageException(::listen(_socket, backlog));
 	}
 	/**
 		@param address	Receives the address of the remote connection.
 		@param remote	Receives the connection socket to the remote connection.
+		@todo Test accept fails
 	*/
 	inline void SocketServer::accept(Address &address, Socket &remote) {trace_scope
 		socklen_t	size= address.size();
