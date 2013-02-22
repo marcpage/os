@@ -73,21 +73,31 @@ class Server : public exec::Thread {
 		void shutdown() {
 			_exiting= true;
 			_server.close();
+			join();
 		}
 	protected:
 		virtual void *run() {
-			while(!_exiting) {
-				net::AddressIPv6	connectedTo;
-				net::Socket			*connection= new net::Socket();
+			try	{
+				while(!_exiting) {
+					net::AddressIPv6	connectedTo;
+					net::Socket			*connection= new net::Socket();
 
-				printf("Waiting for connection\n");
-				_server.accept(connectedTo, *connection);
-				printf("Connection received\n");
-				_threads.push_back(new Echo(connection));
+					printf("Waiting for connection\n");
+					_server.accept(connectedTo, *connection);
+					printf("Connection received\n");
+					_threads.push_back(new Echo(connection));
+				}
+			} catch(const std::exception &exception) {
+				if(_exiting) {
+					printf("Server Thread: %s\n", exception.what());
+				} else {
+					printf("FAILED: Server Thread Exception: %s\n", exception.what());
+				}
 			}
 			for(ServerThreads::iterator thread= _threads.begin(); thread != _threads.end(); ++thread) {
 				if((*thread)->running()) {
 					(*thread)->shutdown();
+					(*thread)->join();
 				}
 			}
 			return NULL;
@@ -132,7 +142,6 @@ int main(const int argc, const char * const argv[]) {
 		}
 		printf("Closing\n");
 		connection.close();
-		exec::ThreadId::sleep(0.1);
 		server.shutdown();
 	} catch(const std::exception &exception) {
 		printf("FAILED: exception thrown on main thread: %s\n", exception.what());
