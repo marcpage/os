@@ -4,13 +4,13 @@
 /** @file Exception.h
 	@todo add __func__ or __FUNCTION__, whichever is more appropriate and only if available
 	@todo write a test file for Exception
-	@todo figure out how to test errnoAssertMessageException, errnoAssertPositiveMessageException
-					and errnoNULLAssertMessageException
 */
 #include <string>
 #include <exception>
 #include <sstream>
-#include <errno.h>
+#ifdef USE_DEPRECATED_ERRNO_EXCEPTIONS
+	#include <errno.h>
+#endif
 
 #ifndef trace_scope
 	#define trace_scope ///< in case Tracer.h is not included
@@ -31,18 +31,20 @@ namespace msg {
 #define AssertMessageException(condition) if(!(condition)) {ThrowMessageException(#condition);} else msg::noop()
 /// Intended for use in wrapping a function that returns an int, of which zero means no error, and any other value is an error. Only throws on error.
 #define AssertCodeMessageException(call) {int x= (call); if(x != 0) {ThrowMessageException(std::string(#call).append(": ").append(strerror(x)));}}
-/// Inteded for use by other macros, throws an msg::ErrNoException with the given errno code.
-#define errnoThrowMessageExceptionCore(errnoCode, message, File, Line) throw msg::ErrNoException(errnoCode, message, File, Line)
-/// Throws a msg::ErrNoException with the given errno code.
-#define errnoThrowMessageException(errnoCode, message) errnoThrowMessageExceptionCore(errnoCode, message, __FILE__, __LINE__)
-/// Throws a msg::ErrNoException if the errnoCode is not 0 (ie there was an error).
-#define errnoCodeThrowMessageException(errnoCode, message) if(0 != errnoCode) {errnoThrowMessageExceptionCore(errnoCode, message, __FILE__, __LINE__);} else msg::noop()
-/// Throws a msg::ErrNoException with errno as the errnoCode if the assertion fails (ie the condition is false)
-#define errnoAssertMessageException(condition) if(!(condition)) {errnoCodeThrowMessageException(errno, #condition);} else msg::noop()
-/// Throws a msg::ErrNoException with errno as the errnoCode if the result of a call is less than zero (UNIX calls usually return -1 on error and set errno)
-#define errnoAssertPositiveMessageException(call) if( (call) < 0) {errnoCodeThrowMessageException(errno, #call);} else msg::noop()
-/// Throws a msg::ErrNoException with errno as the errnoCode if the result of a call is NULL
-#define errnoNULLAssertMessageException(call) if( NULL == (call) ) {errnoThrowMessageExceptionCore(errno, #call, __FILE__, __LINE__);} else msg::noop()
+#ifdef USE_DEPRECATED_ERRNO_EXCEPTIONS
+	/// Inteded for use by other macros, throws an msg::ErrNoException with the given errno code.
+	#define errnoThrowMessageExceptionCore(errnoCode, message, File, Line) throw msg::ErrNoException(errnoCode, message, File, Line)
+	/// Throws a msg::ErrNoException with the given errno code.
+	#define errnoThrowMessageException(errnoCode, message) errnoThrowMessageExceptionCore(errnoCode, message, __FILE__, __LINE__)
+	/// Throws a msg::ErrNoException if the errnoCode is not 0 (ie there was an error).
+	#define errnoCodeThrowMessageException(errnoCode, message) if(0 != errnoCode) {errnoThrowMessageExceptionCore(errnoCode, message, __FILE__, __LINE__);} else msg::noop()
+	/// Throws a msg::ErrNoException with errno as the errnoCode if the assertion fails (ie the condition is false)
+	#define errnoAssertMessageException(condition) if(!(condition)) {errnoCodeThrowMessageException(errno, #condition);} else msg::noop()
+	/// Throws a msg::ErrNoException with errno as the errnoCode if the result of a call is less than zero (UNIX calls usually return -1 on error and set errno)
+	#define errnoAssertPositiveMessageException(call) if( (call) < 0) {errnoCodeThrowMessageException(errno, #call);} else msg::noop()
+	/// Throws a msg::ErrNoException with errno as the errnoCode if the result of a call is NULL
+	#define errnoNULLAssertMessageException(call) if( NULL == (call) ) {errnoThrowMessageExceptionCore(errno, #call, __FILE__, __LINE__);} else msg::noop()
+#endif
 
 namespace msg {
 	/// Helper function to break at compile time on an assertion failure.
@@ -83,6 +85,7 @@ namespace msg {
 		std::string *_init(S message, const char *file, int line);
 	};
 
+#ifdef USE_DEPRECATED_ERRNO_EXCEPTIONS
 	/** Handles errno specific details for UNIX functions that set errno.
 	*/
 	class ErrNoException : public Exception {
@@ -98,6 +101,7 @@ namespace msg {
 	private:
 		int	_errno; ///< the errono code
 	};
+#endif
 
 	/**
 		@param message	The reason for the exception
@@ -190,6 +194,7 @@ namespace msg {
 		}
 		return messagePtr;
 	}
+#ifdef USE_DEPRECATED_ERRNO_EXCEPTIONS
 	/** Used if you already have the errno code for some reason, errno will not be called.
 		Also calls strerror to get the system string for the errono code.
 		@param errnoCode	from calling errno
@@ -219,6 +224,7 @@ namespace msg {
 	inline const char* ErrNoException::what() const throw() {trace_scope
 		return Exception::what();
 	}
+#endif
 };
 
 #endif // __MessageException_h__

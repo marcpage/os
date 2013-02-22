@@ -1,3 +1,4 @@
+#define USE_DEPRECATED_ERRNO_EXCEPTIONS
 #include "os/Exception.h"
 
 #define fail fprintf(stderr, "FAIL: %s:%d\n", __FILE__, __LINE__);

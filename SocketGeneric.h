@@ -4,7 +4,7 @@
 #include <sys/socket.h>
 #include <string>
 #include "Address.h"
-#include "Exception.h"
+#include "POSIXErrno.h"
 
 #ifndef trace_scope
 	#define trace_scope ///< @brief in case Tracer.h is not included
@@ -46,7 +46,7 @@ namespace net {
 	/** After closing the socket, it is made invalid.
 	*/
 	inline void SocketGeneric::close() {trace_scope
-		errnoAssertPositiveMessageException(::close(_socket));
+		ErrnoOnNegative(::close(_socket));
 		_socket= -1;
 	}
 	inline SocketGeneric::SocketGeneric()
@@ -59,7 +59,7 @@ namespace net {
 	*/
 	inline SocketGeneric::SocketGeneric(int domain, int type, int protocol)
 		:_socket(::socket(domain, type, protocol)) {trace_scope
-		errnoAssertPositiveMessageException(_socket);
+		ErrnoOnNegative(_socket);
 	}
 	/** If the socket is valid (not -1) the socket is closed.
 	*/

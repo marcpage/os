@@ -1,4 +1,5 @@
 #include "os/Exception.h"
+#include "os/POSIXErrno.h"
 #include "os/Sqlite3Plus.h"
 #include <stdio.h>
 #include <unistd.h>
@@ -24,7 +25,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
 		std::string	number;
 
 		try	{
-			errnoAssertPositiveMessageException(unlink(kDBPath)); // try to delete it
+			ErrnoOnNegative(unlink(kDBPath)); // try to delete it
 		} catch(const std::exception &exception) {
 		}
 

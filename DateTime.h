@@ -4,6 +4,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <math.h>
+#include "POSIXErrno.h"
 #include "Exception.h"
 
 #ifndef trace_scope
@@ -95,7 +96,7 @@ namespace dt {
 	inline DateTime::DateTime()
 		:_time() {trace_scope;
 		struct timeval	time;
-		errnoAssertMessageException(gettimeofday(&time,NULL));
+		ErrnoOnNegative(gettimeofday(&time,NULL));
 		_time.tv_sec= time.tv_sec;
 		_time.tv_nsec= static_cast<long>(time.tv_usec) * 1000UL;
 	}

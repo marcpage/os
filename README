@@ -116,7 +116,7 @@ $COMPILER -o /tmp/SocketServer tests/SocketServer_test.cpp -I.. $GCC_WARNINGS
 printf "SocketServer: real < 7.427s user < 0.017s sys < 0.022s\n"
 time /tmp/SocketServer &> /tmp/SocketServer.log
 $COMPILER -o /tmp/SocketServer tests/SocketServer_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
-printf "SocketServer: expecting >= 16\n"
+printf "SocketServer: expecting >= 15\n"
 /tmp/SocketServer > /tmp/SocketServer.Tracer
 cat /tmp/SocketServer.Tracer| sort | grep SocketServer\\.h | uniq | wc -l || true
 cat /tmp/SocketServer.log | grep -i fail || true
@@ -133,7 +133,7 @@ cat /tmp/SocketServer.Tracer| sort | grep AddressIPv4\\.h | uniq | wc -l || true
 printf "AddressIPv6: expecting >= 10\n"
 cat /tmp/SocketServer.Tracer| sort | grep AddressIPv6\\.h | uniq | wc -l || true
 
-printf "SocketGeneric: expecting >= 15\n"
+printf "SocketGeneric: expecting >= 14\n"
 cat /tmp/SocketServer.Tracer| sort | grep SocketGeneric\\.h | uniq | wc -l || true
 
 echo

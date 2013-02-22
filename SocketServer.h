@@ -45,14 +45,14 @@ namespace net {
 		@todo Test bind fails
 	*/
 	inline void SocketServer::bind(Address &address) {trace_scope
-		errnoAssertPositiveMessageException(::bind(_socket, address, address.size()));
+		ErrnoOnNegative(::bind(_socket, address, address.size()));
 	}
 	/**
 		@param backlog	The number of connects that can be waiting between calls to <code>accept</code>.
 		@todo Test listen fails
 	*/
 	inline void SocketServer::listen(int backlog) {trace_scope
-		errnoAssertPositiveMessageException(::listen(_socket, backlog));
+		ErrnoOnNegative(::listen(_socket, backlog));
 	}
 	/**
 		@param address	Receives the address of the remote connection.
@@ -63,7 +63,7 @@ namespace net {
 		socklen_t	size= address.size();
 		int			socketDescriptor;
 
-		errnoAssertPositiveMessageException(socketDescriptor= ::accept(_socket, address.get(), &size));
+		ErrnoOnNegative(socketDescriptor= ::accept(_socket, address.get(), &size));
 		remote.assign(socketDescriptor);
 	}
 }

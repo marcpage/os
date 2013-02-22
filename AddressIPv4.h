@@ -7,6 +7,7 @@
 #include <string>
 #include <string.h>
 #include "Address.h"
+#include "Exception.h"
 
 #ifndef trace_scope
 	#define trace_scope ///< @brief in case Tracer.h is not included

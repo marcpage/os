@@ -42,7 +42,7 @@ namespace net {
 	inline Socket::~Socket() {trace_scope}
 	/** @param address	The address to connect to. */
 	inline void Socket::connect(Address &address) {trace_scope
-		errnoAssertPositiveMessageException(::connect(_socket, address, address.size()));
+		ErrnoOnNegative(::connect(_socket, address, address.size()));
 	}
 	/**
 		@param buffer	The buffer to fill
@@ -58,7 +58,7 @@ namespace net {
 		if(bytes > buffer.size()) {
 			bytes= buffer.size();
 		}
-		errnoAssertPositiveMessageException(amount= ::read(_socket, buffer.start(), toRead));
+		ErrnoOnNegative(amount= ::read(_socket, buffer.start(), toRead));
 		return amount;
 	}
 	/**
@@ -74,7 +74,7 @@ namespace net {
 		if(bytes > buffer.size()) {
 			bytes= buffer.size();
 		}
-		errnoAssertPositiveMessageException(amount= ::write(_socket, buffer.start(), toWrite));
+		ErrnoOnNegative(amount= ::write(_socket, buffer.start(), toWrite));
 		return amount;
 	}
 }

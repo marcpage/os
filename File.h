@@ -2,6 +2,7 @@
 #define __File_h__
 
 #include "Exception.h"
+#include "POSIXErrno.h"
 #include <string>
 
 #ifndef trace_scope
@@ -107,7 +108,7 @@ namespace io {
 		@todo Test!
 	*/
 	inline void File::flush() {trace_scope
-		errnoAssertPositiveMessageException(fflush(_file));
+		ErrnoOnNegative(fflush(_file));
 	}
 	/**
 		@todo Test!
@@ -115,7 +116,7 @@ namespace io {
 	inline off_t File::location() const {trace_scope
 		off_t	currentPos;
 
-		errnoAssertPositiveMessageException(currentPos= ftello(_file));
+		ErrnoOnNegative(currentPos= ftello(_file));
 		return currentPos;
 	}
 	/**
@@ -125,7 +126,7 @@ namespace io {
 		return trace_bool(!_readOnly);
 	}
 	inline void File::moveto(off_t offset, Relative relative) const {trace_scope
-		errnoAssertPositiveMessageException(fseeko(_file, offset, _whence(relative)));
+		ErrnoOnNegative(fseeko(_file, offset, _whence(relative)));
 	}
 	/**
 		@todo Test!
@@ -260,14 +261,14 @@ namespace io {
 			opened= fopen(path, Binary == method ? kCreateReadWriteBinary : kCreateReadWriteText);
 		}
 		if(ReadWrite == protection) {
-			errnoNULLAssertMessageException(opened);
+			ErrnoOnNULL(opened);
 		}
 		if(NULL != opened) {
 			readOnly= false;
 			return opened;
 		}
 		opened= fopen(path, Binary == method ? kReadOnlyBinary : kReadOnlyText);
-		errnoNULLAssertMessageException(opened);
+		ErrnoOnNULL(opened);
 		readOnly= true;
 		return opened;
 	}
