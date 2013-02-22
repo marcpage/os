@@ -91,6 +91,7 @@ namespace compactNumber {
 			<li> bool operator==(int)
 			<li> operator uint8_t()
 			<li> Integer &operator-=(const Integer&)
+			<li> Integer &operator=(const Integer&)
 			<li> Integer &operator+=(const Integer&)
 			<li> bool operator>(const Integer&)
 			<li> Integer operator<<(size_t)
