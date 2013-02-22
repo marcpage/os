@@ -21,12 +21,22 @@ int main(const int /*argc*/, const char * const /*argv*/[]) {
 		2147483647, 2147483648UL, 4294967295UL, 4294967296ULL, // 29 - 32
 		16511, 16512, 2113663, 2113664, 270549119, 270549120 // 33 - 38
 	};
-	uint32_t	values[]= {0, 127, 128, 16511, 16512, 2113663};
-	uint8_t		compacts[]= {0x00, 0x7F, 0x80,0x00, 0xFF,0x7F, 0x80,0x80,0x00, 0xFF,0xFF,0x7F};
+	uint32_t	values[]= {
+					0, 127, 128,
+					16511, 16512,
+					2113663, 2113664,
+					270549119, 270549120
+	};
+	uint8_t		compacts[]= {
+					0x00, 0x7F, 0x80,0x00, // 0 - 3
+					0xFF,0x7F, 0x80,0x80,0x00, // 4 - 8
+					0xFF,0xFF,0x7F, 0x80,0x80,0x80,0x00, // 9 - 15
+					0xFF,0xFF,0xFF,0x7F, 0x80,0x80,0x80,0x80,0x00, // 10 - 18
+	};
 	std::string	buffer(151, '\0');
 	char		*pointer= const_cast<char*>(buffer.data());
 	const char	*end= &pointer[buffer.size()];
-	char				s1[100], s2[100];
+	char		s1[100], s2[100];
 
 	for(size_t i= 0; i < sizeof(testNumbers)/sizeof(testNumbers[0]); ++i) {
 		if(!compactNumber::write(testNumbers[i], reinterpret_cast<void**>(&pointer), end)) {
@@ -53,11 +63,23 @@ int main(const int /*argc*/, const char * const /*argv*/[]) {
 			printf("-- WARNING: We have exceeded the buffer max for values[%d]\n", static_cast<int>(i));
 		}
 	}
+	if(pointer - const_cast<char*>(buffer.data()) != sizeof(compacts)) {
+		printf("FAILED: we didn't write the number of bytes we thought we should: wrote=%d expected=%d\n",
+			static_cast<int>(pointer - const_cast<char*>(buffer.data())),
+			static_cast<int>(sizeof(compacts))
+		);
+	}
 	for(size_t i= 0; i < sizeof(compacts)/sizeof(compacts[0]); ++i) {
 		if(buffer.data()[i] != static_cast<char>(compacts[i])) {
 			printf("FAILED: byte[%d] should be %02x but it is %02x\n",
 				static_cast<int>(i), static_cast<int>(compacts[i]), static_cast<uint8_t>(buffer.data()[i])
 			);
+		}
+	}
+	pointer= const_cast<char*>(buffer.data());
+	for(size_t i= 0; i < sizeof(values)/sizeof(values[0]); ++i) {
+		if(values[i] != compactNumber::read<uint32_t>(reinterpret_cast<const void**>(const_cast<const char**>(&pointer)), end)) {
+			printf("FAILED: value[%ld] didn't match\n", i);
 		}
 	}
 	return 0;

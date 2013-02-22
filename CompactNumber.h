@@ -5,12 +5,15 @@
 
 /** Reads and writes variables sized integers from/to a buffer.
 	Numbers are stored in the lower 7 bits of bytes.
-	The last byte of any number has the upper bit cleared, all other have the high bit set.
+	The number of bytes determines what offset to add to the lower-7-bits pattern.
+	For instance, for 1 byte you add 0, or 2 bytes, you add 128, for 3 bytes you add 16,512, etc.
+	The last byte of any number has the upper bit cleared, all others have the high bit set.
 	Numbers are stored in Big Endian format.
 	<ul>
 		<li> Numbers 0 through 127 are stored in 1 byte. (00 - 7F)
 		<li> Numbers 128 through 16,511 are stored in 2 bytes. (80 00 - FF 7F)
 		<li> Numbers 16,512 through 2,113,663 are stored in 3 bytes. (80 00 00 - FF FF 7F)
+		<li> Numbers 2,113,664 through 270,549,119 are stored in 3 bytes. (80 00 00 00 - FF FF FF 7F)
 		<li> etc.
 	</ul>
 */
@@ -111,19 +114,17 @@ namespace compactNumber {
 		const size_t	maxIntegerStreamBytes= 1 + (IntegerBits - 1) / streamBitsPerByte;
 		uint8_t			*buf= reinterpret_cast<uint8_t*>(*buffer);
 		const uint8_t	*end= reinterpret_cast<const uint8_t*>(bufferEnd);
-		Integer			base= 0;
-		Integer			nextBase= 0x80;
+		Integer			partialBase= 0x80;
 		size_t			bytesToWrite= 1;
 
 		if(*buffer == bufferEnd) {
 			return false;
 		}
-		while(integer >= nextBase) {
-			base= nextBase;
-			nextBase+= (Integer(topBitMask) << (streamBitsPerByte * bytesToWrite));
+		while( ( integer >= partialBase) && (bytesToWrite < maxIntegerStreamBytes) ) {
+			integer-= partialBase;
+			partialBase= (Integer(topBitMask) << (streamBitsPerByte * bytesToWrite));
 			++bytesToWrite;
 		}
-		integer-= base;
 		for(size_t streamByte= 0; streamByte < bytesToWrite; ++streamByte) {
 			const size_t	shift= streamBitsPerByte*(bytesToWrite - streamByte - 1);
 			const uint8_t	streamByteRawValue= (integer >> shift) & maskOutTopBit;
