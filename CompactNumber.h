@@ -3,6 +3,13 @@
 
 #include <stdint.h>
 
+#ifndef trace_scope
+	#define trace_scope ///< in case Tracer.h is not included
+#endif
+#ifndef trace_bool
+	#define trace_bool(x) (x) ///< in case Tracer.h is not included
+#endif
+
 /** Reads and writes variables sized integers from/to a buffer.
 	Numbers are stored in the lower 7 bits of bytes.
 	The number of bytes determines what offset to add to the lower-7-bits pattern.
@@ -46,7 +53,7 @@ namespace compactNumber {
 								the value of the compact number.
 	*/
 	template<typename Integer>
-	Integer read(const void **buffer, const void *bufferEnd) {
+	Integer read(const void **buffer, const void *bufferEnd) {trace_scope
 		const size_t	IntegerBits= sizeof(Integer) * 8;
 		const size_t	streamBitsPerByte= 7;
 		const uint8_t	topBitMask= 0x80;
@@ -107,7 +114,7 @@ namespace compactNumber {
 							or false if there is not enough room in the buffer.
 	*/
 	template<typename Integer>
-	bool write(Integer integer, void **buffer, const void *bufferEnd) {
+	bool write(Integer integer, void **buffer, const void *bufferEnd) {trace_scope
 		const size_t	IntegerBits= sizeof(Integer) * 8;
 		const size_t	streamBitsPerByte= 7;
 		const uint8_t	topBitMask= 0x80;
@@ -130,16 +137,16 @@ namespace compactNumber {
 			const size_t	shift= streamBitsPerByte*(bytesToWrite - streamByte - 1);
 			const uint8_t	streamByteRawValue= (integer >> shift) & maskOutTopBit;
 			const bool		lastByte= (streamByte == bytesToWrite - 1);
-			const uint8_t	streamByteValue= streamByteRawValue | (!lastByte ? topBitMask : 0);
+			const uint8_t	streamByteValue= streamByteRawValue | (trace_bool(!lastByte) ? topBitMask : 0);
 
 			if(buf == end) {
-				return false;
+				return trace_bool(false);
 			}
 			*buf= streamByteValue;
 			++buf;
 		}
 		*buffer= reinterpret_cast<void *>(buf);
-		return true;
+		return trace_bool(true);
 	}
 
 }

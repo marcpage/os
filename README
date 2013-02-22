@@ -17,121 +17,138 @@ GCC_WARNINGS="-Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings"
 
 $COMPILER -o /tmp/ReferencedString tests/ReferencedString_test.cpp -I.. $GCC_WARNINGS
 printf "ReferencedString: real < 0.028s user < 0.001s sys < 0.003s\n"
-time /tmp/ReferencedString &> /dev/null
+time /tmp/ReferencedString &> /tmp/ReferencedString.log
 $COMPILER -o /tmp/ReferencedString tests/ReferencedString_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
 printf "ReferencedString: expecting >= 251\n"
 /tmp/ReferencedString | sort | grep ReferencedString\\.h | uniq | wc -l
+cat /tmp/ReferencedString.log | grep -i fail || true
 
 $COMPILER -o /tmp/Hash tests/Hash_test.cpp -I.. $GCC_WARNINGS
 printf "Hash: real < 0.004s user < 0.001s sys < 0.002s\n"
-time /tmp/Hash &> /dev/null
+time /tmp/Hash &> /tmp/Hash.log
 $COMPILER -o /tmp/Hash tests/Hash_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
 printf "Hash: expecting >= 47\n"
 /tmp/Hash | sort | grep Hash\\.h | uniq | wc -l
+cat /tmp/Hash.log | grep -i fail || true
 
 $COMPILER -o /tmp/EnumSet tests/EnumSet_test.cpp -I.. $GCC_WARNINGS $NONTEMPLATEFRIENDWARNING
 printf "EnumSet: real < 0.007s user < 0.001s sys < 0.002s\n"
-time /tmp/EnumSet &> /dev/null
+time /tmp/EnumSet &> /tmp/EnumSet.log
 $COMPILER -o /tmp/EnumSet tests/EnumSet_test.cpp -I.. -include Tracer.h $GCC_WARNINGS $NONTEMPLATEFRIENDWARNING
 printf "EnumSet: expecting >= 189\n"
 /tmp/EnumSet | sort | grep EnumSet\\.h | uniq | wc -l
+cat /tmp/EnumSet.log | grep -i fail || true
 
 $COMPILER -o /tmp/Library tests/Library_test.cpp -I.. $GCC_WARNINGS -framework Carbon
 printf "Library: real < 0.248s user < 0.052s sys < 0.051s\n"
-time /tmp/Library &> /dev/null
+time /tmp/Library &> /tmp/Library.log
 $COMPILER -o /tmp/Library tests/Library_test.cpp -I.. -include Tracer.h $GCC_WARNINGS -framework Carbon
 printf "Library: expecting >= 93\n"
 /tmp/Library | sort | grep Library\\.h | uniq | wc -l
+cat /tmp/Library.log | grep -i fail || true
 
 $COMPILER -o /tmp/Exception tests/Exception_test.cpp -I.. $GCC_WARNINGS
 printf "Exception: real < 0.013s user < 0.001s sys < 0.002s\n"
-time /tmp/Exception &> /dev/null
+time /tmp/Exception &> /tmp/Exception.log
 $COMPILER -o /tmp/Exception tests/Exception_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
 printf "Exception: expecting >= 19\n"
 /tmp/Exception | sort | grep Exception\\.h | uniq | wc -l
+cat /tmp/Exception.log | grep -i fail || true
 
 $COMPILER -o /tmp/Thread tests/Thread_test.cpp -I.. $GCC_WARNINGS
 printf "Thread: real < 0.058s user < 0.001s sys < 0.004s\n"
-time /tmp/Thread &> /dev/null
+time /tmp/Thread &> /tmp/Thread.log
 $COMPILER -o /tmp/Thread tests/Thread_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
 printf "Thread: expecting >= 27\n"
 /tmp/Thread | sort | grep Thread\\.h | uniq | wc -l
+cat /tmp/Thread.log | grep -i fail || true
 
 $COMPILER -o /tmp/File tests/File_test.cpp -I.. $GCC_WARNINGS
 printf "File: real < 0.005s user < 0.001s sys < 0.002s\n"
-time /tmp/File &> /dev/null
+time /tmp/File &> /tmp/File.log
 $COMPILER -o /tmp/File tests/File_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
 printf "File: expecting >= 35\n"
 /tmp/File | sort | grep File\\.h | uniq | wc -l
+cat /tmp/File.log | grep -i fail || true
 
 # still need to document what needs to be tested
 $COMPILER -o /tmp/Sqlite3Plus tests/Sqlite3Plus_test.cpp -I.. $GCC_WARNINGS -Wno-effc++ -lsqlite3
 printf "Sqlite3Plus: real < 0.324s user < 0.002s sys < 0.008s\n"
-time /tmp/Sqlite3Plus &> /dev/null
+time /tmp/Sqlite3Plus &> /tmp/Sqlite3Plus.log
 $COMPILER -o /tmp/Sqlite3Plus tests/Sqlite3Plus_test.cpp -I.. -include Tracer.h $GCC_WARNINGS -Wno-effc++ -lsqlite3
 printf "Sqlite3Plus: expecting >= 31\n"
 /tmp/Sqlite3Plus | sort | grep Sqlite3Plus\\.h | uniq | wc -l
+cat /tmp/Sqlite3Plus.log | grep -i fail || true
 
 $COMPILER -o /tmp/Mutex tests/Mutex_test.cpp -I.. $GCC_WARNINGS
 printf "Mutex: real < 0.033s user < 0.011s sys < 0.006s\n"
-time /tmp/Mutex &> /dev/null
+time /tmp/Mutex &> /tmp/Mutex.log
 $COMPILER -o /tmp/Mutex tests/Mutex_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
 printf "Mutex: expecting >= 15\n"
 /tmp/Mutex | sort | grep Mutex\\.h | uniq | wc -l
+cat /tmp/Mutex.log | grep -i fail || true
 
 $COMPILER -o /tmp/AtomicInteger tests/AtomicInteger_test.cpp -I.. $GCC_WARNINGS
 printf "AtomicInteger: real < 0.421s user < 0.034s sys < 0.079s\n"
-time /tmp/AtomicInteger &> /dev/null
+time /tmp/AtomicInteger &> /tmp/AtomicInteger.log
 $COMPILER -o /tmp/AtomicInteger tests/AtomicInteger_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
 printf "AtomicInteger: expecting >= 12\n"
 /tmp/AtomicInteger | sort | grep AtomicInteger\\.h | uniq | wc -l
+cat /tmp/AtomicInteger.log | grep -i fail || true
 
 $COMPILER -o /tmp/DateTime tests/DateTime_test.cpp -I.. $GCC_WARNINGS
 printf "DateTime: real < 0.007s user < 0.001s sys < 0.002s\n"
-time /tmp/DateTime &> /dev/null
+time /tmp/DateTime &> /tmp/DateTime.log
 $COMPILER -o /tmp/DateTime tests/DateTime_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
 printf "DateTime: expecting >= 13\n"
 /tmp/DateTime | sort | grep DateTime\\.h | uniq | wc -l
+cat /tmp/DateTime.log | grep -i fail || true
 
 $COMPILER -o /tmp/RWLock tests/RWLock_test.cpp -I.. $GCC_WARNINGS
 printf "RWLock: real < 7.427s user < 0.017s sys < 0.022s\n"
-time /tmp/RWLock &> /dev/null
+time /tmp/RWLock &> /tmp/RWLock.log
 $COMPILER -o /tmp/RWLock tests/RWLock_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
 printf "RWLock: expecting >= 18\n"
 /tmp/RWLock | sort | grep RWLock\\.h | uniq | wc -l
+cat /tmp/RWLock.log | grep -i fail || true
 
 $COMPILER -o /tmp/SocketServer tests/SocketServer_test.cpp -I.. $GCC_WARNINGS
 #printf "SocketServer: real < 7.427s user < 0.017s sys < 0.022s\n"
-#time /tmp/SocketServer &> /dev/null
+#time /tmp/SocketServer &> /tmp/SocketServer.log
 $COMPILER -o /tmp/SocketServer tests/SocketServer_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
 #printf "SocketServer: expecting >= 18\n"
 #/tmp/SocketServer | sort | grep SocketServer\\.h | uniq | wc -l
+#cat /tmp/SocketServer.log | grep -i fail || true
 
 $COMPILER -o /tmp/ReferenceCounted tests/ReferenceCounted_test.cpp -I.. $GCC_WARNINGS
 printf "ReferenceCounted: real < 3.061s user < 4.185s sys < 5.845s\n"
-time /tmp/ReferenceCounted 100000 &> /dev/null
+time /tmp/ReferenceCounted 100000 &> /tmp/ReferenceCounted.log
 $COMPILER -o /tmp/ReferenceCounted tests/ReferenceCounted_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
 printf "ReferenceCounted: expecting >= 210\n"
 /tmp/ReferenceCounted 10 | sort | grep ReferenceCounted\\.h | uniq | wc -l
+cat /tmp/ReferenceCounted.log | grep -i fail || true
 
 rm -f /tmp/*.archive
 $COMPILER -o /tmp/ArchiveFile tests/ArchiveFile_test.cpp -I.. $GCC_WARNINGS
 printf "ArchiveFile: real < 0.002s user < 0.001s sys < 0.001s\n"
-time /tmp/ArchiveFile &> /dev/null
+time /tmp/ArchiveFile &> /tmp/ArchiveFile.log
 $COMPILER -o /tmp/ArchiveFile tests/ArchiveFile_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
 printf "ArchiveFile: expecting >= 133\n"
 /tmp/ArchiveFile 2> /dev/null | sort | grep ArchiveFile\\.h | uniq | wc -l
+cat /tmp/ArchiveFile.log | grep -i fail || true
 
 $COMPILER -o /tmp/Bencode tests/Bencode_test.cpp -I.. $GCC_WARNINGS
 printf "Bencode: real < 0.002s user < 0.001s sys < 0.001s\n"
-time /tmp/Bencode &> /dev/null
+time /tmp/Bencode &> /tmp/Bencode.log
 $COMPILER -o /tmp/Bencode tests/Bencode_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
 printf "Bencode: expecting >= 60\n"
 /tmp/Bencode 2> /dev/null | sort | grep Bencode\\.h | uniq | wc -l
+cat /tmp/Bencode.log | grep -i fail || true
 
 $COMPILER -o /tmp/CompactNumber tests/CompactNumber_test.cpp -I.. $GCC_WARNINGS
-printf "CompactNumber: real < 0.002s user < 0.001s sys < 0.001s\n"
-time /tmp/CompactNumber &> /dev/null
+printf "CompactNumber: real < 0.005s user < 0.001s sys < 0.002s\n"
+time /tmp/CompactNumber &> /tmp/CompactNumber.log
 $COMPILER -o /tmp/CompactNumber tests/CompactNumber_test.cpp -I.. -include Tracer.h $GCC_WARNINGS
-printf "CompactNumber: expecting >= 12\n"
+printf "CompactNumber: expecting >= 15\n"
 /tmp/CompactNumber 2> /dev/null | sort | grep CompactNumber\\.h | uniq | wc -l
+cat /tmp/CompactNumber.log | grep -i fail || true
