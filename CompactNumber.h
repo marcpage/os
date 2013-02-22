@@ -6,7 +6,7 @@
 /** Reads and writes variables sized integers from/to a buffer.
 	Numbers are stored in the lower 7 bits of bytes.
 	The number of bytes determines what offset to add to the lower-7-bits pattern.
-	For instance, for 1 byte you add 0, or 2 bytes, you add 128, for 3 bytes you add 16,512, etc.
+	For instance, for 1 byte you add 0, for 2 bytes, you add 128, for 3 bytes you add 16,512, etc.
 	The last byte of any number has the upper bit cleared, all others have the high bit set.
 	Numbers are stored in Big Endian format.
 	<ul>
