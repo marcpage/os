@@ -1,8 +1,16 @@
 
+#
+# A collection of inline classes that make os interaction easier in C++
+#
+# This file is a bash script that generates the documentation and runs the test suites.
+# Performance tests are only meant to be compared on the same machine during the same session
+# 	for when making changes to code for performance. Run the tests multiple times
+# 	before the change, recording results, and then after to see if and how much
+# 	your changes affected performance.
+#
+# Run this script via:
 # bash -e README
 
-mkdir -p documentation
-#doxygen os.dox
 COMPILER=clang++	# 46.041s, in compile terms alone, clang++ is about 20% faster than g++
 #COMPILER=g++		# 49.597s
 #COMPILER=llvm-g++	# 50.588s
@@ -16,23 +24,26 @@ fi
 GCC_WARNINGS="-Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings"
 LIBRARIES="-lsqlite3 -framework Carbon"
 
+# Crashes on macmini appending to std::string with g++ compiler
+#	Bencode:62:0.002s:0.001s:0.001s\
+
 TESTS="\
 	SocketServer:15:7.427s:0.017s:0.022s\
+	Bencode:62:0.002s:0.001s:0.001s\
 	ReferencedString:251:0.028s:0.001s:0.003s\
 	Hash:47:0.004s:0.001s:0.002s\
 	EnumSet:189:0.007s:0.001s:0.002s\
-	Library:93(113ppc):0.248s:0.052s:0.051s\
+	Library:113:0.248s:0.052s:0.051s\
 	Exception:19:0.013s:0.001s:0.002s\
 	Thread:27:0.058s:0.001s:0.004s\
 	File:35:0.005s:0.001s:0.002s\
 	Sqlite3Plus:31:0.324s:0.002s:0.008s\
 	Mutex:15:0.033s:0.011s:0.006s\
 	AtomicInteger:12:0.421s:0.034s:0.079s\
-	DateTime:13(12ppc):0.007s:0.001s:0.002s\
+	DateTime:12:0.007s:0.001s:0.002s\
 	RWLock:18:7.427s:0.017s:0.022s\
-	ReferenceCounted:210(225ppc):3.061s:4.185s:5.835s\
-	ArchiveFile:133(135ppc):0.002s:0.001s:001s\
-	Bencode:60(62ppc):0.002s:0.001s:0.001s\
+	ReferenceCounted:214(216gcc)(225ppc):3.061s:4.185s:5.835s\
+	ArchiveFile:135:0.002s:0.001s:001s\
 	CompactNumber:15:0.005s:0.001s:0.002s\
 	"
 
@@ -67,30 +78,33 @@ do
 	echo $HEADER $COUNT
 done
 
-echo expected Address.h 4
-echo expected AddressIPv4.h 10
-echo expected AddressIPv6.h 10
-echo expected ArchiveFile.h 135
-echo expected AtomicInteger.h 14
-echo expected Bencode.h 62
-echo expected Buffer.h 4
-echo expected BufferAddress.h 8
-echo expected BufferManaged.h 4
-echo expected BufferString.h 8
-echo expected CompactNumber.h 15
-echo expected DateTime.h 12
-echo expected EnumSet.h 189
-echo expected Exception.h 19
-echo expected File.h 72
-echo expected Hash.h 47
-echo expected Library.h 113
-echo expected Mutex.h 15
-echo expected POSIXErrno.h 9
-echo expected RWLock.h 18
-echo expected ReferenceCounted.h 219
-echo expected ReferencedString.h 251
-echo expected Socket.h 19
-echo expected SocketGeneric.h 14
-echo expected SocketServer.h 15
-echo expected Sqlite3Plus.h 31
-echo expected Thread.h 28
+printf "expected Address.h 4\n"
+printf "expected AddressIPv4.h 10\n"
+printf "expected AddressIPv6.h 10\n"
+printf "expected ArchiveFile.h 135\n"
+printf "expected AtomicInteger.h 24(14ppc)\n"
+printf "expected Bencode.h 62\n"
+printf "expected Buffer.h 4\n"
+printf "expected BufferAddress.h 8\n"
+printf "expected BufferManaged.h 4\n"
+printf "expected BufferString.h 8\n"
+printf "expected CompactNumber.h 15\n"
+printf "expected DateTime.h 12\n"
+printf "expected EnumSet.h 189\n"
+printf "expected Exception.h 19\n"
+printf "expected File.h 72\n"
+printf "expected Hash.h 47\n"
+printf "expected Library.h 113\n"
+printf "expected Mutex.h 15\n"
+printf "expected POSIXErrno.h 9\n"
+printf "expected RWLock.h 18\n"
+printf "expected ReferenceCounted.h 214(219ppc)\n"
+printf "expected ReferencedString.h 251\n"
+printf "expected Socket.h 19\n"
+printf "expected SocketGeneric.h 14\n"
+printf "expected SocketServer.h 15\n"
+printf "expected Sqlite3Plus.h 31\n"
+printf "expected Thread.h 30(28ppc)\n"
+
+mkdir -p documentation
+doxygen os.dox
