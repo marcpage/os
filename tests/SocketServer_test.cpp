@@ -48,6 +48,8 @@ class Echo : public exec::Thread {
 	private:
 		net::Socket	*_connection;
 		bool		_running;
+		Echo(const Echo&); ///< Prevent Usage
+		Echo &operator=(const Echo&); ///< Prevent Usage
 };
 
 class Server : public exec::Thread {
@@ -63,12 +65,14 @@ class Server : public exec::Thread {
 			start();
 		}
 		virtual ~Server() {
-			for(ServerThreads::iterator thread= _threads.begin(); thread != _threads.end(); ++thread) {
-				if((*thread)->running()) {
+			for(ServerThreads::iterator thrd= _threads.begin(); thrd != _threads.end(); ++thrd) {
+				if((*thrd)->running()) {
 					printf("FAIL: thread failed to exit\n");
 				}
-				delete *thread;
+				delete *thrd;
+				*thrd= NULL;
 			}
+			_threads.clear();
 		}
 		void shutdown() {
 			_exiting= true;
@@ -94,10 +98,10 @@ class Server : public exec::Thread {
 					printf("FAILED: Server Thread Exception: %s\n", exception.what());
 				}
 			}
-			for(ServerThreads::iterator thread= _threads.begin(); thread != _threads.end(); ++thread) {
-				if((*thread)->running()) {
-					(*thread)->shutdown();
-					(*thread)->join();
+			for(ServerThreads::iterator thrd= _threads.begin(); thrd != _threads.end(); ++thrd) {
+				if((*thrd)->running()) {
+					(*thrd)->shutdown();
+					(*thrd)->join();
 				}
 			}
 			return NULL;
