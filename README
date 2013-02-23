@@ -17,6 +17,7 @@ GCC_WARNINGS="-Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings"
 LIBRARIES="-lsqlite3 -framework Carbon"
 
 TESTS="\
+	SocketServer:15:7.427s:0.017s:0.022s\
 	ReferencedString:251:0.028s:0.001s:0.003s\
 	Hash:47:0.004s:0.001s:0.002s\
 	EnumSet:189:0.007s:0.001s:0.002s\
@@ -29,7 +30,6 @@ TESTS="\
 	AtomicInteger:12:0.421s:0.034s:0.079s\
 	DateTime:13(12ppc):0.007s:0.001s:0.002s\
 	RWLock:18:7.427s:0.017s:0.022s\
-	SocketServer:15:7.427s:0.017s:0.022s\
 	ReferenceCounted:210(225ppc):3.061s:4.185s:5.835s\
 	ArchiveFile:133(135ppc):0.002s:0.001s:001s\
 	Bencode:60(62ppc):0.002s:0.001s:0.001s\
@@ -66,3 +66,31 @@ do
 	COUNT=`cat /tmp/osTests.test_log | grep -w $HEADER | sort | uniq | wc -l`
 	echo $HEADER $COUNT
 done
+
+echo expected Address.h 4
+echo expected AddressIPv4.h 10
+echo expected AddressIPv6.h 10
+echo expected ArchiveFile.h 135
+echo expected AtomicInteger.h 14
+echo expected Bencode.h 62
+echo expected Buffer.h 4
+echo expected BufferAddress.h 8
+echo expected BufferManaged.h 4
+echo expected BufferString.h 8
+echo expected CompactNumber.h 15
+echo expected DateTime.h 12
+echo expected EnumSet.h 189
+echo expected Exception.h 19
+echo expected File.h 72
+echo expected Hash.h 47
+echo expected Library.h 113
+echo expected Mutex.h 15
+echo expected POSIXErrno.h 9
+echo expected RWLock.h 18
+echo expected ReferenceCounted.h 219
+echo expected ReferencedString.h 251
+echo expected Socket.h 19
+echo expected SocketGeneric.h 14
+echo expected SocketServer.h 15
+echo expected Sqlite3Plus.h 31
+echo expected Thread.h 28
