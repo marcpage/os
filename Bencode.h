@@ -9,6 +9,13 @@
 #include <inttypes.h>
 #include <stdint.h>
 
+#ifndef trace_scope
+	#define trace_scope ///< in case Tracer.h is not included
+#endif
+#ifndef trace_bool
+	#define trace_bool(x) (x) ///< in case Tracer.h is not included
+#endif
+
 #define bencodeNULLEntry	"0:"
 
 /** Allows encoding and decoding Bit Torrent originated b-encoded data.
@@ -267,18 +274,18 @@ namespace bencode {
 	template<typename IntegerType> std::string &itoa(IntegerType value, std::string &buffer, int base= 10);
 	template<typename IntegerType> std::string &itoa(IntegerType value, int base= 10);
 
-	inline Input::Input() {}
-	inline Input::~Input() {}
-	inline std::string &Input::read(size_t bytes, std::string &storage) {
+	inline Input::Input() {trace_scope}
+	inline Input::~Input() {trace_scope}
+	inline std::string &Input::read(size_t bytes, std::string &storage) {trace_scope
 		storage.clear();
 		while( (bytes > 0) && !end() ) {storage.append(1, read()); --bytes;}
 		return storage;
 	}
 
 	inline ReferencedStringInput::ReferencedStringInput(const std::string &buffer)
-		:_buffer(buffer), _position(0) {}
-	inline ReferencedStringInput::~ReferencedStringInput() {}
-	inline std::string &ReferencedStringInput::read(size_t bytes, std::string &storage) {
+		:_buffer(buffer), _position(0) {trace_scope}
+	inline ReferencedStringInput::~ReferencedStringInput() {trace_scope}
+	inline std::string &ReferencedStringInput::read(size_t bytes, std::string &storage) {trace_scope
 		if(_position < _buffer.size()) {
 			bytes= _position + bytes < _buffer.size()
 					? bytes
@@ -290,41 +297,41 @@ namespace bencode {
 		}
 		return storage;
 	}
-	inline char ReferencedStringInput::read() {
+	inline char ReferencedStringInput::read() {trace_scope
 		return _position < _buffer.size() ? _buffer[_position++] : '\0';
 	}
-	inline bool ReferencedStringInput::end() {
+	inline bool ReferencedStringInput::end() {trace_scope
 		return (_buffer.size() == 0) || (_position < _buffer.size() - 1);
 	}
 
-	inline Output::Output() {}
-	inline Output::~Output() {}
-	inline void Output::write(const std::string &data) {
-		for(size_t c= 0; c < data.size(); ++c) {write(data[c]);}
+	inline Output::Output() {trace_scope}
+	inline Output::~Output() {trace_scope}
+	inline void Output::write(const std::string &data) {trace_scope
+		for(size_t c= 0; trace_bool(c < data.size()); ++c) {write(data[c]);}
 	}
 
-	inline ReferencedStringOutput::ReferencedStringOutput(std::string &buffer):_buffer(buffer) {}
-	inline ReferencedStringOutput::~ReferencedStringOutput() {}
-	inline void ReferencedStringOutput::write(const std::string &data) {_buffer.append(data);}
-	inline void ReferencedStringOutput::write(char byte) {_buffer.append(1,byte);}
+	inline ReferencedStringOutput::ReferencedStringOutput(std::string &buffer):_buffer(buffer) {trace_scope}
+	inline ReferencedStringOutput::~ReferencedStringOutput() {trace_scope}
+	inline void ReferencedStringOutput::write(const std::string &data) {trace_scope _buffer.append(data);}
+	inline void ReferencedStringOutput::write(char byte) {trace_scope _buffer.append(1,byte);}
 
-	inline Item::Assignment::Assignment(Item::Ptr &item):_item(item) {}
-	inline Item::Assignment::~Assignment() {}
-	inline Item::Assignment &Item::Assignment::operator=(intmax_t value) {
+	inline Item::Assignment::Assignment(Item::Ptr &item):_item(item) {trace_scope}
+	inline Item::Assignment::~Assignment() {trace_scope}
+	inline Item::Assignment &Item::Assignment::operator=(intmax_t value) {trace_scope
 		if(NULL != _item) {
 			delete _item;
 		}
 		_item= new Integer(value);
 		return *this;
 	}
-	inline Item::Assignment &Item::Assignment::operator=(const std::string &value) {
+	inline Item::Assignment &Item::Assignment::operator=(const std::string &value) {trace_scope
 		if(NULL != _item) {
 			delete _item;
 		}
 		_item= new String(value);
 		return *this;
 	}
-	inline Item::Assignment &Item::Assignment::operator=(Item::Ptr value) {
+	inline Item::Assignment &Item::Assignment::operator=(Item::Ptr value) {trace_scope
 		if(value == _item) {
 			return *this;
 		}
@@ -334,39 +341,39 @@ namespace bencode {
 		_item= value;
 		return *this;
 	}
-	inline Item::Assignment::operator Item::Ptr() {return _item;}
-	inline Item::Ptr Item::Assignment::operator->() {return _item;}
-	inline bool Item::Assignment::operator==(Item::Ptr item) {return _item == item;}
-	inline bool Item::Assignment::operator!=(Item::Ptr item) {return _item != item;}
+	inline Item::Assignment::operator Item::Ptr() {trace_scope return _item;}
+	inline Item::Ptr Item::Assignment::operator->() {trace_scope return _item;}
+	inline bool Item::Assignment::operator==(Item::Ptr item) {trace_scope return _item == item;}
+	inline bool Item::Assignment::operator!=(Item::Ptr item) {trace_scope return _item != item;}
 	inline Item::Assignment::Assignment(const Assignment &other)
-		:_item(other._item) {}
+		:_item(other._item) {trace_scope}
 
-	inline Item::Ptr Item::read(Input &in) {
+	inline Item::Ptr Item::read(Input &in) {trace_scope
 		const char	type= in.read();
 		std::string	buffer;
 
 		return _read(in, type, buffer);
 	}
-	inline Item::Item() {}
-	inline Item::~Item() {}
-	inline Type Item::type() const {return TypeInvalid;}
-	inline void Item::write(Output &) {}
-	template<typename I> inline I &Item::as() {return *reinterpret_cast<I*>(this);}
-	template<typename I> inline const I &Item::as() const {return *reinterpret_cast<const I*>(this);}
-	inline bool Item::operator<(const Item &other) const {return compare(other) < 0;}
-	inline bool Item::operator<=(const Item &other) const {return compare(other) <= 0;}
-	inline bool Item::operator>(const Item &other) const {return compare(other) > 0;}
-	inline bool Item::operator>=(const Item &other) const {return compare(other) >= 0;}
-	inline bool Item::operator==(const Item &other) const {return compare(other) == 0;}
-	inline bool Item::operator!=(const Item &other) const {return compare(other) != 0;}
-	inline Item::Ptr Item::clone() const {return NULL;}
-	inline int Item::compare(const Item &other) const {
+	inline Item::Item() {trace_scope}
+	inline Item::~Item() {trace_scope}
+	inline Type Item::type() const {trace_scope return TypeInvalid;}
+	inline void Item::write(Output &) {trace_scope}
+	template<typename I> inline I &Item::as() {trace_scope return *reinterpret_cast<I*>(this);}
+	template<typename I> inline const I &Item::as() const {trace_scope return *reinterpret_cast<const I*>(this);}
+	inline bool Item::operator<(const Item &other) const {trace_scope return compare(other) < 0;}
+	inline bool Item::operator<=(const Item &other) const {trace_scope return compare(other) <= 0;}
+	inline bool Item::operator>(const Item &other) const {trace_scope return compare(other) > 0;}
+	inline bool Item::operator>=(const Item &other) const {trace_scope return compare(other) >= 0;}
+	inline bool Item::operator==(const Item &other) const {trace_scope return compare(other) == 0;}
+	inline bool Item::operator!=(const Item &other) const {trace_scope return compare(other) != 0;}
+	inline Item::Ptr Item::clone() const {trace_scope return NULL;}
+	inline int Item::compare(const Item &other) const {trace_scope
 		const uint32_t	c1= componentCount();
 		const uint32_t	c2= other.componentCount();
 		const uint32_t	max= c1<c2 ? c1 : c2;
 		std::string		s1, s2;
 
-		for(uint32_t i= 0; i < max; ++i) {
+		for(uint32_t i= 0; trace_bool(i < max); ++i) {
 			const int result= component(i,s1).compare(other.component(i,s2));
 
 			if(result != 0) {
@@ -375,7 +382,7 @@ namespace bencode {
 		}
 		return (c1 < c2) ? -1 : ( (c1 > c2) ? 1 : 0 );
 	}
-	inline Item::Ptr Item::_read(Input &in, char type, std::string &buffer) {
+	inline Item::Ptr Item::_read(Input &in, char type, std::string &buffer) {trace_scope
 		Item::Ptr				result= NULL;
 		char					byte;
 		std::string::size_type	size;
@@ -436,55 +443,55 @@ namespace bencode {
 		return result;
 	}
 
-	inline String::String(const std::string &string):_value(string) {}
-	inline String::~String() {}
-	inline Type String::type() const {return TypeString;}
-	inline std::string &String::value() {return _value;}
-	inline const std::string &String::value() const {return _value;}
-	inline void String::write(Output &out) {
+	inline String::String(const std::string &string):_value(string) {trace_scope}
+	inline String::~String() {trace_scope}
+	inline Type String::type() const {trace_scope return TypeString;}
+	inline std::string &String::value() {trace_scope return _value;}
+	inline const std::string &String::value() const {trace_scope return _value;}
+	inline void String::write(Output &out) {trace_scope
 		out.write(itoa(_value.size()));out.write(':');out.write(_value);
 	}
-	inline uint32_t String::componentCount() const {
+	inline uint32_t String::componentCount() const {trace_scope
 		return 1;
 	}
-	inline std::string &String::component(uint32_t index, std::string &buffer) const {
+	inline std::string &String::component(uint32_t index, std::string &buffer) const {trace_scope
 		if(index == 0) {
 			buffer.assign(_value);
 		}
 		return buffer;
 	}
-	inline Item::Ptr String::clone() const {return new String(_value);}
+	inline Item::Ptr String::clone() const {trace_scope return new String(_value);}
 
-	inline Integer::Integer(intmax_t intValue):_value(intValue) {}
+	inline Integer::Integer(intmax_t intValue):_value(intValue) {trace_scope}
 	inline Integer::Integer(const std::string &strValue)
-		:_value(strtoimax(strValue.c_str(), static_cast<char**>(NULL), 10)) {}
-	inline Integer::~Integer() {}
-	inline Type Integer::type() const {return TypeInteger;}
-	inline void Integer::write(Output &out) {
+		:_value(strtoimax(strValue.c_str(), static_cast<char**>(NULL), 10)) {trace_scope}
+	inline Integer::~Integer() {trace_scope}
+	inline Type Integer::type() const {trace_scope return TypeInteger;}
+	inline void Integer::write(Output &out) {trace_scope
 		out.write('i');out.write(itoa(_value));out.write('e');
 	}
-	inline intmax_t &Integer::value() {return _value;}
-	inline const intmax_t &Integer::value() const {return _value;}
-	inline uint32_t Integer::componentCount() const {return 1;}
-	inline std::string &Integer::component(uint32_t index, std::string &buffer) const {
+	inline intmax_t &Integer::value() {trace_scope return _value;}
+	inline const intmax_t &Integer::value() const {trace_scope return _value;}
+	inline uint32_t Integer::componentCount() const {trace_scope return 1;}
+	inline std::string &Integer::component(uint32_t index, std::string &buffer) const {trace_scope
 		if(index == 0) {
 			buffer.clear();
 			itoa(_value, buffer);
 		}
 		return buffer;
 	}
-	inline Item::Ptr Integer::clone() const {return new Integer(_value);}
+	inline Item::Ptr Integer::clone() const {trace_scope return new Integer(_value);}
 
-	inline List::List():_items() {}
-	inline List::~List() {
+	inline List::List():_items() {trace_scope}
+	inline List::~List() {trace_scope
 		while(_items.size() > 0) {
 			delete pop();
 		}
 	}
-	inline Type List::type() const {return TypeList;}
-	inline void List::write(Output &out) {
+	inline Type List::type() const {trace_scope return TypeList;}
+	inline void List::write(Output &out) {trace_scope
 		out.write('l');
-		for(_Items::iterator item= _items.begin(); item != _items.end(); ++item) {
+		for(_Items::iterator item= _items.begin(); trace_bool(item != _items.end()); ++item) {
 			if(NULL != *item) {
 				(*item)->write(out);
 			} else {
@@ -493,48 +500,48 @@ namespace bencode {
 		}
 		out.write('e');
 	}
-	inline uint32_t List::count() const {return static_cast<uint32_t>(_items.size());}
-	inline Item::Assignment List::operator[](uint32_t index) {
-		for(size_t fill= _items.size(); fill <= index; ++fill) {
+	inline uint32_t List::count() const {trace_scope return static_cast<uint32_t>(_items.size());}
+	inline Item::Assignment List::operator[](uint32_t index) {trace_scope
+		for(size_t fill= _items.size(); trace_bool(fill <= index); ++fill) {
 			push(reinterpret_cast<Item::Ptr>(NULL));
 		}
 		return Assignment(_items[index]);
 	}
-	inline Item::ConstPtr List::operator[](uint32_t index) const {
-		for(size_t fill= _items.size(); fill <= index; ++fill) {
+	inline Item::ConstPtr List::operator[](uint32_t index) const {trace_scope
+		for(size_t fill= _items.size(); trace_bool(fill <= index); ++fill) {
 			const_cast<List*>(this)->push(reinterpret_cast<Item::Ptr>(NULL));
 		}
 		return _items[index];
 	}
-	inline Item::Assignment List::value(uint32_t index) {return (*this)[index];}
-	inline Item::ConstPtr List::value(uint32_t index) const {return (*this)[index];}
-	inline void List::insert(Item::Ptr item, uint32_t before) {
+	inline Item::Assignment List::value(uint32_t index) {trace_scope return (*this)[index];}
+	inline Item::ConstPtr List::value(uint32_t index) const {trace_scope return (*this)[index];}
+	inline void List::insert(Item::Ptr item, uint32_t before) {trace_scope
 		_items.insert(_items.begin()+before, item);
 	}
-	inline void List::insert(const std::string &strValue, uint32_t before) {
+	inline void List::insert(const std::string &strValue, uint32_t before) {trace_scope
 		insert(new String(strValue), before);
 	}
-	inline void List::insert(intmax_t intValue, uint32_t before) {
+	inline void List::insert(intmax_t intValue, uint32_t before) {trace_scope
 		insert(new Integer(intValue), before);
 	}
-	inline Item::Ptr List::remove(uint32_t index) {
+	inline Item::Ptr List::remove(uint32_t index) {trace_scope
 		Item::Ptr	item= index < _items.size() ? _items[index] : NULL;
 
 		_items.erase(_items.begin() + index);
 		return item;
 	}
-	inline void List::push(Item::Ptr item) {insert(item, _items.size());}
-	inline void List::push(const std::string &strValue) {
+	inline void List::push(Item::Ptr item) {trace_scope insert(item, _items.size());}
+	inline void List::push(const std::string &strValue) {trace_scope
 		push(reinterpret_cast<Item::Ptr>(new String(strValue)));
 	}
-	inline void List::push(intmax_t intValue) {
+	inline void List::push(intmax_t intValue) {trace_scope
 		push(reinterpret_cast<Item::Ptr>(new Integer(intValue)));
 	}
-	inline Item::Ptr List::pop() {return remove(_items.size() - 1);}
-	inline uint32_t List::componentCount() const {
+	inline Item::Ptr List::pop() {trace_scope return remove(_items.size() - 1);}
+	inline uint32_t List::componentCount() const {trace_scope
 		uint32_t components= 0;
 
-		for(_Items::const_iterator item= _items.begin(); item != _items.end(); ++item) {
+		for(_Items::const_iterator item= _items.begin(); trace_bool(item != _items.end()); ++item) {
 			if(NULL != *item) {
 				components+= (*item)->componentCount();
 			} else {
@@ -543,8 +550,8 @@ namespace bencode {
 		}
 		return components;
 	}
-	inline std::string &List::component(uint32_t index, std::string &buffer) const {
-		for(_Items::const_iterator item= _items.begin(); item != _items.end(); ++item) {
+	inline std::string &List::component(uint32_t index, std::string &buffer) const {trace_scope
+		for(_Items::const_iterator item= _items.begin(); trace_bool(item != _items.end()); ++item) {
 			const uint32_t	itemCount= (NULL == *item) ? 1 : (*item)->componentCount();
 
 			if(index >= itemCount) {
@@ -559,24 +566,24 @@ namespace bencode {
 		buffer.clear();
 		return buffer;
 	}
-	inline Item::Ptr List::clone() const {
+	inline Item::Ptr List::clone() const {trace_scope
 		List	*result= new List();
 
-		for(_Items::const_iterator item= _items.begin(); item != _items.end(); ++item) {
+		for(_Items::const_iterator item= _items.begin(); trace_bool(item != _items.end()); ++item) {
 			result->push(NULL == *item ? NULL : (*item)->clone());
 		}
 		return result;
 	}
 
 	inline Dictionary::key_iterator::key_iterator(const key_iterator &other)
-		:_container(other._container),_index(other._index) {}
-	inline Dictionary::key_iterator::~key_iterator() {}
-	inline Dictionary::key_iterator &Dictionary::key_iterator::operator++() {++_index; return *this;}
-	inline Dictionary::key_iterator Dictionary::key_iterator::operator++(int) {
+		:_container(other._container),_index(other._index) {trace_scope }
+	inline Dictionary::key_iterator::~key_iterator() {trace_scope }
+	inline Dictionary::key_iterator &Dictionary::key_iterator::operator++() {trace_scope ++_index; return *this;}
+	inline Dictionary::key_iterator Dictionary::key_iterator::operator++(int) {trace_scope
 		++_index; return key_iterator(_container, _index - 1);
 	}
-	inline Dictionary::key_iterator &Dictionary::key_iterator::operator--() {if(_index > 0) {--_index;} return *this;}
-	inline Dictionary::key_iterator Dictionary::key_iterator::operator--(int) {
+	inline Dictionary::key_iterator &Dictionary::key_iterator::operator--() {trace_scope if(_index > 0) {--_index;} return *this;}
+	inline Dictionary::key_iterator Dictionary::key_iterator::operator--(int) {trace_scope
 		int increment= _index > 0 ? 1 : 0;
 
 		_index-= increment;
@@ -585,63 +592,63 @@ namespace bencode {
 	/**
 		@todo count can be negative, += and -= need to check we don't go below zero
 	*/
-	inline Dictionary::key_iterator &Dictionary::key_iterator::operator+=(int count) {_index+= count; return *this;}
-	inline Dictionary::key_iterator &Dictionary::key_iterator::operator-=(int count) {
+	inline Dictionary::key_iterator &Dictionary::key_iterator::operator+=(int count) {trace_scope _index+= count; return *this;}
+	inline Dictionary::key_iterator &Dictionary::key_iterator::operator-=(int count) {trace_scope
 		_index= (count > static_cast<int>(_index)) ? 0 : _index - count; return *this;
 	}
-	inline Dictionary::key_iterator Dictionary::key_iterator::operator+(int count) {
+	inline Dictionary::key_iterator Dictionary::key_iterator::operator+(int count) {trace_scope
 		key_iterator result(*this); return result+= count;
 	}
-	inline Dictionary::key_iterator Dictionary::key_iterator::operator-(int count) {
+	inline Dictionary::key_iterator Dictionary::key_iterator::operator-(int count) {trace_scope
 		key_iterator result(*this); return result-= count;
 	}
-	inline Dictionary::key_iterator &Dictionary::key_iterator::operator=(const key_iterator &other) {
+	inline Dictionary::key_iterator &Dictionary::key_iterator::operator=(const key_iterator &other) {trace_scope
 		_container= other._container;
 		_index= other._index;
 		return *this;
 	}
-	inline bool Dictionary::key_iterator::operator==(const key_iterator &other) const {
+	inline bool Dictionary::key_iterator::operator==(const key_iterator &other) const {trace_scope
 		return (_container == other._container)
 				&& (_index == other._index);
 	}
-	inline bool Dictionary::key_iterator::operator!=(const key_iterator &other) const {
+	inline bool Dictionary::key_iterator::operator!=(const key_iterator &other) const {trace_scope
 		return !(*this == other);
 	}
-	inline bool Dictionary::key_iterator::operator<(const key_iterator &other) const {
+	inline bool Dictionary::key_iterator::operator<(const key_iterator &other) const {trace_scope
 		return (_container == other._container)
 				&& (_index < other._index);
 	}
-	inline bool Dictionary::key_iterator::operator<=(const key_iterator &other) const {
+	inline bool Dictionary::key_iterator::operator<=(const key_iterator &other) const {trace_scope
 		return (_container == other._container)
 				&& (_index <= other._index);
 	}
-	inline bool Dictionary::key_iterator::operator>(const key_iterator &other) const {return other < *this;}
-	inline bool Dictionary::key_iterator::operator>=(const key_iterator &other) const {return other <= *this;}
-	inline Item &Dictionary::key_iterator::operator*() {
+	inline bool Dictionary::key_iterator::operator>(const key_iterator &other) const {trace_scope return other < *this;}
+	inline bool Dictionary::key_iterator::operator>=(const key_iterator &other) const {trace_scope return other <= *this;}
+	inline Item &Dictionary::key_iterator::operator*() {trace_scope
 		return *_container->_items[_index].first;
 	}
-	inline Item::Ptr Dictionary::key_iterator::operator->() {
+	inline Item::Ptr Dictionary::key_iterator::operator->() {trace_scope
 		return _valid() ? _container->_items[_index].first : NULL;
 	}
-	inline Dictionary::key_iterator::operator bool() const {return _valid();}
+	inline Dictionary::key_iterator::operator bool() const {trace_scope return _valid();}
 	inline Dictionary::key_iterator::key_iterator(const Dictionary *c, uint32_t i)
-		:_container(c),_index(i) {}
-	inline bool Dictionary::key_iterator::_valid() const {
+		:_container(c),_index(i) {trace_scope }
+	inline bool Dictionary::key_iterator::_valid() const {trace_scope
 		return _index < _container->_items.size();
 	}
 
-	Dictionary::Dictionary():_items() {}
-	Dictionary::~Dictionary() {
+	Dictionary::Dictionary():_items() {trace_scope }
+	Dictionary::~Dictionary() {trace_scope
 		while(_items.size() > 0) {
 			delete _items[0].first;
 			delete _items[0].second;
 			_items.erase(_items.begin());
 		}
 	}
-	Type Dictionary::type() const {return TypeDictionary;}
-	void Dictionary::write(Output &out) {
+	Type Dictionary::type() const {trace_scope return TypeDictionary;}
+	void Dictionary::write(Output &out) {trace_scope
 		out.write('d');
-		for(_Items::iterator item= _items.begin(); item != _items.end(); ++item) {
+		for(_Items::iterator item= _items.begin(); trace_bool(item != _items.end()); ++item) {
 			if(NULL == item->first) {
 				out.write(bencodeNULLEntry);
 			} else {
@@ -655,8 +662,8 @@ namespace bencode {
 		}
 		out.write('e');
 	}
-	Dictionary::key_iterator Dictionary::keys() const {return key_iterator(this, 0);}
-	Item::Assignment Dictionary::operator[](Item::ConstPtr key) {
+	Dictionary::key_iterator Dictionary::keys() const {trace_scope return key_iterator(this, 0);}
+	Item::Assignment Dictionary::operator[](Item::ConstPtr key) {trace_scope
 		_Items::iterator	position= _items.end();
 
 		if(!_find(key, position)) {
@@ -665,7 +672,7 @@ namespace bencode {
 		}
 		return Assignment(position->second);
 	}
-	Item::ConstPtr Dictionary::operator[](Item::ConstPtr key) const {
+	Item::ConstPtr Dictionary::operator[](Item::ConstPtr key) const {trace_scope
 		_Items::iterator	position= const_cast<Dictionary*>(this)->_items.end();
 
 		if(!_find(key, position)) {
@@ -674,27 +681,27 @@ namespace bencode {
 		}
 		return position->second;
 	}
-	Item::Assignment Dictionary::operator[](const std::string &key) {
+	Item::Assignment Dictionary::operator[](const std::string &key) {trace_scope
 		String	keyString(key);
 
 		return (*this)[reinterpret_cast<Item::Ptr>(&keyString)];
 	}
-	Item::ConstPtr Dictionary::operator[](const std::string &key) const {
+	Item::ConstPtr Dictionary::operator[](const std::string &key) const {trace_scope
 		String	keyString(key);
 
 		return (*this)[reinterpret_cast<Item::Ptr>(&keyString)];
 	}
-	bool Dictionary::has_key(Item::Ptr key) {
+	bool Dictionary::has_key(Item::Ptr key) {trace_scope
 		_Items::iterator	position= _items.end();
 
 		return _find(key, position);
 	}
-	bool Dictionary::has_key(const std::string &key) {
+	bool Dictionary::has_key(const std::string &key) {trace_scope
 		String	keyString(key);
 
 		return has_key(reinterpret_cast<Item::Ptr>(&keyString));
 	}
-	Item::Ptr Dictionary::remove(Item::Ptr key) {
+	Item::Ptr Dictionary::remove(Item::Ptr key) {trace_scope
 		_Items::iterator	position= _items.end();
 
 		if(_find(key, position)) {
@@ -706,15 +713,15 @@ namespace bencode {
 		}
 		return NULL;
 	}
-	Item::Ptr Dictionary::remove(const std::string &key) {
+	Item::Ptr Dictionary::remove(const std::string &key) {trace_scope
 		String	keyString(key);
 
 		return remove(reinterpret_cast<Item::Ptr>(&keyString));
 	}
-	uint32_t Dictionary::componentCount() const {
+	uint32_t Dictionary::componentCount() const {trace_scope
 		uint32_t components= 0;
 
-		for(_Items::const_iterator item= _items.begin(); item != _items.end(); ++item) {
+		for(_Items::const_iterator item= _items.begin(); trace_bool(item != _items.end()); ++item) {
 			if(NULL != item->first) {
 				components+= item->first->componentCount();
 			}
@@ -724,8 +731,8 @@ namespace bencode {
 		}
 		return components;
 	}
-	std::string &Dictionary::component(uint32_t index, std::string &buffer) const {
-		for(_Items::const_iterator item= _items.begin(); item != _items.end(); ++item) {
+	std::string &Dictionary::component(uint32_t index, std::string &buffer) const {trace_scope
+		for(_Items::const_iterator item= _items.begin(); trace_bool(item != _items.end()); ++item) {
 			const uint32_t	firstCount= NULL == item->first ? 1 : item->first->componentCount();
 			const uint32_t	secondCount= NULL == item->second ? 1 : item->second->componentCount();
 
@@ -749,10 +756,10 @@ namespace bencode {
 		buffer.clear();
 		return buffer;
 	}
-	Item::Ptr Dictionary::clone() const {
+	Item::Ptr Dictionary::clone() const {trace_scope
 		Dictionary	*result= new Dictionary();
 
-		for(_Items::const_iterator item= _items.begin(); item != _items.end(); ++item) {
+		for(_Items::const_iterator item= _items.begin(); trace_bool(item != _items.end()); ++item) {
 			(*result)[NULL == item->first ? NULL : item->first->clone()]
 				= NULL == item->second ? NULL : item->second->clone();
 		}
@@ -761,7 +768,7 @@ namespace bencode {
 	/**
 		@todo Improve speed with binary search
 	*/
-	bool Dictionary::_find(Item::ConstPtr key, _Items::iterator &position) const {
+	bool Dictionary::_find(Item::ConstPtr key, _Items::iterator &position) const {trace_scope
 		position= const_cast<Dictionary*>(this)->_items.begin();
 		while( (position != const_cast<Dictionary*>(this)->_items.end()) && (key->compare(*position->first) > 0) ) {
 			++position;
@@ -779,7 +786,7 @@ namespace bencode {
 	}
 
 	template<typename IntegerType>
-	inline std::string &itoa(IntegerType value, std::string &buffer, int base) {
+	inline std::string &itoa(IntegerType value, std::string &buffer, int base) {trace_scope
 		const size_t	kMaxDigits= 35;
 		IntegerType		quotient= value;
 
@@ -801,7 +808,7 @@ namespace bencode {
 		return buffer;
 	}
 	template<typename IntegerType>
-	inline std::string &itoa(IntegerType value, int base) {
+	inline std::string &itoa(IntegerType value, int base) {trace_scope
 		std::string	buffer;
 
 		return itoa(value, buffer, base);

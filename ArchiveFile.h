@@ -4,8 +4,19 @@
 #include <os/File.h>
 #include <os/POSIXErrno.h>
 
+#ifndef trace_scope
+	#define trace_scope ///< in case Tracer.h is not included
+#endif
+#ifndef trace_bool
+	#define trace_bool(x) (x) ///< in case Tracer.h is not included
+#endif
+
 /// Default signature detects text conversions and has high-bit value to prevent text detection
 #define io_ArchiveFile_DefaultSignature "\x89""00\x0D\x0A\x1A\x0A"
+
+#ifndef INT64_MAX
+	#define INT64_MAX (0x7FFFFFFFFFFFFFFFLL)
+#endif
 
 namespace io {
 	/** A container file that can return allocated sections.
@@ -149,7 +160,7 @@ namespace io {
 	/** Just calls valid()
 	*/
 	inline ArchiveFile::Block::operator bool() const {trace_scope
-		return valid();
+		return trace_bool(valid());
 	}
 	inline ArchiveFile::Block::operator off_t() const {trace_scope
 		const int64_t	kHeaderSize= sizeof(uint8_t) + sizeof(int64_t);
@@ -430,7 +441,7 @@ namespace io {
 		NOTE: All free blocks are Block::merge()d
 	*/
 	inline ArchiveFile::Block ArchiveFile::allocate(int64_t dataSize, uint8_t flags) {trace_scope
-		for(Block b= begin(); b != end(); ++b) {
+		for(Block b= begin(); trace_bool(b != end()); ++b) {
 			if(b.free()) {
 				b.merge();
 				if( (dataSize <= b.size()) && b.allocate(dataSize, flags) ) { // @todo Test

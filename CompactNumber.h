@@ -136,7 +136,7 @@ namespace compactNumber {
 			partialBase= (Integer(topBitMask) << (streamBitsPerByte * bytesToWrite));
 			++bytesToWrite;
 		}
-		for(size_t streamByte= 0; streamByte < bytesToWrite; ++streamByte) {
+		for(size_t streamByte= 0; trace_bool(streamByte < bytesToWrite); ++streamByte) {
 			const size_t	shift= streamBitsPerByte*(bytesToWrite - streamByte - 1);
 			const uint8_t	streamByteRawValue= (integer >> shift) & maskOutTopBit;
 			const bool		lastByte= (streamByte == bytesToWrite - 1);

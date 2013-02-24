@@ -29,10 +29,10 @@ LIBRARIES="-lsqlite3 -framework Carbon"
 
 TESTS="\
 	SocketServer:15:7.427s:0.017s:0.022s\
-	Bencode:62:0.002s:0.001s:0.001s\
+	Bencode:62(244ppc):0.002s:0.001s:0.001s\
 	ReferencedString:251:0.028s:0.001s:0.003s\
-	Hash:47:0.004s:0.001s:0.002s\
-	EnumSet:189:0.007s:0.001s:0.002s\
+	Hash:47(52ppc):0.004s:0.001s:0.002s\
+	EnumSet:189(191ppc):0.007s:0.001s:0.002s\
 	Library:113:0.248s:0.052s:0.051s\
 	Exception:19:0.013s:0.001s:0.002s\
 	Thread:27:0.058s:0.001s:0.004s\
@@ -42,9 +42,9 @@ TESTS="\
 	AtomicInteger:12:0.421s:0.034s:0.079s\
 	DateTime:12:0.007s:0.001s:0.002s\
 	RWLock:18:7.427s:0.017s:0.022s\
-	ReferenceCounted:214(216gcc)(225ppc):3.061s:4.185s:5.835s\
-	ArchiveFile:135:0.002s:0.001s:001s\
-	CompactNumber:15:0.005s:0.001s:0.002s\
+	ReferenceCounted:214(216gcc)(225ppcgcc)(200ppc):3.061s:4.185s:5.835s\
+	ArchiveFile:135(138ppc):0.002s:0.001s:001s\
+	CompactNumber:15(17ppc):0.005s:0.001s:0.002s\
 	"
 
 rm -f /tmp/*.archive
@@ -81,24 +81,24 @@ done
 printf "expected Address.h 4\n"
 printf "expected AddressIPv4.h 10\n"
 printf "expected AddressIPv6.h 10\n"
-printf "expected ArchiveFile.h 135\n"
+printf "expected ArchiveFile.h 135(138ppc)\n"
 printf "expected AtomicInteger.h 24(14ppc)\n"
-printf "expected Bencode.h 62\n"
+printf "expected Bencode.h 62(244ppc)\n"
 printf "expected Buffer.h 4\n"
 printf "expected BufferAddress.h 8\n"
 printf "expected BufferManaged.h 4\n"
 printf "expected BufferString.h 8\n"
-printf "expected CompactNumber.h 15\n"
+printf "expected CompactNumber.h 15(17ppc)\n"
 printf "expected DateTime.h 12\n"
-printf "expected EnumSet.h 189\n"
+printf "expected EnumSet.h 189(191ppc)\n"
 printf "expected Exception.h 19\n"
 printf "expected File.h 72\n"
-printf "expected Hash.h 47\n"
+printf "expected Hash.h 47(52ppc)\n"
 printf "expected Library.h 113\n"
 printf "expected Mutex.h 15\n"
 printf "expected POSIXErrno.h 9\n"
 printf "expected RWLock.h 18\n"
-printf "expected ReferenceCounted.h 214(219ppc)\n"
+printf "expected ReferenceCounted.h 214(219ppcgcc)(200ppc)\n"
 printf "expected ReferencedString.h 251\n"
 printf "expected Socket.h 19\n"
 printf "expected SocketGeneric.h 14\n"

@@ -187,7 +187,7 @@ namespace hash {
 		return trace_bool(memcmp(_hash, other._hash, sizeof(_hash)) != 0);
 	}
 	template<class Hasher> inline bool SpecificHash<Hasher>::valid() const {trace_scope
-		for(int i= 0; i < static_cast<int>(sizeof(_hash)); ++i) {trace_scope
+		for(int i= 0; trace_bool(i < static_cast<int>(sizeof(_hash))); ++i) {trace_scope
 			if(_hash[i] != 0) {trace_scope
 				return true;
 			}
@@ -228,7 +228,7 @@ namespace hash {
 		const char * const	hexDigits= "0123456789abcdef";
 
 		value.clear();
-		for(int i= 0; i < static_cast<int>(sizeof(_hash)); ++i) {trace_scope
+		for(int i= 0; trace_bool(i < static_cast<int>(sizeof(_hash))); ++i) {trace_scope
 			value.append(1, hexDigits[_hash[i] & 0x0F]);
 			value.append(1, hexDigits[_hash[i] >> 4]);
 		}
@@ -238,7 +238,7 @@ namespace hash {
 		std::string	hexDigits("0123456789abcdef");
 		bool		eosFound= false;
 		AssertMessageException(strlen(hash) <= Size * 2);
-		for(int byte= 0; byte < static_cast<int>(sizeof(_hash)); ++byte) {trace_scope
+		for(int byte= 0; trace_bool(byte < static_cast<int>(sizeof(_hash))); ++byte) {trace_scope
 			const int	nibble1= byte * 2;
 			eosFound= trace_bool(trace_bool(eosFound) || trace_bool(hash[nibble1] == '\0'));
 			std::string::size_type	found1= eosFound ? 0 : hexDigits.find(hash[nibble1]);

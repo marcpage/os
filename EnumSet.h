@@ -10,6 +10,7 @@
 #include <exception>
 #include <sstream>
 #include <string>
+#include "Exception.h"
 
 #ifndef trace_scope
 	#define trace_scope ///< in case Tracer.h is not included
@@ -18,6 +19,11 @@
 	#define trace_bool(x) (x) ///< in case Tracer.h is not included
 #endif
 
+/** Exception used for EnumSet when converting to integer types and
+		either the enum cannot be represented in the integer size
+		or the integer is out of range of the Enum
+	@todo Document
+*/
 class BitOutOfRangeException : public std::exception {
 	public:
 		BitOutOfRangeException(int bit, int max) throw();
@@ -30,6 +36,10 @@ class BitOutOfRangeException : public std::exception {
 		static std::string _numbersToMessage(int bit, int max);
 };
 
+/** Turns an enum into a bit-set.
+	This simplifies the common practice of having an enum that represents bits in a bit-field.
+	@todo document
+*/
 template<typename EnumType, EnumType lastEnumValue, typename WordType= unsigned char>
 class EnumSet {
 	public:
@@ -192,7 +202,7 @@ bool EnumSet<EnumType, lastEnumValue, WordType>::operator>=(const EnumType &othe
 }
 template<typename EnumType, EnumType lastEnumValue, typename WordType>
 bool EnumSet<EnumType, lastEnumValue, WordType>::operator==(const EnumSet &other) const {trace_scope
-	for(size_t word= 0; word < sizeof(_bits)/sizeof(_bits[0]); ++word) {
+	for(size_t word= 0; trace_bool(word < sizeof(_bits)/sizeof(_bits[0])); ++word) {
 		if(_bits[word] != other._bits[word]) {trace_scope
 			return false;
 		}
