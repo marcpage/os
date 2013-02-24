@@ -1,12 +1,15 @@
 #include "os/Execute.h"
 #include <stdio.h>
 
-int main(const int argc,const char*const argv[]) {
-	std::string	result;
+int main(const int /*argc*/,const char*const /*argv*/[]) {
+	std::string	result,test;
 
-	for(int arg= 1; arg < argc; ++arg) {
-		exec::execute(argv[arg], result, 6);
-		printf("[[%s]]\n", result.c_str());
+	exec::execute("ls /", result, 4096);
+	for(size_t i= 1; i < 256; ++i) {
+		exec::execute("ls /", test, i);
+		if(test != result) {
+			printf("Failed on blockSize=%ld\n", i);
+		}
 	}
 	return 0;
 }

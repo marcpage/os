@@ -1,6 +1,7 @@
 #include <string>
 #include <stdio.h>
 #include "Exception.h"
+#include "POSIXErrno.h"
 
 #ifndef trace_scope
 	#define trace_scope ///< in case Tracer.h is not included
@@ -17,7 +18,7 @@ namespace exec {
 	inline std::string &execute(const std::string &command, std::string &stdout, const size_t blocks= 4096) {trace_scope
 		FILE	*out= ::popen(command.c_str(), "r");
 
-		errnoNULLAssertMessageException(out);
+		ErrnoOnNULL(out);
 		try {
 			stdout.clear();
 			while(!::feof(out)) {

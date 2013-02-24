@@ -28,6 +28,7 @@ LIBRARIES="-lsqlite3 -framework Carbon"
 #	Bencode:62:0.002s:0.001s:0.001s\
 
 TESTS="\
+	Execute:8:10.949s:2.351s:4.028s\
 	SocketServer:15:7.427s:0.017s:0.022s\
 	Bencode:62(244ppc):0.002s:0.001s:0.001s\
 	ReferencedString:251:0.028s:0.001s:0.003s\
