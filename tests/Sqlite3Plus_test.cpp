@@ -18,8 +18,8 @@ static void displayResults(const Sqlite3::DB::Results &results) {
 	}
 }
 
-int main(int /*argc*/, const char * /*argv*/[]) {
-	const char * const	kDBPath= "/tmp/test.sqlite3";
+int main(int argc, const char * const argv[]) {
+	const char * const	kDBPath= argc < 2 ? "bin/logs/test.sqlite3" : argv[1];
 
 	try	{
 		std::string	number;

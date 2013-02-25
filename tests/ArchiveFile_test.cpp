@@ -38,8 +38,13 @@ void printBlocks(io::ArchiveFile::Block begin, io::ArchiveFile::Block end) {
 		); \
 	}
 
-int main(int,const char*[]) {
+int main(int argc,const char * const argv[]) {
 	try	{
+		std::string	path("bin/logs/");
+
+		if(argc >= 2) {
+			path= argv[1];
+		}
 		struct {
 			uint64_t	identifier;
 			const char	*value;
@@ -49,7 +54,7 @@ int main(int,const char*[]) {
 			{0, "help"},
 		};
 		{
-			io::ArchiveFile	file("/tmp/file1.archive");
+			io::ArchiveFile	file(path+"file1.archive");
 			int64_t			lastHeaderSize= -1;
 
 			testBlocks(file, 1);
@@ -74,7 +79,7 @@ int main(int,const char*[]) {
 			}
 		}
 		{
-			io::ArchiveFile	file("/tmp/file1.archive");
+			io::ArchiveFile	file(path+"file1.archive");
 			std::string		value;
 
 			testBlocks(file, sizeof(positions)/sizeof(positions[0])+1);
@@ -88,38 +93,38 @@ int main(int,const char*[]) {
 			}
 		}
 		{
-			io::File	file("/tmp/short.archive", io::File::Binary, io::File::WriteIfPossible);
+			io::File	file(path+"short.archive", io::File::Binary, io::File::WriteIfPossible);
 
 			file.write("Test");
 		}
 		try	{
-			io::ArchiveFile	file("/tmp/short.archive");
+			io::ArchiveFile	file(path+"short.archive");
 
 			printf("File was too short and we still opened it\n");
 		} catch(const posix::err::ERANGE_Errno &error) {
 			// expected
 		}
 		{
-			io::File	file("/tmp/big.archive", io::File::Binary, io::File::WriteIfPossible);
+			io::File	file(path+"big.archive", io::File::Binary, io::File::WriteIfPossible);
 
 			file.write("This is a test of how reading an archive file that is big enough but has a bad header");
 		}
 		try	{
-			io::ArchiveFile	file("/tmp/big.archive");
+			io::ArchiveFile	file(path+"big.archive");
 
 			printf("File had wrong signature and we still opened it\n");
 		} catch(const posix::err::EILSEQ_Errno &error) {
 			// expected
 		}
 		try	{
-			io::ArchiveFile	file("/tmp/file1.archive", io::File::WriteIfPossible, 2);
+			io::ArchiveFile	file(path+"file1.archive", io::File::WriteIfPossible, 2);
 
 			printf("File had wrong version and we still opened it\n");
 		} catch(const posix::err::EILSEQ_Errno &error) {
 			// expected
 		}
 		{
-			io::ArchiveFile			file("/tmp/file2.archive");
+			io::ArchiveFile			file(path+"file2.archive");
 			io::ArchiveFile::Block	blocks[]= {
 				file.allocate("1", 1),
 				file.allocate("10", 10),

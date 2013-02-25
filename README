@@ -11,101 +11,10 @@
 # Run this script via:
 # bash -e README
 
-COMPILER=clang++	# 46.041s, in compile terms alone, clang++ is about 20% faster than g++
-#COMPILER=g++		# 49.597s
-#COMPILER=llvm-g++	# 50.588s
+mkdir -p bin
+clang++ tests/test.cpp -I.. -o bin/test -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings
 
-if [ "$COMPILER" = "clang++" ]; then
-  NONTEMPLATEFRIENDWARNING=
-else
-  NONTEMPLATEFRIENDWARNING=-Wno-non-template-friend
-fi
-
-GCC_WARNINGS="-Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings"
-LIBRARIES="-lsqlite3 -framework Carbon"
-
-# Crashes on macmini appending to std::string with g++ compiler
-#	Bencode:62:0.002s:0.001s:0.001s\
-
-TESTS="\
-	Execute:8:10.949s:2.351s:4.028s\
-	SocketServer:15:7.427s:0.017s:0.022s\
-	Bencode:62(244ppc):0.002s:0.001s:0.001s\
-	ReferencedString:251:0.028s:0.001s:0.003s\
-	Hash:47(52ppc):0.004s:0.001s:0.002s\
-	EnumSet:189(191ppc):0.007s:0.001s:0.002s\
-	Library:113:0.248s:0.052s:0.051s\
-	Exception:19:0.013s:0.001s:0.002s\
-	Thread:27:0.058s:0.001s:0.004s\
-	File:35:0.005s:0.001s:0.002s\
-	Sqlite3Plus:31:0.324s:0.002s:0.008s\
-	Mutex:15:0.033s:0.011s:0.006s\
-	AtomicInteger:12:0.421s:0.034s:0.079s\
-	DateTime:12:0.007s:0.001s:0.002s\
-	RWLock:18:7.427s:0.017s:0.022s\
-	ReferenceCounted:214(216gcc)(225ppcgcc)(200ppc):3.061s:4.185s:5.835s\
-	ArchiveFile:135(138ppc):0.002s:0.001s:001s\
-	CompactNumber:15(17ppc):0.005s:0.001s:0.002s\
-	"
-
-rm -f /tmp/*.archive
-rm -f /tmp/*.test_log
-
-for TEST in $TESTS
-do
-  BASENAME=`echo $TEST | cut -d: -f1`
-  WHITECOUNT=`echo $TEST | cut -d: -f2`
-  REALTIME=`echo $TEST | cut -d: -f3`
-  USERTIME=`echo $TEST | cut -d: -f4`
-  SYSTIME=`echo $TEST | cut -d: -f5`
-  $COMPILER -o /tmp/$BASENAME tests/$BASENAME"_test".cpp -I.. $GCC_WARNINGS $LIBRARIES
-  printf "$BASENAME: real < $REALTIME user < $USERTIME sys < $SYSTIME\n"
-  time /tmp/$BASENAME &> /tmp/$BASENAME.test_log
-  $COMPILER -o /tmp/$BASENAME tests/$BASENAME"_test".cpp -I.. -include Tracer.h $GCC_WARNINGS $LIBRARIES
-  echo
-  printf "expecting >= $WHITECOUNT\n"
-  /tmp/$BASENAME 2>&1 | tee -a /tmp/osTests.test_log >> /tmp/$BASENAME.test_log
-  cat /tmp/$BASENAME.test_log | grep -w $BASENAME\\.h | sort | uniq | wc -l
-  cat /tmp/$BASENAME.test_log | grep -i fail || true
-  echo
-  echo ---
-  echo
-done
-
-HEADERS=`ls *.h`
-for HEADER in $HEADERS
-do
-	COUNT=`cat /tmp/osTests.test_log | grep -w $HEADER | sort | uniq | wc -l`
-	echo $HEADER $COUNT
-done
-
-printf "expected Address.h 4\n"
-printf "expected AddressIPv4.h 10\n"
-printf "expected AddressIPv6.h 10\n"
-printf "expected ArchiveFile.h 135(138ppc)\n"
-printf "expected AtomicInteger.h 24(14ppc)\n"
-printf "expected Bencode.h 62(244ppc)\n"
-printf "expected Buffer.h 4\n"
-printf "expected BufferAddress.h 8\n"
-printf "expected BufferManaged.h 4\n"
-printf "expected BufferString.h 8\n"
-printf "expected CompactNumber.h 15(17ppc)\n"
-printf "expected DateTime.h 12\n"
-printf "expected EnumSet.h 189(191ppc)\n"
-printf "expected Exception.h 19\n"
-printf "expected File.h 72\n"
-printf "expected Hash.h 47(52ppc)\n"
-printf "expected Library.h 113\n"
-printf "expected Mutex.h 15\n"
-printf "expected POSIXErrno.h 9\n"
-printf "expected RWLock.h 18\n"
-printf "expected ReferenceCounted.h 214(219ppcgcc)(200ppc)\n"
-printf "expected ReferencedString.h 251\n"
-printf "expected Socket.h 19\n"
-printf "expected SocketGeneric.h 14\n"
-printf "expected SocketServer.h 15\n"
-printf "expected Sqlite3Plus.h 31\n"
-printf "expected Thread.h 30(28ppc)\n"
+bin/test
 
 mkdir -p documentation
 doxygen os.dox

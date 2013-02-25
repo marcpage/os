@@ -10,9 +10,6 @@
 #ifndef trace_bool
 	#define trace_bool(x) (x) ///< in case Tracer.h is not included
 #endif
-#ifndef trace_value
-	#define trace_value(x) (x) ///< in case Tracer.h is not included
-#endif
 
 namespace exec {
 
@@ -94,14 +91,14 @@ namespace exec {
 		@return	The number of references to the object
 	*/
 	inline int32_t ReferenceCounted::references() {trace_scope;
-		return trace_value(_references.value());
+		return _references.value();
 	}
 	/** Increments the reference count.
 		@return The number of references after we increment the count
 	*/
 	inline int32_t ReferenceCounted::retain() {trace_scope;
 		//printf("+%08x:%d\n", this, references());
-		return trace_value(_references.valueAfterIncrement());
+		return _references.valueAfterIncrement();
 	}
 	/** Decrements the reference count.
 		@todo For speed improvement, we don't have to decrement if references == 1,
@@ -109,7 +106,7 @@ namespace exec {
 	*/
 	inline void ReferenceCounted::release() {trace_scope;
 		//printf("-%08x:%d\n", this, references());
-		int32_t	refs= trace_value(_references.valueAfterDecrement());
+		int32_t	refs= _references.valueAfterDecrement();
 
 		if(refs <= 0) {
 			free();
