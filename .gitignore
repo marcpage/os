@@ -1,5 +1,6 @@
-# ignore documentation directory
+# ignore documentation and bin directory
 documentation
+bin
 
 # Mac specific files
 .DS_Store

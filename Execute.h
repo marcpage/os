@@ -29,7 +29,7 @@ namespace exec {
 				amount= ::fread(const_cast<char*>(&stdout.data()[offset]), 1, blocks, out);
 				if(static_cast<size_t>(amount) != blocks) {
 					stdout.erase(offset + amount);
-					AssertMessageException(ferror(out) == 0);
+					ErrnoCodeThrow(ferror(out), "stdout error");
 				}
 			}
 		} catch(const std::exception&) {trace_scope
