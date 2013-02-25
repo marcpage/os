@@ -7,6 +7,11 @@
 		fprintf(stderr, "FAIL(%s:%d): %s\n",__FILE__, __LINE__, #condition); \
 	}
 
+#ifdef __Tracer_h__
+	#define TestIterations	100
+#else
+	#define TestIterations	2000
+#endif
 class Adder : public exec::Thread {
 	public:
 		Adder(int direction, exec::AtomicInteger &value)
@@ -19,7 +24,7 @@ class Adder : public exec::Thread {
 			for(int set= 0; set < 50; ++set) {
 
 				fprintf(stdout, "Beginning at %d (%d)\n", _value.value(), _direction);
-				for(int repetition= 0; repetition < 100; ++repetition) {
+				for(int repetition= 0; repetition < TestIterations; ++repetition) {
 					fprintf(stdout, "\t Now at %d (%d)\n", _value.valueAfterIncrement(_direction), _direction);
 				}
 				fprintf(stdout, "\t Done at %d (%d)\n", _value.value(), _direction);

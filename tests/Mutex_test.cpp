@@ -7,6 +7,12 @@
 		fprintf(stderr, "FAIL(%s:%d): %s\n",__FILE__, __LINE__, #condition); \
 	}
 
+#ifdef __Tracer_h__
+	#define TestIterations	100
+#else
+	#define TestIterations	10000
+#endif
+
 class Adder : public exec::Thread {
 	public:
 		Adder(int direction, int &value, exec::Mutex &lock)
@@ -16,7 +22,7 @@ class Adder : public exec::Thread {
 		virtual ~Adder() {}
 	protected:
 		virtual void *run() {
-			for(int set= 0; set < 50; ++set) {
+			for(int set= 0; set < TestIterations; ++set) {
 				mutex_section(_lock);
 				const int	initial= *_value;
 

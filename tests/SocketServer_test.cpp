@@ -121,34 +121,40 @@ class Server : public exec::Thread {
 };
 
 int main(const int argc, const char * const argv[]) {
-	try	{
-		in_port_t			port= (argc == 2) ? atoi(argv[1]) : 8086;
-		Server				server(port);
-		net::AddressIPv4	local(port);
-		net::Socket			connection(local.family());
-		BufferManaged		readBuffer(4096);
-		std::string			writeString;
-		BufferString		writeBuffer(writeString);
-		size_t				amount;
+	int	iterations= 100000;
+#ifdef __Tracer_h__
+	iterations= 3;
+#endif
+	for(int i= 0; i < iterations; ++i) {
+		try	{
+			in_port_t			port= (argc == 2) ? atoi(argv[1]) : 8086;
+			Server				server(port);
+			net::AddressIPv4	local(port);
+			net::Socket			connection(local.family());
+			BufferManaged		readBuffer(4096);
+			std::string			writeString;
+			BufferString		writeBuffer(writeString);
+			size_t				amount;
 
-		printf("Connecting\n");
-		connection.connect(local);
-		writeString= "Hello";
-		printf("Writing %s\n", writeString.c_str());
-		amount= connection.write(writeBuffer);
-		if(amount != writeString.size()) {
-			printf("FAIL: Unable to write Hello\n");
+			printf("Connecting\n");
+			connection.connect(local);
+			writeString= "Hello";
+			printf("Writing %s\n", writeString.c_str());
+			amount= connection.write(writeBuffer);
+			if(amount != writeString.size()) {
+				printf("FAIL: Unable to write Hello\n");
+			}
+			printf("Reading\n");
+			amount= connection.read(readBuffer, amount);
+			if(amount != writeString.size()) {
+				printf("FAIL: Unable to read Hello\n");
+			}
+			printf("Closing\n");
+			connection.close();
+			server.shutdown();
+		} catch(const std::exception &exception) {
+			printf("FAILED: exception thrown on main thread, iteration %d: %s\n", i, exception.what());
 		}
-		printf("Reading\n");
-		amount= connection.read(readBuffer, amount);
-		if(amount != writeString.size()) {
-			printf("FAIL: Unable to read Hello\n");
-		}
-		printf("Closing\n");
-		connection.close();
-		server.shutdown();
-	} catch(const std::exception &exception) {
-		printf("FAILED: exception thrown on main thread: %s\n", exception.what());
 	}
 	return 0;
 }

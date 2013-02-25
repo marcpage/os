@@ -8,7 +8,7 @@ class Printer : public exec::Thread {
 		virtual ~Printer() {}
 	protected:
 		virtual void *run() {
-			for(int i=0; i < 100; ++i) {
+			for(int i=0; i < 100000; ++i) {
 				printf("%s: %d\n", _name, i);
 				sleep(0.00001 /* 10 microseconds */ );
 			}
