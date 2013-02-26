@@ -13,7 +13,6 @@
 
 mkdir -p bin
 clang++ tests/test.cpp -I.. -o bin/test -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings
-
 bin/test
 
 mkdir -p documentation

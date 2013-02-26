@@ -8,7 +8,7 @@ int main(const int /*argc*/,const char*const /*argv*/[]) {
 	for(size_t i= 1; i < 256; ++i) {
 		exec::execute("ls /", test, i);
 		if(test != result) {
-			printf("Failed on blockSize=%ld\n", i);
+			printf("FAILED on blockSize=%ld\n", i);
 		}
 	}
 	return 0;

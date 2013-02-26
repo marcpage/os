@@ -150,7 +150,7 @@ int main(int argc,const char * const argv[]) {
 			blocks[1]= file.allocate("Hello World");
 			testBlocks(file, sizeof(blocks)/sizeof(blocks[0])+1);
 
-			#define test(x) if(x) {printf("%s failed\n", #x);}
+			#define test(x) if(x) {printf("%s FAILED\n", #x);}
 			test(blocks[0] >= blocks[1]);
 			test(blocks[1] <= blocks[2]);
 			test(blocks[2] > blocks[3]);
