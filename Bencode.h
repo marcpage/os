@@ -133,6 +133,7 @@ namespace bencode {
 			virtual uint32_t componentCount() const=0;
 			virtual std::string &component(uint32_t index, std::string &buffer) const=0;
 			virtual Item::Ptr clone() const;
+			virtual std::string &display(std::string &buffer);
 			int compare(const Item &other) const;
 			class Assignment {
 				public:
@@ -164,6 +165,7 @@ namespace bencode {
 			virtual uint32_t componentCount() const;
 			virtual std::string &component(uint32_t index, std::string &buffer) const;
 			virtual Item::Ptr clone() const;
+			virtual std::string &display(std::string &buffer);
 		private:
 			std::string	_value;
 	};
@@ -180,6 +182,7 @@ namespace bencode {
 			virtual uint32_t componentCount() const;
 			virtual std::string &component(uint32_t index, std::string &buffer) const;
 			virtual Item::Ptr clone() const;
+			virtual std::string &display(std::string &buffer);
 		private:
 			intmax_t	_value;
 	};
@@ -206,6 +209,7 @@ namespace bencode {
 			virtual uint32_t componentCount() const;
 			virtual std::string &component(uint32_t index, std::string &buffer) const;
 			virtual Item::Ptr clone() const;
+			virtual std::string &display(std::string &buffer);
 		private:
 			typedef std::vector<Item::Ptr>	_Items;
 			_Items	_items;
@@ -257,6 +261,7 @@ namespace bencode {
 			virtual uint32_t componentCount() const;
 			virtual std::string &component(uint32_t index, std::string &buffer) const;
 			virtual Item::Ptr clone() const;
+			virtual std::string &display(std::string &buffer);
 		private:
 			typedef std::pair<Item::Ptr,Item::Ptr>	_Element;
 			typedef std::vector<_Element>			_Items;
@@ -367,6 +372,7 @@ namespace bencode {
 	inline bool Item::operator==(const Item &other) const {trace_scope return compare(other) == 0;}
 	inline bool Item::operator!=(const Item &other) const {trace_scope return compare(other) != 0;}
 	inline Item::Ptr Item::clone() const {trace_scope return NULL;}
+	inline std::string &Item::display(std::string &buffer) {buffer.clear(); return buffer;}
 	inline int Item::compare(const Item &other) const {trace_scope
 		const uint32_t	c1= componentCount();
 		const uint32_t	c2= other.componentCount();
@@ -449,6 +455,7 @@ namespace bencode {
 	inline std::string &String::value() {trace_scope return _value;}
 	inline const std::string &String::value() const {trace_scope return _value;}
 	inline void String::write(Output &out) {trace_scope
+		printf("_value.size()==%ld\n", _value.size();
 		out.write(itoa(_value.size()));out.write(':');out.write(_value);
 	}
 	inline uint32_t String::componentCount() const {trace_scope
@@ -461,6 +468,7 @@ namespace bencode {
 		return buffer;
 	}
 	inline Item::Ptr String::clone() const {trace_scope return new String(_value);}
+	inline std::string &String::display(std::string &buffer) {buffer= '"'+_value+'"'; return buffer;}
 
 	inline Integer::Integer(intmax_t intValue):_value(intValue) {trace_scope}
 	inline Integer::Integer(const std::string &strValue)
@@ -481,6 +489,7 @@ namespace bencode {
 		return buffer;
 	}
 	inline Item::Ptr Integer::clone() const {trace_scope return new Integer(_value);}
+	inline std::string &Integer::display(std::string &buffer) {buffer.clear(); itoa(_value, buffer); return buffer;}
 
 	inline List::List():_items() {trace_scope}
 	inline List::~List() {trace_scope
@@ -573,6 +582,22 @@ namespace bencode {
 			result->push(NULL == *item ? NULL : (*item)->clone());
 		}
 		return result;
+	}
+	inline std::string &List::display(std::string &buffer) {
+		std::string	value;
+		std::string	separator= "";
+
+		buffer= "[";
+		for(_Items::const_iterator item= _items.begin(); trace_bool(item != _items.end()); ++item) {
+			if(NULL == *item) {
+				buffer.append(separator+"[NULL]");
+			} else {
+				buffer.append(separator+(*item)->display(value));
+			}
+			separator= ", ";
+		}
+		buffer.append("]");
+		return buffer;
 	}
 
 	inline Dictionary::key_iterator::key_iterator(const key_iterator &other)
@@ -764,6 +789,28 @@ namespace bencode {
 				= NULL == item->second ? NULL : item->second->clone();
 		}
 		return result;
+	}
+	inline std::string &Dictionary::display(std::string &buffer) {
+		std::string	value;
+		std::string	separator= "";
+
+		buffer= "{";
+		for(_Items::const_iterator item= _items.begin(); trace_bool(item != _items.end()); ++item) {
+			if(NULL == item->first) {
+				buffer.append(separator+"[NULL]");
+			} else {
+				buffer.append(separator+(item->first)->display(value));
+			}
+			buffer+=':';
+			if(NULL == item->second) {
+				buffer.append(separator+"[NULL]");
+			} else {
+				buffer.append((item->second)->display(value));
+			}
+			separator= ", ";
+		}
+		buffer.append("}");
+		return buffer;
 	}
 	/**
 		@todo Improve speed with binary search

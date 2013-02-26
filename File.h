@@ -27,6 +27,10 @@ inline off_t printResult(off_t t) {printf("\t RESULT: %d,%d\n", t); return t;}
 
 namespace io {
 
+	/**
+		@todo Document
+		@todo add readline()
+	*/
 	class File {
 		public:
 			enum Method		{Binary, Text};
