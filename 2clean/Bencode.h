@@ -317,7 +317,7 @@ namespace bencode {
 
 	inline ReferencedStringOutput::ReferencedStringOutput(std::string &buffer):_buffer(buffer) {trace_scope}
 	inline ReferencedStringOutput::~ReferencedStringOutput() {trace_scope}
-	inline void ReferencedStringOutput::write(const std::string &data) {trace_scope _buffer.append(data);}
+	inline void ReferencedStringOutput::write(const std::string &data) {trace_scope printf("data.size()=%ld _buffer.size()=%ld &data=%p &_buffer=%p this=%p\n", data.size(),_buffer.size(), &data, &_buffer, this); printf("data='%s'\n", data.c_str());printf("_buffer='%s'\n", _buffer.c_str());_buffer.append(data);}
 	inline void ReferencedStringOutput::write(char byte) {trace_scope _buffer.append(1,byte);}
 
 	inline Item::Assignment::Assignment(Item::Ptr &item):_item(item) {trace_scope}
@@ -455,7 +455,7 @@ namespace bencode {
 	inline std::string &String::value() {trace_scope return _value;}
 	inline const std::string &String::value() const {trace_scope return _value;}
 	inline void String::write(Output &out) {trace_scope
-		printf("_value.size()==%ld\n", _value.size();
+		printf("_value.size()==%ld\n", _value.size());
 		out.write(itoa(_value.size()));out.write(':');out.write(_value);
 	}
 	inline uint32_t String::componentCount() const {trace_scope
@@ -584,7 +584,7 @@ namespace bencode {
 		return result;
 	}
 	inline std::string &List::display(std::string &buffer) {
-		std::string	value;
+		std::string	subitemValue;
 		std::string	separator= "";
 
 		buffer= "[";
@@ -592,7 +592,7 @@ namespace bencode {
 			if(NULL == *item) {
 				buffer.append(separator+"[NULL]");
 			} else {
-				buffer.append(separator+(*item)->display(value));
+				buffer.append(separator+(*item)->display(subitemValue));
 			}
 			separator= ", ";
 		}

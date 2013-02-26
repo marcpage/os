@@ -1,6 +1,5 @@
-#include "os/Bencode.h"
-
 #include <stdio.h>
+#include "os/Bencode.h"
 
 #define dotest(condition) \
 	if(!(condition)) { \
@@ -78,39 +77,73 @@ int main(const int /*argc*/, const char * const /*argv*/[]) {
 	bencode::Item		*decoded;
 
 	dict["test"]= "test";
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dict["answer"]= 42;
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dict["dict"]= new bencode::Dictionary();
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dict["dict"]->as<bencode::Dictionary>()["marc"]= "page";
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dict["dict"]->as<bencode::Dictionary>()["a"]= "z";
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dict["list"]= new bencode::List();
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dict["list"]->as<bencode::List>().push("item5");
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dict["list"]->as<bencode::List>().push("item6");
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dict["list"]->as<bencode::List>().push(7);
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dict["list"]->as<bencode::List>().insert("item4");
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dict["list"]->as<bencode::List>().insert(1);
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dict["list"]->as<bencode::List>().insert("item3", 1);
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dict["list"]->as<bencode::List>().insert(2, 1);
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dict["remove"]= "gone";
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dotest(dict.has_key("test"));
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dotest(dict.has_key("answer"));
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dotest(dict.has_key("dict"));
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dotest(dict.has_key("list"));
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dotest(dict.has_key("remove"));
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dotest(dict["test"]->type() == bencode::TypeString);
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dotest(dict["answer"]->type() == bencode::TypeInteger);
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dotest(dict["dict"]->type() == bencode::TypeDictionary);
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dotest(dict["list"]->type() == bencode::TypeList);
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dotest(dict["remove"]->type() == bencode::TypeString);
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dotest(*(dict.keys()+0) == bencode::String("answer"));
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dotest(*(dict.keys()+1) == bencode::String("dict"));
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dotest(*(dict.keys()+2) == bencode::String("list"));
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dotest(*(dict.keys()+3) == bencode::String("remove"));
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dict.remove("remove");
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dotest(!dict.has_key("remove"));
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dotest(*(dict.keys()+0) == bencode::String("answer"));
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dotest(*(dict.keys()+1) == bencode::String("dict"));
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 	dotest(*(dict.keys()+2) == bencode::String("list"));
+	printf("%s %d\n", dict.display(buffer).c_str(), __LINE__);
 
+	buffer.clear();
 	bencode::ReferencedStringOutput	out(buffer);
 
 	dict.write(out);

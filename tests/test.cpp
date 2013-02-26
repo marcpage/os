@@ -15,7 +15,7 @@ typedef std::map<std::string,std::string>	Dictionary;
 typedef std::map<std::string,Times>			CompilerTimes;
 typedef std::map<std::string,CompilerTimes>	TestCompilerTimes;
 
-const double		gTestTimeAllowancePercent= 2;
+const double		gTestTimeAllowancePercent= 5;
 const double		gTestMinimumTimeInSeconds= 1;
 const char * const	gCompilerFlags= "-I.. -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -lsqlite3 -framework Carbon";
 
@@ -199,7 +199,6 @@ int main(int argc, const char * const argv[]) {
 		{"AddressIPv6.h",		10},
 		{"ArchiveFile.h",		146},
 		{"AtomicInteger.h",		16},
-		{"Bencode.h",			258},
 		{"Buffer.h",			4},
 		{"BufferAddress.h",		8},
 		{"BufferManaged.h",		4},
@@ -230,7 +229,6 @@ int main(int argc, const char * const argv[]) {
 		{"AddressIPv6.h",		10},
 		{"ArchiveFile.h",		138},
 		{"AtomicInteger.h",		14},
-		{"Bencode.h",			255},
 		{"Buffer.h",			4},
 		{"BufferAddress.h",		8},
 		{"BufferManaged.h",		4},
@@ -260,19 +258,18 @@ int main(int argc, const char * const argv[]) {
 		const char * const	compilerresults;
 	};
 	TestExpectedResults testsx86[]= {
-		{"Bencode",				"clang++:258:0.021:0.893;"	"g++:244:0.002:0.000;"	"llvm-g++:244:0.002:0.000"},
 		{"SocketServer",		"clang++:15:7.427:1.250;"	"g++:15:7.427:2.093;"	"llvm-g++:15:7.427:4.685"},
 		{"ArchiveFile",			"clang++:138:0.047:1.485;"	"g++:138:0.032:2.083;"	"llvm-g++:138:0.024:1.872"},
 		{"AtomicInteger",		"clang++:12:2.449:8.042;"	"g++:12:2.450:7.359;"	"llvm-g++:12:3.134:7.683"},
-		{"CompactNumber",		"clang++:17:1.253:1.628;"	"g++:17:1.283:1.744;"	"llvm-g++:17:1.270:1.736"},
-		{"DateTime",			"clang++:12:2.725:3.664;"	"g++:12:1.225:2.572;"	"llvm-g++:12:1.433:2.737"},
+		{"CompactNumber",		"clang++:17:1.253:2.017;"	"g++:17:1.283:1.744;"	"llvm-g++:17:1.270:1.794"},
+		{"DateTime",			"clang++:12:2.725:3.664;"	"g++:12:1.225:2.598;"	"llvm-g++:12:1.433:2.737"},
 		{"EnumSet",				"clang++:191:1.397:2.514;"	"g++:191:1.091:2.043;"	"llvm-g++:191:1.152:2.074"},
-		{"Exception",			"clang++:19:2.930:3.558;"	"g++:19:2.833:3.600;"	"llvm-g++:19:2.849:3.622"},
+		{"Exception",			"clang++:19:2.930:3.558;"	"g++:19:2.833:4.191;"	"llvm-g++:19:2.849:3.622"},
 		{"Execute",				"clang++:7:10.949:3.794;"	"g++:7:10.949:3.896;"	"llvm-g++:7:10.949:4.332"},
 		{"File",				"clang++:35:11.083:12.009;"	"g++:35:8.179:9.496;"	"llvm-g++:35:7.648:8.975"},
 		{"Hash",				"clang++:52:1.365:2.482;"	"g++:52:1.364:2.428;"	"llvm-g++:52:1.347:2.140"},
-		{"Library",				"clang++:113:5.606:7.572;"	"g++:113:6.060:8.181;"	"llvm-g++:113:5.551:7.714"},
-		{"Mutex",				"clang++:15:3.603:4.372;"	"g++:15:3.302:4.260;"	"llvm-g++:15:3.209:4.094"},
+		{"Library",				"clang++:113:6.165:8.073;"	"g++:113:6.060:8.181;"	"llvm-g++:113:5.551:7.714"},
+		{"Mutex",				"clang++:15:3.603:4.372;"	"g++:15:3.302:4.260;"	"llvm-g++:15:3.209:4.178"},
 		{"RWLock",				"clang++:18:10.440:21.146;"	"g++:18:10.421:21.668;"	"llvm-g++:18:10.437:21.151"},
 		{"ReferenceCounted",	"clang++:45:3.061:7.780;"	"g++:45:3.061:7.969;"	"llvm-g++:45:3.061:8.030"},
 		{"ReferencedString",	"clang++:251:1.813:2.767;"	"g++:251:1.625:2.498;"	"llvm-g++:251:1.635:2.506"},
@@ -282,7 +279,6 @@ int main(int argc, const char * const argv[]) {
 	TestExpectedResults testsPPC[]= {
 		{"ArchiveFile",			"clang++:138:1.134:23.888;"	"g++:138:0.352:25.298;"	"llvm-g++:138:0.024:1.872"},
 		{"AtomicInteger",		"clang++:12:14.388:59.800;"	"g++:12:14.496:39.122;"	"llvm-g++:12:0.421:1.528"},
-		{"Bencode",				"clang++:258:0.021:0.878;"	"g++:244:0.002:0.000;"	"llvm-g++:244:0.002:0.000"},
 		{"CompactNumber",		"clang++:17:40.032:59.677;"	"g++:17:43.080:57.276;"	"llvm-g++:17:0.022:0.575"},
 		{"DateTime",			"clang++:12:32.487:71.275;"	"g++:12:38.545:78.598;"	"llvm-g++:12:0.024:1.931"},
 		{"EnumSet",				"clang++:191:32.206:59.828;""g++:191:23.410:44.149;""llvm-g++:191:0.021:0.987"},
