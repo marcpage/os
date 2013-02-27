@@ -13,7 +13,7 @@ static char *bitPattern(uint64_t value, char *buffer) {
 }
 
 int main(const int /*argc*/, const char * const /*argv*/[]) {
-	int	iterations= 200000;
+	int	iterations= 250000;
 #ifdef __Tracer_h__
 	iterations= 1;
 #endif

@@ -28,7 +28,7 @@ enum Bits {
 typedef EnumSet<Bits, Bit8> SafeBits;
 
 int main(int,const char*const[]) {
-	int	iterations= 100000;
+	int	iterations= 150000;
 #ifdef __Tracer_h__
 	iterations= 1;
 #endif
