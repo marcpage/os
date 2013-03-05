@@ -9,7 +9,7 @@
 	}
 
 int main(const int /*argc*/, const char * const /*argv*/[]) {
-	int	iterations= 100000;
+	int	iterations= 150000;
 #ifdef __Tracer_h__
 	iterations= 3;
 #endif

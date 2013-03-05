@@ -2,18 +2,20 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <ctype.h>
 #include "os/Execute.h"
 #include "os/DateTime.h"
+#include "os/File.h"
 
 struct Times {
 	double		perfCompile, perfRun, traceCompile, traceRun;
 	uint32_t	testedLines, warnings;
 };
-typedef std::string							String;
-typedef std::vector<String>					StringList;
-typedef std::map<std::string,std::string>	Dictionary;
-typedef std::map<std::string,Times>			CompilerTimes;
-typedef std::map<std::string,CompilerTimes>	TestCompilerTimes;
+typedef std::string								String;
+typedef std::vector<String>						StringList;
+typedef std::map<std::string,std::string>		Dictionary;
+typedef std::map<std::string,Times>				CompilerTimes;
+typedef std::map<std::string,CompilerTimes>		TestCompilerTimes;
 
 const double		gTestTimeAllowancePercent= 5;
 const double		gTestMinimumTimeInSeconds= 1;
@@ -25,8 +27,18 @@ bool				gDebugging= false;
 bool				gVerbose= false;
 
 String &stripEOL(String &s) {
-	while(s[s.size()-1] == '\n') {
+	while( (s.size() > 0) && (s[s.size()-1] == '\n') ) {
 		s.erase(s.size()-1);
+	}
+	return s;
+}
+
+String &strip(String &s) {
+	while( (s.size() > 0) && isspace(s[0])) {
+		s.erase(0, 1);
+	}
+	while( (s.size() > 0) && isspace(s[s.size() - 1])) {
+		s.erase(s.size() - 1);
 	}
 	return s;
 }
@@ -77,6 +89,7 @@ void runTest(const String &name, const String &compiler, uint32_t testedLines, d
 	double			compilePerfTime, compileCoverageTime, runPerfTime, runCoverageTime, totalTime;
 	uint32_t		coverage;
 	uint32_t		warnings, errors, failures;
+	bool			displayNewLine= false;
 
 	if(gCompilerLocations[compiler].size() == 0) {
 		exec::execute("which "+compiler, results);
@@ -130,15 +143,25 @@ void runTest(const String &name, const String &compiler, uint32_t testedLines, d
 		runCoverageTime= runNoResultsExpected(command, "run trace");
 
 		coverage= runIntegerExpected("cat bin/logs/"+runLogName+" | grep "+name+"\\\\.h | sort | uniq | wc -l");
-		if(gVerbose || (coverage != testedLines) ) {
+		if( (coverage != testedLines) ) {
 			printf("\tTested Lines: %d Expected %d\n", coverage, testedLines);
+			displayNewLine= true;
 		}
-		if(gVerbose || (runPerfTime > durationInSeconds * (1 + gTestTimeAllowancePercent/100) ) ) {
-			printf("\tTest took %0.3fs seconds, expected %0.3fs seconds\n", runPerfTime, durationInSeconds);
+		if( (runPerfTime > durationInSeconds * (1 + gTestTimeAllowancePercent/100) ) ) {
+			printf("\tTest took %0.3fs seconds, expected %0.3fs seconds\n", runPerfTime+0.000999, durationInSeconds);
+			displayNewLine= true;
 		}
 		totalTime= compilePerfTime + compileCoverageTime + runPerfTime + runCoverageTime;
-		if(gVerbose || (totalTime > totalTimeInSeconds) ) {
-			printf("\tBuild/Test took %0.3fs seconds, expected %0.3fs seconds\n", totalTime, totalTimeInSeconds);
+		if( (totalTime > totalTimeInSeconds) ) {
+			printf("\tBuild/Test took %0.3fs seconds, expected %0.3fs seconds\n", totalTime+0.000999, totalTimeInSeconds);
+			displayNewLine= true;
+		}
+		if(displayNewLine) {
+			printf("\t%s:%d:%0.3f:%0.3f\n",
+				compiler.c_str(), coverage,
+				runPerfTime > durationInSeconds ? runPerfTime+0.000999 : durationInSeconds,
+				totalTime > totalTimeInSeconds ? totalTime+0.000999 : totalTimeInSeconds
+			);
 		}
 		if(gVerbose) {
 			printf("Coverage %d (expected %d) Compile: %0.3fs Run: %0.3fs (expected %0.3fs) Trace Compile: %0.3fs Trace Run: %0.3fs\n",
@@ -175,6 +198,7 @@ void runTest(const String &name, const String &compilerResults) {
 	}
 }
 
+
 bool isIntel() {
 	std::string	results;
 
@@ -184,147 +208,78 @@ bool isIntel() {
 	}
 	return false;
 }
+
+void loadExpectations(Dictionary &headerCoverage, Dictionary &testMetrics, StringList &testOrder) {
+	const char * const	processor= isIntel() ? "i386" : "ppc";
+	io::File			expectations(std::string("tests/test_")+processor+".txt",
+										io::File::Text, io::File::ReadOnly);
+	std::string			line;
+	Dictionary			*current= NULL;
+	bool				eof;
+
+	do	{
+		expectations.readline(line);
+		eof= (line.size() == 0);
+		if(strip(line).size() == 0) {
+			// ignore blank lines
+		} else if(line[0] == '-') {
+			if(line == "-header") {
+				current= &headerCoverage;
+			} else if(line == "-test") {
+				current= &testMetrics;
+			} else {
+				current= NULL;
+			}
+		} else if(NULL != current) {
+			StringList	parts;
+			String		key, value;
+			String		separator= "";
+
+			for(std::string::size_type c= 0; c < line.size(); ++c) {
+				if(line[c] == ' ') {
+					line[c]= '\t';
+				}
+			}
+			split(line, '\t', parts);
+			key= parts[0];
+			if(current == &testMetrics) {
+				testOrder.push_back(key);
+			}
+			parts.erase(parts.begin());
+			while(parts.size() > 0) {
+				if(parts[0].size() > 0) {
+					value+= separator + parts[0];
+					separator= ';';
+				}
+				parts.erase(parts.begin());
+			}
+			(*current)[key]= value;
+		}
+	} while(!eof);
+}
+
 /**
 	@todo Evaluate performance of compile and run of various compilers
 	@todo Load tables from text file instead of compiled in
 */
 int main(int argc, const char * const argv[]) {
-	struct HeaderCoverageResults {
-		const char * const	header;
-		uint32_t			coverage;
-	};
-	HeaderCoverageResults	expectedCoveragex86[]= {
-		{"Address.h",			4},
-		{"AddressIPv4.h",		10},
-		{"AddressIPv6.h",		10},
-		{"ArchiveFile.h",		146},
-		{"AtomicInteger.h",		16},
-		{"Buffer.h",			4},
-		{"BufferAddress.h",		8},
-		{"BufferManaged.h",		4},
-		{"BufferString.h",		8},
-		{"CompactNumber.h",		17},
-		{"DateTime.h",			12},
-		{"EnumSet.h",			191},
-		{"Exception.h",			19},
-		{"Execute.h",			7},
-		{"File.h",				74},
-		{"Hash.h",				52},
-		{"Library.h",			113},
-		{"Mutex.h",				15},
-		{"POSIXErrno.h",		10},
-		{"RWLock.h",			18},
-		{"ReferenceCounted.h",	45},
-		{"ReferencedString.h",	264},
-		{"Socket.h",			19},
-		{"SocketGeneric.h",		14},
-		{"SocketServer.h",		14},
-		{"Sqlite3Plus.h",		31},
-		{"Thread.h",			30},
-		{"Tracer.h",			0},
-	};
-	HeaderCoverageResults	expectedCoveragePPC[]= {
-		{"Address.h",			4},
-		{"AddressIPv4.h",		10},
-		{"AddressIPv6.h",		10},
-		{"ArchiveFile.h",		138},
-		{"AtomicInteger.h",		14},
-		{"Buffer.h",			4},
-		{"BufferAddress.h",		8},
-		{"BufferManaged.h",		4},
-		{"BufferString.h",		8},
-		{"CompactNumber.h",		17},
-		{"DateTime.h",			12},
-		{"EnumSet.h",			191},
-		{"Exception.h",			19},
-		{"Execute.h",			7},
-		{"File.h",				74},
-		{"Hash.h",				52},
-		{"Library.h",			113},
-		{"Mutex.h",				15},
-		{"POSIXErrno.h",		10},
-		{"RWLock.h",			18},
-		{"ReferenceCounted.h",	45},
-		{"ReferencedString.h",	251},
-		{"Socket.h",			19},
-		{"SocketGeneric.h",		14},
-		{"SocketServer.h",		14},
-		{"Sqlite3Plus.h",		31},
-		{"Thread.h",			30},
-		{"Tracer.h",			0},
-	};
-	struct TestExpectedResults {
-		const char * const	name;
-		const char * const	compilerresults;
-	};
-	TestExpectedResults testsx86[]= {
-		{"SocketServer",		"clang++:15:7.427:1.250;"	"g++:15:7.427:2.093;"	"llvm-g++:15:7.427:4.685"},
-		{"ArchiveFile",			"clang++:138:0.047:1.485;"	"g++:138:0.032:2.083;"	"llvm-g++:138:0.024:1.872"},
-		{"AtomicInteger",		"clang++:12:2.449:8.042;"	"g++:12:2.450:7.359;"	"llvm-g++:12:3.134:7.683"},
-		{"CompactNumber",		"clang++:17:1.253:2.017;"	"g++:17:1.444:1.998;"	"llvm-g++:17:1.394:1.820"},
-		{"DateTime",			"clang++:12:3.278:4.327;"	"g++:12:1.698:3.008;"	"llvm-g++:12:1.787:3.034"},
-		{"EnumSet",				"clang++:191:1.655:2.644;"	"g++:191:1.522:2.704;"	"llvm-g++:191:1.372:2.444"},
-		{"Exception",			"clang++:19:2.930:3.558;"	"g++:19:2.833:4.191;"	"llvm-g++:19:2.849:3.622"},
-		{"Execute",				"clang++:7:10.949:3.794;"	"g++:7:10.949:3.896;"	"llvm-g++:7:10.949:4.332"},
-		{"File",				"clang++:35:173.867:174.694;""g++:35:151.654:155.070;""llvm-g++:35:246.525:247.705"},
-		{"Hash",				"clang++:52:1.365:2.482;"	"g++:52:1.364:2.428;"	"llvm-g++:52:1.347:2.140"},
-		{"Library",				"clang++:113:6.759:13.121;"	"g++:113:6.060:8.181;"	"llvm-g++:113:5.551:7.714"},
-		{"Mutex",				"clang++:15:4.317:4.979;"	"g++:15:3.566:4.583;"	"llvm-g++:15:3.209:4.178"},
-		{"RWLock",				"clang++:18:10.440:21.146;"	"g++:18:10.421:21.668;"	"llvm-g++:18:10.437:21.151"},
-		{"ReferenceCounted",	"clang++:45:3.061:7.780;"	"g++:45:3.061:7.969;"	"llvm-g++:45:3.061:8.030"},
-		{"ReferencedString",	"clang++:251:1.813:2.767;"	"g++:251:1.625:2.498;"	"llvm-g++:251:1.635:2.506"},
-		{"Sqlite3Plus",			"clang++:31:0.324:1.324;"	"g++:31:0.324:2.474;"	"llvm-g++:31:0.324:1.925"},
-		{"Thread",				"clang++:27:1.649:5.295;"	"g++:27:1.669:5.469;"	"llvm-g++:27:1.823:5.331"},
-	};
-	TestExpectedResults testsPPC[]= {
-		{"ArchiveFile",			"clang++:138:1.134:23.888;"	"g++:138:0.352:25.298;"	"llvm-g++:138:0.024:1.872"},
-		{"AtomicInteger",		"clang++:12:14.388:59.800;"	"g++:12:14.496:39.122;"	"llvm-g++:12:0.421:1.528"},
-		{"CompactNumber",		"clang++:17:40.032:59.677;"	"g++:17:43.080:57.276;"	"llvm-g++:17:0.022:0.575"},
-		{"DateTime",			"clang++:12:32.487:71.275;"	"g++:12:38.545:78.598;"	"llvm-g++:12:0.024:1.931"},
-		{"EnumSet",				"clang++:191:32.206:59.828;""g++:191:23.410:44.149;""llvm-g++:191:0.021:0.987"},
-		{"Exception",			"clang++:19:104.078:123.402;g++:19:94.703:114.685;"	"llvm-g++:19:0.019:0.802"},
-		{"Execute",				"clang++:7:10.949:55.717;"	"g++:7:10.949:29.929;"	"llvm-g++:7:10.949:4.332"},
-		{"File",				"clang++:35:4.214:39.869;"	"g++:35:16.517:58.532;"	"llvm-g++:35:0.021:1.386"},
-		{"Hash",				"clang++:52:22.415:50.014;"	"g++:52:17.206:50.014;"	"llvm-g++:52:0.020:0.826"},
-		{"Library",				"clang++:113:56.031:89.068;""g++:113:51.360:89.068;""llvm-g++:113:0.248:2.216"},
-		{"Mutex",				"clang++:15:33.332:49.005;"	"g++:15:43.793:66.504;"	"llvm-g++:15:0.037:0.892"},
-		{"RWLock",				"clang++:18:10.440:28.759;"	"g++:18:10.421:22.759;"	"llvm-g++:18:10.437:20.592"},
-		{"ReferenceCounted",	"clang++:45:35.111:72.466;"	"g++:45:34.677:77.064;"	"llvm-g++:45:3.061:2.949"},
-		{"ReferencedString",	"clang++:251:11.681:33.729;""g++:251:11.444:23.692;""llvm-g++:251:0.028:0.905"},
-		{"SocketServer",		"clang++:15:7.427:1.250;"	"g++:15:7.427:1.712;"	"llvm-g++:15:7.427:1.719"},
-		{"Sqlite3Plus",			"clang++:31:0.356:21.786;"	"g++:31:0.324:20.688;"	"llvm-g++:31:0.324:1.925"},
-		{"Thread",				"clang++:27:5.439:36.546;"	"g++:27:17.898:173.261;"	"llvm-g++:27:0.058:0.798"},
-	};
-	HeaderCoverageResults	*expectedCoverage= isIntel() ? &expectedCoveragex86[0] : &expectedCoveragePPC[0];
-	uint32_t				expectedCoverageSize= isIntel()	? sizeof(expectedCoveragex86)/sizeof(expectedCoveragex86[0])
-														: sizeof(expectedCoveragePPC)/sizeof(expectedCoveragePPC[0]);
-	TestExpectedResults		*useResults= isIntel() ? &testsx86[0] : &testsPPC[0];
-	uint32_t				useResultsSize= isIntel()	? sizeof(testsx86)/sizeof(testsx86[0])
-														: sizeof(testsPPC)/sizeof(testsPPC[0]);
 	StringList				testsToRun;
+	Dictionary				headerCoverage, testMetrics;
 
-	for(unsigned int test= 0; test < useResultsSize; ++test) {
-		testsToRun.push_back(useResults[test].name);
-	}
+	loadExpectations(headerCoverage, testMetrics, testsToRun);
 	for(int arg= 1; arg < argc; ++arg) {
 		if(std::string("debug") == argv[arg]) {
 			gDebugging= true;
 		} else if(std::string("list") == argv[arg]) {
 			testsToRun.clear();
-			for(unsigned int test= 0; test < useResultsSize; ++test) {
-				printf("%s\n", useResults[test].name);
+			for(StringList::iterator test= testsToRun.begin(); test != testsToRun.end(); ++test) {
+				printf("%s\n", test->c_str());
 			}
 		} else if(std::string("verbose") == argv[arg]) {
 			gVerbose= true;
 		} else {
-			bool	found= false;
+			bool	found= testMetrics.count(argv[arg]) > 0;
 
-			for(unsigned int test= 0; test < useResultsSize; ++test) {
-				if(std::string(argv[arg]) == useResults[test].name) {
-					found= true;
-					break;
-				}
-			}
 			if(found) {
 				if(testsToRun.size() > static_cast<unsigned int>(arg)) {
 					testsToRun.clear();
@@ -348,11 +303,7 @@ int main(int argc, const char * const argv[]) {
 			printf("WARNING: rm '%s'\n", results.c_str());
 		}
 		for(StringList::iterator test= testsToRun.begin(); test != testsToRun.end(); ++test) {
-			for(unsigned int testIndex= 0; testIndex < useResultsSize; ++testIndex) {
-				if(useResults[testIndex].name == *test) {
-					runTest(useResults[testIndex].name, useResults[testIndex].compilerresults);
-				}
-			}
+			runTest(*test, testMetrics[*test]);
 		}
 		if(testsToRun.size() > 0) {
 			printf("Examining overall coverage ...\n");
@@ -361,19 +312,15 @@ int main(int argc, const char * const argv[]) {
 			runNoResultsExpected("cat bin/logs/*_trace_run.log | grep /os/ | sort | uniq > bin/logs/all_trace.log", "Combining coverage");
 			for(StringList::iterator header= headers.begin(); header != headers.end(); ++header) {
 				uint32_t	coverage;
-				bool		found= false;
+				bool		found= headerCoverage.count(*header) > 0;
+				int			value= found ? atoi(headerCoverage[*header].c_str()) : 0;
 
 				coverage= runIntegerExpected("cat bin/logs/all_trace.log | grep /os/"+*header+": | wc -l");
-				for(unsigned int headerIndex= 0; headerIndex < expectedCoverageSize; ++headerIndex) {
-					if(expectedCoverage[headerIndex].header == *header) {
-						found= true;
-						if(expectedCoverage[headerIndex].coverage != coverage) {
-							printf("%20s\tCoverage: %4d Expected: %4d\n", header->c_str(), coverage, expectedCoverage[headerIndex].coverage);
-						}
-						break;
+				if(found) {
+					if(value != coverage) {
+						printf("%20s\tCoverage: %4d Expected: %4d\n", header->c_str(), coverage, value);
 					}
-				}
-				if(!found) {
+				} else {
 					printf("WARNING: No data for header %s with coverage %d\n", header->c_str(), coverage);
 				}
 			}

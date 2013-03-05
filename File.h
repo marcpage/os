@@ -29,7 +29,6 @@ namespace io {
 
 	/**
 		@todo Document
-		@todo add readline()
 	*/
 	class File {
 		public:
@@ -52,6 +51,7 @@ namespace io {
 			void write(const std::string &buffer, off_t offset= 0, Relative relative= FromHere);
 			template<class Int> Int read(Endian endian, off_t offset= 0, Relative relative= FromHere) const;
 			template<class Int> void write(Int number, Endian endian, off_t offset= 0, Relative relative= FromHere);
+			std::string &readline(std::string &buffer, off_t offset= 0, Relative relative= FromHere, size_t bufferSize= 4096) const;
 		private:
 			FILE	*_file;
 			bool	_readOnly;
@@ -225,6 +225,48 @@ namespace io {
 			}
 		}
 		write(buffer, sizeof(buffer), offset, relative);
+	}
+	/**
+		@todo improve performance by resizing buffer and using read(void*) to read directly into appending buffer
+	*/
+	inline std::string &File::readline(std::string &buffer, off_t offset, Relative relative, size_t bufferSize) const {
+		std::string				partial;
+		std::string::size_type	lf, cr, eol;
+		off_t					left;
+		bool					foundCR= false, foundLF= false;
+
+		buffer.clear();
+		_goto(offset, relative);
+		left= size() - location();
+		while( !foundCR && !foundLF && (left > 0) ) {
+			bufferSize= bufferSize > static_cast<size_t>(left) ? left : bufferSize;
+			read(partial, bufferSize, 0, FromHere);
+			left-= partial.size();
+			cr= partial.find('\r');
+			foundCR= (cr != std::string::npos);
+			if(foundCR && (cr == partial.size() - 1) && (left > 0) ) {
+				char	character;
+
+				read(&character, 1, 0, FromHere);
+				partial.append(1, character);
+			}
+			lf= partial.find('\n');
+			foundLF= (lf != std::string::npos);
+			eol= std::string::npos;
+			if(foundLF && foundCR) {
+				eol= ( (cr + 1 == lf) || (lf < cr) ) ? lf : cr;
+			} else if(foundLF || foundCR) {
+				eol= foundLF ? lf : cr;
+			}
+			if(eol != std::string::npos) {
+				const off_t	rewind= (partial.size() - eol - 1);
+
+				_goto(-1 * rewind, FromHere);
+				partial.erase(eol + 1);
+			}
+			buffer.append(partial);
+		}
+		return buffer;
 	}
 	inline int File::_whence(Relative relative) {trace_scope
 		if(FromHere == relative) {

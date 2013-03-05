@@ -11,7 +11,7 @@ class Test : public exec::Thread {
 		~Test() {}
 	protected:
 		virtual void *run() {
-			for(int i=0; i < 100; ++i) {
+			for(int i=0; i < 15; ++i) {
 				exec::RWLock::Locker	locker(_lock, _rw);
 
 				printf("> %s period %d\n", exec::RWLock::Read == _rw ? "Reading" : "Writing", _period);

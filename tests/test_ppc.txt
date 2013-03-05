@@ -1,0 +1,48 @@
+-header
+Address.h			4
+AddressIPv4.h		10
+AddressIPv6.h		10
+ArchiveFile.h		138
+AtomicInteger.h		14
+Buffer.h			4
+BufferAddress.h		8
+BufferManaged.h		4
+BufferString.h		8
+CompactNumber.h		17
+DateTime.h			12
+EnumSet.h			191
+Exception.h			19
+Execute.h			7
+File.h				74
+Hash.h				52
+Library.h			113
+Mutex.h				15
+POSIXErrno.h		10
+RWLock.h			18
+ReferenceCounted.h	45
+ReferencedString.h	251
+Socket.h			19
+SocketGeneric.h		14
+SocketServer.h		14
+Sqlite3Plus.h		31
+Thread.h			30
+Tracer.h			0
+
+-test
+ArchiveFile			clang++:138:1.134:23.888	g++:138:0.352:25.298	llvm-g++:138:0.024:1.872
+AtomicInteger		clang++:12:14.388:59.800	g++:12:14.496:39.122	llvm-g++:12:0.421:1.528
+CompactNumber		clang++:17:40.032:59.677	g++:17:43.080:57.276	llvm-g++:17:0.022:0.575
+DateTime			clang++:12:32.487:71.275	g++:12:38.545:78.598	llvm-g++:12:0.024:1.931
+EnumSet				clang++:191:32.206:59.828	g++:191:23.410:44.149	llvm-g++:191:0.021:0.987
+Exception			clang++:19:104.078:123.402	g++:19:94.703:114.685	llvm-g++:19:0.019:0.802
+Execute				clang++:7:10.949:55.717		g++:7:10.949:29.929		llvm-g++:7:10.949:4.332
+File				clang++:35:4.214:39.869		g++:35:16.517:58.532	llvm-g++:35:0.021:1.386
+Hash				clang++:52:22.415:50.014	g++:52:17.206:50.014	llvm-g++:52:0.020:0.826
+Library				clang++:113:56.031:89.068	g++:113:51.360:89.068	llvm-g++:113:0.248:2.216
+Mutex				clang++:15:33.332:49.005	g++:15:43.793:66.504	llvm-g++:15:0.037:0.892
+RWLock				clang++:18:10.440:28.759	g++:18:10.421:22.759	llvm-g++:18:10.437:20.592
+ReferenceCounted	clang++:45:35.111:72.466	g++:45:34.677:77.064	llvm-g++:45:3.061:2.949
+ReferencedString	clang++:251:11.681:33.729	g++:251:11.444:23.692	llvm-g++:251:0.028:0.905
+SocketServer		clang++:15:7.427:1.250		g++:15:7.427:1.712		llvm-g++:15:7.427:1.719
+Sqlite3Plus			clang++:31:0.356:21.786		g++:31:0.324:20.688		llvm-g++:31:0.324:1.925
+Thread				clang++:27:5.439:36.546		g++:27:17.898:173.261	llvm-g++:27:0.058:0.798
