@@ -317,7 +317,7 @@ int main(int argc, const char * const argv[]) {
 
 				coverage= runIntegerExpected("cat bin/logs/all_trace.log | grep /os/"+*header+": | wc -l");
 				if(found) {
-					if(value != coverage) {
+					if(value != static_cast<int>(coverage)) {
 						printf("%20s\tCoverage: %4d Expected: %4d\n", header->c_str(), coverage, value);
 					}
 				} else {
