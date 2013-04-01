@@ -3,13 +3,16 @@
 
 #include <vector>
 #include <limits>
-#include <pthread.h>
 #include "Exception.h"
-#include "ExecutionMutex.h"
-#include "ExecutionSignal.h"
+#include "Mutex.h"
+#include "Signal.h"
 
 namespace exec {
 
+/**
+	@todo Document
+	@todo Test
+*/
 	template<class T>
 	class Queue {
 	public:
@@ -81,13 +84,8 @@ namespace exec {
 	}
 	template<class T>
 	inline bool Queue<T>::enqueue(const T &value, double timeoutInSeconds) {
-		struct timeval	now;
-		struct timespec	timeoutAt;
-
-		AssertCodeMessageException(gettimeofday(&now, NULL));
-		TIMEVAL_TO_TIMESPEC(&now, &timeoutAt);
-		util::add(timeoutAt, timeoutInSeconds);
-
+		dt::DateTime	now;
+		dt::DateTime	timeoutAt= now + timeoutInSeconds;
 		Mutex::Locker	lock(_lock);
 
 		while( (static_cast<int>(_queue.size()) >= _max) && (-1 != _max) ) {
@@ -119,13 +117,8 @@ namespace exec {
 	}
 	template<class T>
 	inline bool Queue<T>::dequeue(T &value, double timeoutInSeconds) {
-		struct timeval	now;
-		struct timespec	timeoutAt;
-
-		AssertCodeMessageException(gettimeofday(&now, NULL));
-		TIMEVAL_TO_TIMESPEC(&now, &timeoutAt);
-		util::add(timeoutAt, timeoutInSeconds);
-
+		dt::DateTime	now;
+		dt::DateTime	timeoutAt= now + timeoutInSeconds;
 		Mutex::Locker	lock(_lock);
 
 		while( (_queue.size() == 0) && (-1 != _max) ) {
@@ -136,9 +129,7 @@ namespace exec {
 			}
 		}
 		AssertMessageException(-1 != _max);
-
-		T	value= _queue.back();
-
+		value= _queue.back();
 		_queue.pop_back();
 		_full.broadcast();
 		return true;

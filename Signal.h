@@ -49,6 +49,9 @@ namespace exec {
 	inline void Signal::wait(Mutex &mutex) {
 		AssertCodeMessageException(pthread_cond_wait(&_signal, mutex));
 	}
+	/**
+		@todo test timeout
+	*/
 	inline bool Signal::wait(Mutex &mutex, const dt::DateTime &untilAbsTime) {
 		struct timespec	timeoutAt;
 		int				returnCode;
@@ -60,12 +63,14 @@ namespace exec {
 		AssertCodeMessageException(returnCode);
 		return true;
 	}
+	/**
+		@todo test timeout
+	*/
 	inline bool Signal::wait(Mutex &mutex, double timeoutInSeconds) {
 		dt::DateTime	now;
-		struct timespec	timeoutAt;
 
 		now+= timeoutInSeconds;
-		wait(mutex, &now.value(timeoutAt));
+		return wait(mutex, now);
 	}
 };
 
