@@ -1,5 +1,5 @@
-#ifndef __ExecutionQueue_h__
-#define __ExecutionQueue_h__
+#ifndef __Queue_h__
+#define __Queue_h__
 
 #include <vector>
 #include <limits>
@@ -169,4 +169,4 @@ namespace exec {
 
 };
 
-#endif // __ExecutionQueue_h__
+#endif // __Queue_h__
