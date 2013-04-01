@@ -1,4 +1,5 @@
 -test
+Queue				clang++:0:0:0	g++:0:0:0
 Signal				clang++:4:67.283:68.876		g++:4:67.703:69.258
 SocketServer		clang++:15:7.427:1.250		g++:15:7.427:1.712
 ArchiveFile			clang++:138:1.134:57.294	g++:138:0.751:52.373
@@ -38,6 +39,7 @@ Hash.h				 52
 Library.h			113
 Mutex.h				 15
 POSIXErrno.h		 11
+Queue.h				  0
 RWLock.h			 18
 ReferenceCounted.h	 45
 ReferencedString.h	251

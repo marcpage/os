@@ -7,6 +7,8 @@
 #include "Mutex.h"
 #include "Signal.h"
 
+#define AssertQueueNotClosed	if(-1 == _max) {throw Closed("Queue Already Closed", __FILE__, __LINE__);} else msg::noop()
+
 namespace exec {
 
 /**
@@ -16,6 +18,17 @@ namespace exec {
 	template<class T>
 	class Queue {
 	public:
+		class Closed : public msg::Exception {
+		public:
+			/// Get a message
+			Closed(const char *message, const char *file= NULL, int line= 0) throw();
+			/// Get a message
+			Closed(const std::string &message, const char *file= NULL, int line= 0) throw();
+			/// Copy constructor
+			Closed(const Closed &other);
+			/// destructs _message
+			virtual ~Closed() throw();
+		};
 		Queue(int max=0, int reserve= 0);
 		~Queue();
 		bool empty();
@@ -38,6 +51,17 @@ namespace exec {
 	};
 
 	template<class T>
+	inline Queue<T>::Closed::Closed(const char *message, const char *file, int line) throw()
+			:msg::Exception(message, file, line) {}
+	template<class T>
+	inline Queue<T>::Closed::Closed(const std::string &message, const char *file, int line) throw()
+			:msg::Exception(message, file, line) {}
+	template<class T>
+	inline Queue<T>::Closed::Closed(const Closed &other)
+			:msg::Exception(other) {}
+	template<class T>
+	inline  Queue<T>::Closed::~Closed() throw() {}
+	template<class T>
 	inline Queue<T>::Queue(int max, int reserve)
 	:_lock(), _full(), _empty(), _queue(), _max(0 == max ? std::numeric_limits<int>::max() : max) {
 		if(reserve > 0) {
@@ -53,21 +77,22 @@ namespace exec {
 	inline bool Queue<T>::empty() {
 		Mutex::Locker	lock(_lock);
 
-		AssertMessageException(-1 != _max);
+		AssertQueueNotClosed;
 		return _queue.size() <= 0;
 	}
 	template<class T>
 	inline bool Queue<T>::full() {
 		Mutex::Locker	lock(_lock);
 
-		AssertMessageException(-1 != _max);
-		return _queue.size() >= _max;
+		AssertQueueNotClosed;
+		AssertMessageException(_max > 0);
+		return _queue.size() >= static_cast<unsigned int>(_max);
 	}
 	template<class T>
 	inline int Queue<T>::size() {
 		Mutex::Locker	lock(_lock);
 
-		AssertMessageException(-1 != _max);
+		AssertQueueNotClosed;
 		return _queue.size();
 	}
 	template<class T>
@@ -77,7 +102,7 @@ namespace exec {
 		while( (static_cast<int>(_queue.size()) >= _max) && (-1 != _max) ) {
 			_full.wait(_lock);
 		}
-		AssertMessageException(-1 != _max);
+		AssertQueueNotClosed;
 		_queue.insert(_queue.begin(), value);
 		_empty.broadcast();
 		return *this;
@@ -92,10 +117,10 @@ namespace exec {
 			if(!_full.wait(_lock, timeoutAt)) {
 				return false;
 			} else {
-				AssertMessageException(-1 != _max);
+				AssertQueueNotClosed;
 			}
 		}
-		AssertMessageException(-1 != _max);
+		AssertQueueNotClosed;
 		_queue.insert(_queue.begin(), value);
 		_empty.broadcast();
 		return true;
@@ -107,7 +132,7 @@ namespace exec {
 		while( (_queue.size() == 0) && (-1 != _max) ) {
 			_empty.wait(_lock);
 		}
-		AssertMessageException(-1 != _max);
+		AssertQueueNotClosed;
 
 		T	value= _queue.back();
 
@@ -125,10 +150,10 @@ namespace exec {
 			if(!_empty.wait(_lock, timeoutAt)) {
 				return false;
 			} else {
-				AssertMessageException(-1 != _max);
+				AssertQueueNotClosed;
 			}
 		}
-		AssertMessageException(-1 != _max);
+		AssertQueueNotClosed;
 		value= _queue.back();
 		_queue.pop_back();
 		_full.broadcast();

@@ -142,7 +142,7 @@ void runTest(const String &name, const String &compiler, uint32_t testedLines, d
 		command= "bin/tests/"+executableName+" &> bin/logs/"+runLogName;
 		runCoverageTime= runNoResultsExpected(command, "run trace");
 
-		coverage= runIntegerExpected("cat bin/logs/"+runLogName+" | grep "+name+"\\\\.h | sort | uniq | wc -l");
+		coverage= runIntegerExpected("cat bin/logs/"+runLogName+" | grep ../os/"+name+"\\\\.h: | sort | uniq | wc -l");
 		if( (coverage != testedLines) ) {
 			printf("\tTested Lines: %d Expected %d\n", coverage, testedLines);
 			displayNewLine= true;
@@ -314,7 +314,7 @@ int main(int argc, const char * const argv[]) {
 				bool		found= headerCoverage.count(*header) > 0;
 				int			value= found ? atoi(headerCoverage[*header].c_str()) : 0;
 
-				coverage= runIntegerExpected("cat bin/logs/all_trace.log | grep /os/"+*header+": | wc -l");
+				coverage= runIntegerExpected("cat bin/logs/all_trace.log | grep ../os/"+*header+": | wc -l");
 				if(found) {
 					if(value != static_cast<int>(coverage)) {
 						printf("%20s\tCoverage: %4d Expected: %4d\n", header->c_str(), coverage, value);
