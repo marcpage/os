@@ -19,8 +19,8 @@
 	<ul>
 		<li> Numbers 0 through 127 are stored in 1 byte. (00 - 7F)
 		<li> Numbers 128 through 16,511 are stored in 2 bytes. (80 00 - FF 7F)
-		<li> Numbers 16,512 through 2,113,663 are stored in 3 bytes. (80 00 00 - FF FF 7F)
-		<li> Numbers 2,113,664 through 270,549,119 are stored in 3 bytes. (80 00 00 00 - FF FF FF 7F)
+		<li> Numbers 16,512 through 2,113,663 are stored in 3 bytes. (80 80 00 - FF FF 7F)
+		<li> Numbers 2,113,664 through 270,549,119 are stored in 4 bytes. (80 80 80 00 - FF FF FF 7F)
 		<li> etc.
 	</ul>
 */

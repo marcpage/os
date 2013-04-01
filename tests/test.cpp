@@ -260,7 +260,6 @@ void loadExpectations(Dictionary &headerCoverage, Dictionary &testMetrics, Strin
 
 /**
 	@todo Evaluate performance of compile and run of various compilers
-	@todo Load tables from text file instead of compiled in
 */
 int main(int argc, const char * const argv[]) {
 	StringList				testsToRun;
