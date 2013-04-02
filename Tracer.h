@@ -13,6 +13,8 @@
 
 /// functions and classes for tracing
 namespace Tracer {
+	typedef int (*FormatPrintFunction)(const char *format,...);
+	static FormatPrintFunction	formatPrint= printf;
 	static inline const char *format_print(std::string &buffer, size_t size, const char * const format, ...) {
 		va_list	args;
 
@@ -41,7 +43,7 @@ namespace Tracer {
 		std::string	buffer;
 
 		doubleValue= integerValue;
-		printf("%s",format_print(buffer, 4096, "%s:%d:%s()\t%1.0f (%s)\n", file, line, func, doubleValue, expression));
+		formatPrint("%s",format_print(buffer, 4096, "%s:%d:%s()\t%1.0f (%s)\n", file, line, func, doubleValue, expression));
 		return value;
 	}
 	/** Prints to stdout the file, line, function, value (as a double) and the expression.
@@ -70,7 +72,7 @@ namespace Tracer {
 				:_file(file), _func(func), _line(line) {
 				std::string	buffer;
 
-				printf("%s",format_print(buffer, 4096, "%s:%d:%s()\tenter (scope)\n", _file, _line, _func));
+				formatPrint("%s",format_print(buffer, 4096, "%s:%d:%s()\tenter (scope)\n", _file, _line, _func));
 			}
 			/** Print to stdout that we are exiting the scope we entered on construction.
 			*/
@@ -78,9 +80,9 @@ namespace Tracer {
 				try {
 					std::string	buffer;
 
-					printf("%s",format_print(buffer, 4096, "%s:%d:%s()\tleave (scope)\n", _file, _line, _func));
+					formatPrint("%s",format_print(buffer, 4096, "%s:%d:%s()\tleave (scope)\n", _file, _line, _func));
 				} catch(const std::exception &exception) {
-					printf("Exception thrown in ~LogBlock:%s:%s():%s\n",_file,_func,exception.what());
+					formatPrint("Exception thrown in ~LogBlock:%s:%s():%s\n",_file,_func,exception.what());
 				}
 			}
 		private:
