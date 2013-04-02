@@ -80,13 +80,7 @@ namespace Tracer {
 
 					printf("%s",format_print(buffer, 4096, "%s:%d:%s()\tleave (scope)\n", _file, _line, _func));
 				} catch(const std::exception &exception) {
-					printf("Exception thrown in ~LogBlock");
-					printf(":");
-					printf("%s",_file);
-					printf(":");
-					printf("%s",_func);
-					printf(":");
-					printf("%s",exception.what());
+					printf("Exception thrown in ~LogBlock:%s:%s():%s\n",_file,_func,exception.what());
 				}
 			}
 		private:
