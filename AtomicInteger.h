@@ -138,10 +138,10 @@ namespace exec {
 	inline AtomicInteger::NativeInt AtomicInteger::_add(NativeInt amount) {trace_scope;
 		#if WinInterlock
 			return static_cast<NativeInt>(InterlockedAdd(&_number, amount));
-		#elif MacAtomic
-			return OSAtomicAdd32Barrier(amount, &_number);
 		#elif GCCBuiltInAtomic
 			return __sync_add_and_fetch(&_number, amount);
+		#elif MacAtomic
+			return OSAtomicAdd32Barrier(amount, &_number);
 		#endif
 	}
 }
