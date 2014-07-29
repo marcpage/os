@@ -239,7 +239,7 @@ namespace io {
 		_goto(offset, relative);
 		left= size() - location();
 		while( !foundCR && !foundLF && (left > 0) ) {
-			bufferSize= bufferSize > static_cast<size_t>(left) ? left : bufferSize;
+			bufferSize= bufferSize > static_cast<size_t>(left) ? static_cast<size_t>(left) : bufferSize;
 			read(partial, bufferSize, 0, FromHere);
 			left-= partial.size();
 			cr= partial.find('\r');
