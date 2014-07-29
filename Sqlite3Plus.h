@@ -258,7 +258,7 @@ namespace Sqlite3 {
 		for(std::vector<std::string>::iterator	keyPtr= keys.begin(); trace_bool(keyPtr != keys.end()); ++keyPtr, ++valueIndex) {
 			const std::string	&value= row.find(*keyPtr)->second;
 
-			sqlite3_bind_blob(statement, valueIndex, value.data(), value.size(), SQLITE_STATIC);
+			sqlite3_bind_blob(statement, valueIndex, value.data(), value.size(), SQLITE_TRANSIENT);
 		}
 		Sql3Assert(SQLITE_DONE == sqlite3_step(statement));
 		Sql3ThrowIfDbError(_db, sqlite3_finalize(statement));
