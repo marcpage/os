@@ -12,13 +12,6 @@
 	#include <errno.h>
 #endif
 
-#ifndef trace_scope
-	#define trace_scope ///< in case Tracer.h is not included
-#endif
-#ifndef trace_bool
-	#define trace_bool(x) (x) ///< in case Tracer.h is not included
-#endif
-
 namespace msg {
 	inline void noop() {} ///< Used for if() else corrrectness with macros
 }
@@ -109,7 +102,7 @@ namespace msg {
 		@param line		Set to __LINE__
 	*/
 	inline Exception::Exception (const char *message, const char *file, int line) throw()
-		:_message(_init(message, file, line)) {trace_scope
+		:_message(_init(message, file, line)) {
 	}
 	/**
 		@param message	The reason for the exception
@@ -117,13 +110,13 @@ namespace msg {
 		@param line		Set to __LINE__
 	*/
 	inline Exception::Exception(const std::string &message, const char *file, int line) throw()
-		:_message(_init(message, file, line)) {trace_scope
+		:_message(_init(message, file, line)) {
 	}
 	/**
 		@param other	The exception to copy.
 	*/
 	inline Exception::Exception(const Exception &other)
-		:exception(), _message(other._message) {trace_scope
+		:exception(), _message(other._message) {
 		if(NULL != _message) {
 			try {
 				_message= new std::string(*_message);
@@ -135,7 +128,7 @@ namespace msg {
 	/**
 		@param other	The exception to copy.
 	*/
-	inline Exception &Exception::operator=(const Exception &other) {trace_scope
+	inline Exception &Exception::operator=(const Exception &other) {
 		if(this != &other) {
 			if(NULL != other._message) {
 				try {
@@ -155,14 +148,14 @@ namespace msg {
 	}
 	/** Deletes _message.
 	*/
-	inline Exception::~Exception() throw() {trace_scope
+	inline Exception::~Exception() throw() {
 		delete _message;
 		_message= NULL;
 	}
 	/**
 		@return	The reason why the exception was thrown.
 	*/
-	inline const char* Exception::what() const throw() {trace_scope
+	inline const char* Exception::what() const throw() {
 		if(NULL != _message) {
 			return _message->c_str();
 		} else {
@@ -177,7 +170,7 @@ namespace msg {
 		@return			A std::string of the complete message.
 	*/
 	template<class S>
-	inline std::string *Exception::_init(S message, const char *file, int line) {trace_scope
+	inline std::string *Exception::_init(S message, const char *file, int line) {
 		std::string	*messagePtr= NULL;
 		try {
 			messagePtr = new std::string(message);
@@ -203,7 +196,7 @@ namespace msg {
 		@param line			Set to __LINE__
 	*/
 	inline ErrNoException::ErrNoException(int errnoCode, const char *message, const char *file, int line) throw()
-		:Exception(std::string(message).append(": ").append(strerror(errnoCode)), file, line), _errno(errnoCode) {trace_scope
+		:Exception(std::string(message).append(": ").append(strerror(errnoCode)), file, line), _errno(errnoCode) {
 	}
 	/** Used if you do not have the errno code, errno will be called.
 		Also calls strerror to get the system string for the errono code.
@@ -212,16 +205,16 @@ namespace msg {
 		@param line			Set to __LINE__
 	*/
 	inline ErrNoException::ErrNoException(const char *message, const char *file, int line) throw()
-		:Exception(std::string(message).append(strerror(errno)), file, line), _errno(errno) {trace_scope
+		:Exception(std::string(message).append(strerror(errno)), file, line), _errno(errno) {
 	}
 	/** Cleans up _errno.
 	*/
-	inline ErrNoException::~ErrNoException() throw() {trace_scope
+	inline ErrNoException::~ErrNoException() throw() {
 		_errno= 0;
 	}
 	/** Just call Exception's what().
 	*/
-	inline const char* ErrNoException::what() const throw() {trace_scope
+	inline const char* ErrNoException::what() const throw() {
 		return Exception::what();
 	}
 #endif

@@ -5,13 +5,6 @@
 #include <pthread.h>
 #include "Exception.h"
 
-#ifndef trace_scope
-	#define trace_scope ///< in case Tracer.h is not included
-#endif
-#ifndef trace_bool
-	#define trace_bool(x) (x) ///< in case Tracer.h is not included
-#endif
-
 namespace exec {
 
 	/**
@@ -44,28 +37,28 @@ namespace exec {
 	};
 
 	inline RWLock::Locker::Locker(RWLock &lock, ReadWrite read)
-		:_lock(lock) {trace_scope;
+		:_lock(lock) {;
 		_lock.lock(read);
 	}
-	inline RWLock::Locker::~Locker() {trace_scope;
+	inline RWLock::Locker::~Locker() {;
 		_lock.unlock();
 	}
 	inline RWLock::RWLock()
-		:_lock() {trace_scope;
+		:_lock() {;
 		AssertCodeMessageException(pthread_rwlock_init(&_lock, NULL));
 	}
-	inline RWLock::~RWLock() {trace_scope;
+	inline RWLock::~RWLock() {;
 		int		error= pthread_rwlock_destroy(&_lock);
 		void	*__unused__[]= {&error, &__unused__};
 	}
-	inline void RWLock::lock(ReadWrite read) {trace_scope;
+	inline void RWLock::lock(ReadWrite read) {;
 		if(Read == read) {
 			AssertCodeMessageException(pthread_rwlock_rdlock(&_lock));
 		} else {
 			AssertCodeMessageException(pthread_rwlock_wrlock(&_lock));
 		}
 	}
-	inline void RWLock::unlock() {trace_scope;
+	inline void RWLock::unlock() {;
 		AssertCodeMessageException(pthread_rwlock_unlock(&_lock));
 	}
 

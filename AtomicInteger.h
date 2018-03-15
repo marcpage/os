@@ -3,18 +3,11 @@
 
 #include <stdint.h>
 
-#ifndef trace_scope
-	#define trace_scope ///< in case Tracer.h is not included
-#endif
-#ifndef trace_bool
-	#define trace_bool(x) (x) ///< in case Tracer.h is not included
-#endif
-
 #if defined(_WIN32) // http://predef.sourceforge.net/preos.html#sec25
 	// http://msdn.microsoft.com/en-us/library/ms683614(v=vs.85).aspx
 	#include <windows.h>
 	#define WinInterlock 1
-#elif defined(__APPLE__)
+#elif 0 //defined(__APPLE__)
 	// http://developer.apple.com/library/mac/#documentation/Darwin/Reference/ManPages/man3/OSAtomicAdd32Barrier.3.html
 	#include <libkern/OSAtomic.h>
 	#define MacAtomic 1
@@ -69,63 +62,63 @@ namespace exec {
 		@param initialValue	The value to start out with for this integer.
 	*/
 	inline AtomicInteger::AtomicInteger(NativeInt initialValue)
-		:_number(initialValue) {trace_scope;
+		:_number(initialValue) {;
 	}
 	/**
 	*/
-	inline AtomicInteger::~AtomicInteger() {trace_scope;
+	inline AtomicInteger::~AtomicInteger() {;
 	}
 	/**
 		@return The value of the integer
 		@todo increment/decrement to get the value, or add 0
 	*/
-	inline AtomicInteger::NativeInt AtomicInteger::value() const {trace_scope;
+	inline AtomicInteger::NativeInt AtomicInteger::value() const {;
 		return _number;
 	}
 	/**
 		@param amount	The amount to add
 		@return			The value before we added <code>amount</code>
 	*/
-	inline AtomicInteger::NativeInt AtomicInteger::valueBeforeIncrement(NativeInt amount) {trace_scope;
+	inline AtomicInteger::NativeInt AtomicInteger::valueBeforeIncrement(NativeInt amount) {;
 		return _add(amount) - amount;
 	}
 	/**
 		@param amount	The amount to subtract
 		@return			The value before we subtracted <code>amount</code>
 	*/
-	inline AtomicInteger::NativeInt AtomicInteger::valueBeforeDecrement(NativeInt amount) {trace_scope;
+	inline AtomicInteger::NativeInt AtomicInteger::valueBeforeDecrement(NativeInt amount) {;
 		return _add(-1*amount) + amount;
 	}
 	/**
 		@param amount	The amount to add
 		@return			The value after we added <code>amount</code>
 	*/
-	inline AtomicInteger::NativeInt AtomicInteger::valueAfterIncrement(NativeInt amount) {trace_scope;
+	inline AtomicInteger::NativeInt AtomicInteger::valueAfterIncrement(NativeInt amount) {;
 		return _add(amount);
 	}
 	/**
 		@param amount	The amount to subtract
 		@return			The value after we subtracted <code>amount</code>
 	*/
-	inline AtomicInteger::NativeInt AtomicInteger::valueAfterDecrement(NativeInt amount) {trace_scope;
+	inline AtomicInteger::NativeInt AtomicInteger::valueAfterDecrement(NativeInt amount) {;
 		return _add(-1*amount);
 	}
 	/** Used for typecasting and parameter passing.
 		@return The value of the integer
 	*/
-	inline AtomicInteger::operator AtomicInteger::NativeInt() const {trace_scope;
+	inline AtomicInteger::operator AtomicInteger::NativeInt() const {;
 		return value();
 	}
 	/**
 		@return the value before the increment.
 	*/
-	inline AtomicInteger AtomicInteger::operator++(int) {trace_scope;
+	inline AtomicInteger AtomicInteger::operator++(int) {;
 		return valueBeforeIncrement();
 	}
 	/**
 		@return the value before the decrement.
 	*/
-	inline AtomicInteger AtomicInteger::operator--(int) {trace_scope;
+	inline AtomicInteger AtomicInteger::operator--(int) {;
 		return valueBeforeDecrement();
 	}
 	/**
@@ -135,7 +128,7 @@ namespace exec {
 		@see http://developer.apple.com/library/mac/#documentation/Darwin/Reference/ManPages/man3/OSAtomicAdd32Barrier.3.html
 		@see http://gcc.gnu.org/onlinedocs/gcc-4.1.2/gcc/Atomic-Builtins.html
 	*/
-	inline AtomicInteger::NativeInt AtomicInteger::_add(NativeInt amount) {trace_scope;
+	inline AtomicInteger::NativeInt AtomicInteger::_add(NativeInt amount) {;
 		#if WinInterlock
 			return static_cast<NativeInt>(InterlockedAdd(&_number, amount));
 		#elif GCCBuiltInAtomic

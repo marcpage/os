@@ -4,13 +4,6 @@
 #include "SocketGeneric.h"
 #include "Socket.h"
 
-#ifndef trace_scope
-	#define trace_scope ///< @brief in case Tracer.h is not included
-#endif
-#ifndef trace_bool
-	#define trace_bool(x) (x) ///< @brief in case Tracer.h is not included
-#endif
-
 /**
 	@todo Test!
 */
@@ -37,21 +30,21 @@ namespace net {
 		@param protocol	The protocol (usually 0?)
 	*/
 	inline SocketServer::SocketServer(int domain, int type, int protocol)
-		:SocketGeneric(domain, type, protocol) {trace_scope
+		:SocketGeneric(domain, type, protocol) {
 	}
-	inline SocketServer::~SocketServer() {trace_scope}
+	inline SocketServer::~SocketServer() {}
 	/**
 		@param address	The address to listen for connections
 		@todo Test bind fails
 	*/
-	inline void SocketServer::bind(Address &address) {trace_scope
+	inline void SocketServer::bind(Address &address) {
 		ErrnoOnNegative(::bind(_socket, address, address.size()));
 	}
 	/**
 		@param backlog	The number of connects that can be waiting between calls to <code>accept</code>.
 		@todo Test listen fails
 	*/
-	inline void SocketServer::listen(int backlog) {trace_scope
+	inline void SocketServer::listen(int backlog) {
 		ErrnoOnNegative(::listen(_socket, backlog));
 	}
 	/**
@@ -59,7 +52,7 @@ namespace net {
 		@param remote	Receives the connection socket to the remote connection.
 		@todo Test accept fails
 	*/
-	inline void SocketServer::accept(Address &address, Socket &remote) {trace_scope
+	inline void SocketServer::accept(Address &address, Socket &remote) {
 		socklen_t	size= address.size();
 		int			socketDescriptor;
 

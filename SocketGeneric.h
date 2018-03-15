@@ -2,16 +2,10 @@
 #define __SocketGeneric_h__
 
 #include <sys/socket.h>
+#include <unistd.h>
 #include <string>
 #include "Address.h"
 #include "POSIXErrno.h"
-
-#ifndef trace_scope
-	#define trace_scope ///< @brief in case Tracer.h is not included
-#endif
-#ifndef trace_bool
-	#define trace_bool(x) (x) ///< @brief in case Tracer.h is not included
-#endif
 
 namespace net {
 
@@ -40,17 +34,17 @@ namespace net {
 	};
 
 	/** @return The socket descriptor returned by a call to <code>socket</code>. */
-	inline int SocketGeneric::descriptor() {trace_scope
+	inline int SocketGeneric::descriptor() {
 		return _socket;
 	}
 	/** After closing the socket, it is made invalid.
 	*/
-	inline void SocketGeneric::close() {trace_scope
+	inline void SocketGeneric::close() {
 		ErrnoOnNegative(::close(_socket));
 		_socket= -1;
 	}
 	inline SocketGeneric::SocketGeneric()
-		:_socket(-1) {trace_scope
+		:_socket(-1) {
 	}
 	/**
 		@param domain	The family or domain. You can use <code>Address.family()</code>
@@ -58,21 +52,21 @@ namespace net {
 		@param protocol	The protocol (usually 0?)
 	*/
 	inline SocketGeneric::SocketGeneric(int domain, int type, int protocol)
-		:_socket(::socket(domain, type, protocol)) {trace_scope
+		:_socket(::socket(domain, type, protocol)) {
 		ErrnoOnNegative(_socket);
 	}
 	/** If the socket is valid (not -1) the socket is closed.
 	*/
-	inline SocketGeneric::~SocketGeneric() {trace_scope
+	inline SocketGeneric::~SocketGeneric() {
 		if(-1 != _socket) {
 			try	{
 				close();
-			} catch(const std::exception&) {trace_scope
+			} catch(const std::exception&) {
 			}
 		}
 	}
 	/** @param socketDescriptor	The new socket descriptor for this Socket to use. */
-	inline void SocketGeneric::assign(int socketDescriptor) {trace_scope
+	inline void SocketGeneric::assign(int socketDescriptor) {
 		_socket= socketDescriptor;
 	}
 

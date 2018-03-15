@@ -4,13 +4,6 @@
 #include "Exception.h"
 #include "AtomicInteger.h"
 
-#ifndef trace_scope
-	#define trace_scope ///< in case Tracer.h is not included
-#endif
-#ifndef trace_bool
-	#define trace_bool(x) (x) ///< in case Tracer.h is not included
-#endif
-
 namespace exec {
 
 	/** The parent of a reference counted object.
@@ -85,18 +78,18 @@ namespace exec {
 		@param initialCount	The initial number of references
 	*/
 	inline ReferenceCounted::ReferenceCounted(int32_t initialCount)
-		:_references(initialCount) {trace_scope;
+		:_references(initialCount) {;
 	}
 	/**
 		@return	The number of references to the object
 	*/
-	inline int32_t ReferenceCounted::references() {trace_scope;
+	inline int32_t ReferenceCounted::references() {;
 		return _references.value();
 	}
 	/** Increments the reference count.
 		@return The number of references after we increment the count
 	*/
-	inline int32_t ReferenceCounted::retain() {trace_scope;
+	inline int32_t ReferenceCounted::retain() {;
 		//printf("+%08x:%d\n", this, references());
 		return _references.valueAfterIncrement();
 	}
@@ -104,7 +97,7 @@ namespace exec {
 		@todo For speed improvement, we don't have to decrement if references == 1,
 				we can just set it to zero and free.
 	*/
-	inline void ReferenceCounted::release() {trace_scope;
+	inline void ReferenceCounted::release() {;
 		//printf("-%08x:%d\n", this, references());
 		int32_t	refs= _references.valueAfterDecrement();
 
@@ -114,13 +107,13 @@ namespace exec {
 	}
 	/** Does nothing.
 	*/
-	inline ReferenceCounted::~ReferenceCounted() {trace_scope;}
+	inline ReferenceCounted::~ReferenceCounted() {;}
 	/** Calls delete() on this.
 		Override this method if you allocate your objects some other way.
 		For example, if you allocated some memory with malloc(), and then explicitly called
 		the constructor, in here you would explicitly call the destructor and then call free().
 	*/
-	inline void ReferenceCounted::free() {trace_scope;
+	inline void ReferenceCounted::free() {;
 		delete this;
 	}
 	/**
@@ -133,7 +126,7 @@ namespace exec {
 	*/
 	template<typename ReferenceCountedType>
 	ReferenceCounted::Ptr<ReferenceCountedType>::Ptr(ReferenceCountedType *ptr, ReferenceCounted::RetainAction action)
-		:_ptr(ptr) {trace_scope;
+		:_ptr(ptr) {;
 		if(Retain == action) {
 			_retain();
 		}
@@ -145,13 +138,13 @@ namespace exec {
 	*/
 	template<typename ReferenceCountedType>
 	ReferenceCounted::Ptr<ReferenceCountedType>::Ptr(const Ptr &other)
-		:_ptr(other._ptr) {trace_scope;
+		:_ptr(other._ptr) {;
 		_retain();
 	}
 	/** Calls release on the actual pointer (if not NULL).
 	*/
 	template<typename ReferenceCountedType>
-	ReferenceCounted::Ptr<ReferenceCountedType>::~Ptr() {trace_scope;
+	ReferenceCounted::Ptr<ReferenceCountedType>::~Ptr() {;
 		_release();
 	}
 	/** Accesses members of the reference counted object.
@@ -160,7 +153,7 @@ namespace exec {
 		@todo TEST dereferencing a NULL Ptr
 	*/
 	template<typename ReferenceCountedType>
-	ReferenceCountedType *ReferenceCounted::Ptr<ReferenceCountedType>::operator->() {trace_scope;
+	ReferenceCountedType *ReferenceCounted::Ptr<ReferenceCountedType>::operator->() {;
 		ThrowMessageExceptionIfNULL(_ptr);
 		return _ptr;
 	}
@@ -171,7 +164,7 @@ namespace exec {
 		@todo TEST const dereference
 	*/
 	template<typename ReferenceCountedType>
-	const ReferenceCountedType *ReferenceCounted::Ptr<ReferenceCountedType>::operator->() const {trace_scope;
+	const ReferenceCountedType *ReferenceCounted::Ptr<ReferenceCountedType>::operator->() const {;
 		ThrowMessageExceptionIfNULL(_ptr);
 		return _ptr;
 	}
@@ -181,7 +174,7 @@ namespace exec {
 		@todo TEST
 	*/
 	template<typename ReferenceCountedType>
-	ReferenceCountedType &ReferenceCounted::Ptr<ReferenceCountedType>::operator*() {trace_scope;
+	ReferenceCountedType &ReferenceCounted::Ptr<ReferenceCountedType>::operator*() {;
 		ThrowMessageExceptionIfNULL(_ptr);
 		return *_ptr;
 	}
@@ -191,7 +184,7 @@ namespace exec {
 		@todo TEST
 	*/
 	template<typename ReferenceCountedType>
-	const ReferenceCountedType &ReferenceCounted::Ptr<ReferenceCountedType>::operator*() const {trace_scope;
+	const ReferenceCountedType &ReferenceCounted::Ptr<ReferenceCountedType>::operator*() const {;
 		ThrowMessageExceptionIfNULL(_ptr);
 		return *_ptr;
 	}
@@ -202,7 +195,7 @@ namespace exec {
 		@todo TEST when action == DoNotRetain
 	*/
 	template<typename ReferenceCountedType>
-	ReferenceCounted::Ptr<ReferenceCountedType> &ReferenceCounted::Ptr<ReferenceCountedType>::assign(ReferenceCountedType *ptr, ReferenceCounted::RetainAction action) {trace_scope;
+	ReferenceCounted::Ptr<ReferenceCountedType> &ReferenceCounted::Ptr<ReferenceCountedType>::assign(ReferenceCountedType *ptr, ReferenceCounted::RetainAction action) {;
 		if(_ptr != ptr) {
 			_release();
 			_ptr= ptr;
@@ -218,7 +211,7 @@ namespace exec {
 		@return			Reference to *this
 	*/
 	template<typename ReferenceCountedType>
-	ReferenceCounted::Ptr<ReferenceCountedType> &ReferenceCounted::Ptr<ReferenceCountedType>::operator=(const ReferenceCounted::Ptr<ReferenceCountedType>::Ptr &other) {trace_scope;
+	ReferenceCounted::Ptr<ReferenceCountedType> &ReferenceCounted::Ptr<ReferenceCountedType>::operator=(const ReferenceCounted::Ptr<ReferenceCountedType>::Ptr &other) {;
 		if(this != &other) {
 			return assign(other._ptr, Retain);
 		}
@@ -228,28 +221,28 @@ namespace exec {
 		@return true if the pointer is not NULL.
 	*/
 	template<typename ReferenceCountedType>
-	ReferenceCounted::Ptr<ReferenceCountedType>::operator bool() const {trace_scope;
-		return trace_bool(valid());
+	ReferenceCounted::Ptr<ReferenceCountedType>::operator bool() const {;
+		return (valid());
 	}
 	/**
 		@return true if the pointer is not NULL.
 	*/
 	template<typename ReferenceCountedType>
-	bool ReferenceCounted::Ptr<ReferenceCountedType>::valid() const {trace_scope;
-		return trace_bool(NULL != _ptr);
+	bool ReferenceCounted::Ptr<ReferenceCountedType>::valid() const {;
+		return (NULL != _ptr);
 	}
 	template<typename ReferenceCountedType>
-	ReferenceCounted::Ptr<ReferenceCountedType>::operator ReferenceCountedType*() {trace_scope;
+	ReferenceCounted::Ptr<ReferenceCountedType>::operator ReferenceCountedType*() {;
 		return _ptr;
 	}
 	template<typename ReferenceCountedType>
-	ReferenceCounted::Ptr<ReferenceCountedType>::operator const ReferenceCountedType*() const {trace_scope;
+	ReferenceCounted::Ptr<ReferenceCountedType>::operator const ReferenceCountedType*() const {;
 		return _ptr;
 	}
 	/** NULL safe retain.
 	*/
 	template<typename ReferenceCountedType>
-	void ReferenceCounted::Ptr<ReferenceCountedType>::_retain() {trace_scope;
+	void ReferenceCounted::Ptr<ReferenceCountedType>::_retain() {;
 		if(valid()) {
 			_ptr->retain();
 		}
@@ -257,7 +250,7 @@ namespace exec {
 	/** NULL safe release.
 	*/
 	template<typename ReferenceCountedType>
-	void ReferenceCounted::Ptr<ReferenceCountedType>::_release() {trace_scope;
+	void ReferenceCounted::Ptr<ReferenceCountedType>::_release() {;
 		if(valid()) {
 			_ptr->release();
 		}

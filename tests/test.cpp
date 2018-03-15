@@ -137,7 +137,7 @@ void runTest(const String &name, const String &compiler, uint32_t testedLines, d
 		runLogName= executableName + "_run.log";
 		command= gCompilerLocations[compiler]
 					+ " -o bin/tests/"+executableName+" tests/"+name+"_test.cpp "
-					+(gDebugging ? " -g " : "")+gCompilerFlags+" -include Tracer.h &> bin/logs/"+logName;
+					+(gDebugging ? " -g " : "")+gCompilerFlags+" &> bin/logs/"+logName;
 		compileCoverageTime= runNoResultsExpected(command, "compile trace");
 		command= "bin/tests/"+executableName+" &> bin/logs/"+runLogName;
 		runCoverageTime= runNoResultsExpected(command, "run trace");
@@ -199,18 +199,8 @@ void runTest(const String &name, const String &compilerResults) {
 }
 
 
-bool isIntel() {
-	std::string	results;
-
-	exec::execute("uname -p", results);
-	if(stripEOL(results) == "i386") {
-		return true;
-	}
-	return false;
-}
-
 void loadExpectations(Dictionary &headerCoverage, Dictionary &testMetrics, StringList &testOrder) {
-	const char * const	processor= isIntel() ? "i386" : "ppc";
+	const char * const	processor= "x64";
 	io::File			expectations(std::string("tests/test_")+processor+".txt",
 										io::File::Text, io::File::ReadOnly);
 	std::string			line;

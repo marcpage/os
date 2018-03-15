@@ -9,13 +9,6 @@
 #include "Address.h"
 #include "Exception.h"
 
-#ifndef trace_scope
-	#define trace_scope ///< @brief in case Tracer.h is not included
-#endif
-#ifndef trace_bool
-	#define trace_bool(x) (x) ///< @brief in case Tracer.h is not included
-#endif
-
 /**
 	@todo Test!
 */
@@ -48,7 +41,7 @@ namespace net {
 		@param address	The address to listen on or connect to. Defaults to listen on all.
 	*/
 	inline AddressIPv4::AddressIPv4(in_port_t port, u_int32_t address)
-		:Address(), _address() {trace_scope
+		:Address(), _address() {
 		::bzero(reinterpret_cast<char*>(&_address), size());
 		_address.sin_len= sizeof(_address);
 		_address.sin_family= family();
@@ -60,7 +53,7 @@ namespace net {
 		@param port		The port to listen on or connect to.
 	*/
 	inline AddressIPv4::AddressIPv4(const std::string &address, in_port_t port)
-		:Address(), _address() {trace_scope
+		:Address(), _address() {
 		struct hostent	*hostaddress;
 
 		::bzero(reinterpret_cast<char*>(&_address), size());
@@ -76,17 +69,17 @@ namespace net {
 				hostaddress->h_length
 		);
 	}
-	inline AddressIPv4::~AddressIPv4() {trace_scope}
+	inline AddressIPv4::~AddressIPv4() {}
 	/** @return The address of the sockaddr_in structure. */
-	inline struct sockaddr *AddressIPv4::get() {trace_scope
+	inline struct sockaddr *AddressIPv4::get() {
 		return reinterpret_cast<struct sockaddr*>(&_address);
 	}
 	/** @return The size of the sockaddr_in structure. */
-	inline socklen_t AddressIPv4::size() const {trace_scope
+	inline socklen_t AddressIPv4::size() const {
 		return sizeof(_address);
 	}
 	/** @return AF_INET */
-	inline sa_family_t AddressIPv4::family() const {trace_scope
+	inline sa_family_t AddressIPv4::family() const {
 		return AF_INET;
 	}
 

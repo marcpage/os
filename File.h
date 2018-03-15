@@ -5,13 +5,6 @@
 #include "POSIXErrno.h"
 #include <string>
 
-#ifndef trace_scope
-	#define trace_scope ///< in case Tracer.h is not included
-#endif
-#ifndef trace_bool
-	#define trace_bool(x) (x) ///< in case Tracer.h is not included
-#endif
-
 #if _DEBUG_FILE // Debug
 inline FILE *printResult(FILE *t) {printf("\t RESULT: %08x\n", t); return t;}
 inline off_t printResult(off_t t) {printf("\t RESULT: %d,%d\n", t); return t;}
@@ -78,7 +71,7 @@ namespace io {
 		@todo Test!
 	*/
 	inline File::File(const char *path, Method method, Protection protection)
-		:_file(NULL), _readOnly(ReadOnly == protection) {trace_scope
+		:_file(NULL), _readOnly(ReadOnly == protection) {
 		_file= _open(path, method, protection, _readOnly);
 		moveto(0);
 	}
@@ -86,11 +79,11 @@ namespace io {
 		@todo Test!
 	*/
 	inline File::File(const std::string &path, Method method, Protection protection)
-		:_file(NULL), _readOnly(ReadOnly == protection) {trace_scope
+		:_file(NULL), _readOnly(ReadOnly == protection) {
 		_file= _open(path.c_str(), method, protection, _readOnly);
 		moveto(0);
 	}
-	inline File::~File() {trace_scope
+	inline File::~File() {
 		if(NULL != _file) {
 			fclose(_file);
 			_file= NULL;
@@ -99,7 +92,7 @@ namespace io {
 	/**
 		@todo Test!
 	*/
-	inline off_t File::size() const {trace_scope
+	inline off_t File::size() const {
 		off_t	here= location();
 		off_t	end;
 
@@ -111,13 +104,13 @@ namespace io {
 	/**
 		@todo Test!
 	*/
-	inline void File::flush() {trace_scope
+	inline void File::flush() {
 		ErrnoOnNegative(fflush(_file));
 	}
 	/**
 		@todo Test!
 	*/
-	inline off_t File::location() const {trace_scope
+	inline off_t File::location() const {
 		off_t	currentPos;
 
 		ErrnoOnNegative(currentPos= ftello(_file));
@@ -126,22 +119,22 @@ namespace io {
 	/**
 		@todo Test!
 	*/
-	inline bool File::writable() const {trace_scope
-		return trace_bool(!_readOnly);
+	inline bool File::writable() const {
+		return (!_readOnly);
 	}
-	inline void File::moveto(off_t offset, Relative relative) const {trace_scope
+	inline void File::moveto(off_t offset, Relative relative) const {
 		ErrnoOnNegative(fseeko(_file, offset, _whence(relative)));
 	}
 	/**
 		@todo Test!
 	*/
-	inline void File::move(off_t offset, Relative relative) const {trace_scope
-		move(offset, relative);
+	inline void File::move(off_t offset, Relative relative) const {
+		moveto(offset, relative);
 	}
 	/**
 		@todo Test!
 	*/
-	inline void File::read(void *buffer, size_t bufferSize, off_t offset, Relative relative) const {trace_scope
+	inline void File::read(void *buffer, size_t bufferSize, off_t offset, Relative relative) const {
 		off_t	amount;
 		int		fileError;
 
@@ -151,7 +144,7 @@ namespace io {
 		AssertMessageException( ((fileError= ferror(_file)) == 0) || (fileError == EOF) );
 		AssertMessageException(amount == static_cast<off_t>(bufferSize));
 	}
-	inline void File::write(const void *buffer, size_t bufferSize, off_t offset, Relative relative) {trace_scope
+	inline void File::write(const void *buffer, size_t bufferSize, off_t offset, Relative relative) {
 		off_t	amount;
 
 		AssertMessageException(!_readOnly);
@@ -163,7 +156,7 @@ namespace io {
 	/**
 		@todo Test!
 	*/
-	inline std::string &File::read(std::string &buffer, size_t bufferSize, off_t offset, Relative relative) const {trace_scope
+	inline std::string &File::read(std::string &buffer, size_t bufferSize, off_t offset, Relative relative) const {
 		if(static_cast<size_t>(-1) == bufferSize) {
 			bufferSize= size();
 		}
@@ -174,19 +167,19 @@ namespace io {
 	/**
 		@todo Test!
 	*/
-	inline void File::write(const std::string &buffer, off_t offset, Relative relative) {trace_scope
+	inline void File::write(const std::string &buffer, off_t offset, Relative relative) {
 		write(buffer.data(), buffer.size(), offset, relative);
 	}
 	/**
 		@todo Test!
 	*/
-	template<class Int> inline Int File::read(Endian endian, off_t offset, Relative relative) const {trace_scope
+	template<class Int> inline Int File::read(Endian endian, off_t offset, Relative relative) const {
 		uint8_t	buffer[sizeof(Int)];
 		Int		value= 0;
 
 		read(buffer, sizeof(buffer), offset, relative);
 		endian= _actualEndian(endian);
-		for(unsigned int byte= 0; trace_bool(byte < sizeof(buffer)); ++byte) {
+		for(unsigned int byte= 0; (byte < sizeof(buffer)); ++byte) {
 			Int	byteAsInt(buffer[byte]);
 			int	shiftAmount;
 
@@ -206,11 +199,11 @@ namespace io {
 	/**
 		@todo Test!
 	*/
-	template<class Int> inline void File::write(Int number, Endian endian, off_t offset, Relative relative) {trace_scope
+	template<class Int> inline void File::write(Int number, Endian endian, off_t offset, Relative relative) {
 		uint8_t	buffer[sizeof(Int)];
 
 		endian= _actualEndian(endian);
-		for(unsigned int byte= 0; trace_bool(byte < sizeof(buffer)); ++byte) {
+		for(unsigned int byte= 0; (byte < sizeof(buffer)); ++byte) {
 			int	shiftAmount;
 
 			if(BigEndian == endian) {
@@ -268,7 +261,7 @@ namespace io {
 		}
 		return buffer;
 	}
-	inline int File::_whence(Relative relative) {trace_scope
+	inline int File::_whence(Relative relative) {
 		if(FromHere == relative) {
 			return SEEK_CUR;
 		} else if(FromStart == relative) {
@@ -277,15 +270,15 @@ namespace io {
 		AssertMessageException(FromEnd == relative);
 		return SEEK_END;
 	}
-	inline void File::_goto(off_t offset, Relative relative) const {trace_scope
-		if( trace_bool(0 != offset) || trace_bool(relative != FromHere) ) {
+	inline void File::_goto(off_t offset, Relative relative) const {
+		if( (0 != offset) || (relative != FromHere) ) {
 			moveto(offset, relative);
 		}
 	}
 	/**
 		@todo Test!
 	*/
-	inline File::Endian File::_actualEndian(Endian endian) {trace_scope
+	inline File::Endian File::_actualEndian(Endian endian) {
 		if(NativeEndian == endian) {
 			uint16_t	value= 1;
 
@@ -296,14 +289,14 @@ namespace io {
 		}
 		return endian;
 	}
-	inline FILE *File::_open(const char *path, File::Method method, File::Protection protection, bool &readOnly) {trace_scope
+	inline FILE *File::_open(const char *path, File::Method method, File::Protection protection, bool &readOnly) {
 		FILE		*opened= NULL;
 		const bool	tryWritable= ( (ReadWrite == protection) | (WriteIfPossible == protection) );
 
 		if(tryWritable) {
 			opened= fopen(path, Binary == method ? kOpenReadWriteBinary : kOpenReadWriteText);
 		}
-		if( trace_bool(NULL == opened) && trace_bool(tryWritable) ) {
+		if( (NULL == opened) && (tryWritable) ) {
 			opened= fopen(path, Binary == method ? kCreateReadWriteBinary : kCreateReadWriteText);
 		}
 		if(ReadWrite == protection) {

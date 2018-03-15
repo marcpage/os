@@ -6,13 +6,6 @@
 #include <exception>
 #include <unistd.h>
 
-#ifndef trace_scope
-	#define trace_scope ///< in case Tracer.h is not included
-#endif
-#ifndef trace_bool
-	#define trace_bool(x) (x) ///< in case Tracer.h is not included
-#endif
-
 /// Execution related items.
 namespace exec {
 
@@ -82,49 +75,49 @@ namespace exec {
 	/**
 		@todo Test!
 	*/
-	inline ThreadId ThreadId::current() {trace_scope
+	inline ThreadId ThreadId::current() {
 		return ThreadId(::pthread_self());
 	}
 	/**
 		@todo Test!
 	*/
 	inline ThreadId::ThreadId()
-		:_id() {trace_scope
+		:_id() {
 	}
 	/**
 		@todo Test!
 	*/
 	inline ThreadId::ThreadId(const ThreadId &theThread)
-		:_id(theThread._id) {trace_scope
+		:_id(theThread._id) {
 	}
-	inline ThreadId::~ThreadId() {trace_scope
+	inline ThreadId::~ThreadId() {
 	}
 	/**
 		@todo Test!
 	*/
-	inline ThreadId &ThreadId::operator=(const ThreadId &theThread) {trace_scope
+	inline ThreadId &ThreadId::operator=(const ThreadId &theThread) {
 		_id= theThread._id;
 		return *this;
 	}
 	/**
 		@todo Test!
 	*/
-	inline bool ThreadId::operator==(const ThreadId &theThread) {trace_scope
-		return trace_bool(0 != ::pthread_equal(_id, theThread._id));
+	inline bool ThreadId::operator==(const ThreadId &theThread) {
+		return (0 != ::pthread_equal(_id, theThread._id));
 	}
 	/**
 		@todo Test!
 	*/
-	inline bool ThreadId::operator!=(const ThreadId &theThread) {trace_scope
-		return trace_bool(0 == ::pthread_equal(_id, theThread._id));
+	inline bool ThreadId::operator!=(const ThreadId &theThread) {
+		return (0 == ::pthread_equal(_id, theThread._id));
 	}
 	/**
 		@todo Test!
 	*/
-	inline ThreadId::SystemID ThreadId::thread() {trace_scope
+	inline ThreadId::SystemID ThreadId::thread() {
 		return _id;
 	}
-	inline void *ThreadId::join() {trace_scope
+	inline void *ThreadId::join() {
 		void	*result= NULL;
 
 		AssertCodeMessageException(::pthread_join(_id, &result));
@@ -134,18 +127,18 @@ namespace exec {
 		@todo Test!
 	*/
 	inline ThreadId::ThreadId(SystemID theThread)
-		:_id(theThread) {trace_scope
+		:_id(theThread) {
 	}
 	/**
 		@todo Test!
 	*/
-	inline void ThreadId::exit(void *value) {trace_scope
+	inline void ThreadId::exit(void *value) {
 		::pthread_exit(value);
 	}
-	inline void ThreadId::sleep(double time, TimeUnits units) {trace_scope
+	inline void ThreadId::sleep(double time, TimeUnits units) {
 		static const double 		FourBillionMicrosecondsInSeconds= 4000.0;
 		double	seconds;
-		
+
 		switch(units) {
 			case Years:				seconds= time * 365.2525 * 24.0 * 60.0 * 60.0;	break;
 			case Weeks:				seconds= time * 7.0 * 24.0 * 60.0 * 60.0;		break;
@@ -162,7 +155,7 @@ namespace exec {
 			unsigned int				integerSeconds= static_cast<unsigned int>(seconds);
 			unsigned int				tries= 0;
 
-			while( trace_bool(tries < MaxTries) && trace_bool(integerSeconds= ::sleep(integerSeconds)) ) {
+			while( (tries < MaxTries) && (integerSeconds= ::sleep(integerSeconds)) ) {
 				++tries;
 			}
 		} else {
@@ -172,14 +165,14 @@ namespace exec {
 		}
 	}
 	inline Thread::Thread(ThreadTerminationAction action)
-		:ThreadId(), _action(action) {trace_scope
+		:ThreadId(), _action(action) {
 	}
-	inline Thread::~Thread() {trace_scope
+	inline Thread::~Thread() {
 	}
-	inline void Thread::start() {trace_scope
+	inline void Thread::start() {
 		*reinterpret_cast<ThreadId*>(this)= ThreadId(_create());
 	}
-	inline void *Thread::_run(void *me) {trace_scope
+	inline void *Thread::_run(void *me) {
 		void	*result= NULL;
 		Thread	*theThread= reinterpret_cast<Thread*>(me);
 
@@ -196,10 +189,10 @@ namespace exec {
 	/**
 		@todo Test!
 	*/
-	inline void *Thread::handle(const std::exception &/*exception*/, void *result) {trace_scope
+	inline void *Thread::handle(const std::exception &/*exception*/, void *result) {
 		return result;
 	}
-	inline Thread::SystemID Thread::_create() {trace_scope
+	inline Thread::SystemID Thread::_create() {
 		SystemID	tid;
 
 		AssertCodeMessageException(::pthread_create(&tid, NULL, _run, this));

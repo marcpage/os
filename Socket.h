@@ -4,13 +4,6 @@
 #include "SocketGeneric.h"
 #include "Buffer.h"
 
-#ifndef trace_scope
-	#define trace_scope ///< @brief in case Tracer.h is not included
-#endif
-#ifndef trace_bool
-	#define trace_bool(x) (x) ///< @brief in case Tracer.h is not included
-#endif
-
 namespace net {
 
 	/** A standard socket that you expect to read/write. */
@@ -31,17 +24,17 @@ namespace net {
 	};
 
 	inline Socket::Socket()
-		:SocketGeneric() {trace_scope}
+		:SocketGeneric() {}
 	/**
 		@param domain	The domain or family <code>Address.family()</code>
 		@param type		The type of socket (ie SOCK_STREAM)
 		@param protocol	The socket protocol (usually 0?)
 	*/
 	inline Socket::Socket(int domain, int type, int protocol)
-		:SocketGeneric(domain, type, protocol) {trace_scope}
-	inline Socket::~Socket() {trace_scope}
+		:SocketGeneric(domain, type, protocol) {}
+	inline Socket::~Socket() {}
 	/** @param address	The address to connect to. */
-	inline void Socket::connect(Address &address) {trace_scope
+	inline void Socket::connect(Address &address) {
 		ErrnoOnNegative(::connect(_socket, address, address.size()));
 	}
 	/**
@@ -51,7 +44,7 @@ namespace net {
 							buffer max will be used.
 		@todo	Figure out when we are end of stream and return -1
 	*/
-	inline size_t Socket::read(Buffer &buffer, size_t bytes) {trace_scope
+	inline size_t Socket::read(Buffer &buffer, size_t bytes) {
 		ssize_t	amount;
 		size_t	toRead= bytes == static_cast<size_t>(-1) ? buffer.size() : bytes;
 
@@ -67,7 +60,7 @@ namespace net {
 							If <code>bytes</code> is greater than the buffer size, the
 							buffer max will be used.
 	*/
-	inline size_t Socket::write(const Buffer &buffer, size_t bytes) {trace_scope
+	inline size_t Socket::write(const Buffer &buffer, size_t bytes) {
 		ssize_t	amount;
 		size_t	toWrite= bytes == static_cast<size_t>(-1) ? buffer.size() : bytes;
 

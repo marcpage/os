@@ -9,13 +9,6 @@
 	@todo See if __FUNCTION__ or __func__ is the appropriate macro
 */
 
-#ifndef trace_scope
-	#define trace_scope ///< in case Tracer.h is not included
-#endif
-#ifndef trace_bool
-	#define trace_bool(x) (x) ///< in case Tracer.h is not included
-#endif
-
 // --- C++ Headers ---
 
 #include <exception>
@@ -57,90 +50,6 @@
 // --- Library Class ---
 
 namespace sys {
-
-#if defined(__APPLE__) && (__MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_8)
-static inline OSErr FSFindFolder(FSVolumeRefNum vRefNum, OSType folderType, Boolean /*createFolder*/, FSRef *foundRef) {
-	OSErr				err= badFolderDescErr;
-	CFURLRef			home= NULL;
-	CFURLRef			base= NULL;
-	CFURLRef			url= NULL;
-	const char * const	kUserLibraryName=			"Library";
-	const char * const	kLocalDomainPath=			"/Library";
-	const char * const	kSystemDomainPath=			"/System/Library";
-	const char * const	kHomeDirectory=				getenv("HOME");
-	const char * const	kApplicationSupportName=	"Application Support";
-	const char * const	kExtensionName=				"Extensions";
-	const char * const	kInternetPlugInName=		"Internet Plug-Ins";
-	const char * const	kSharedLibrariesName=		"Frameworks";
-	const char * const	kContextualMenuItemsName=	"Contextual Menu Items";
-	const char * const	kQuickTimeExtensionsName=	"QuickTime";
-	const char * const	kDisplayExtensionsName=		"Displays";
-	const char * const	kPrintingPlugInsName=		"Printers";
-
-	switch(vRefNum) {
-		case kUserDomain:
-			if(NULL != kHomeDirectory) {
-				home= CFURLCreateFromFileSystemRepresentation(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kHomeDirectory), strlen(kHomeDirectory), TRUE);
-			}
-			if(NULL != home) {
-				base= CFURLCreateFromFileSystemRepresentationRelativeToBase(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kUserLibraryName), strlen(kUserLibraryName), TRUE, home);
-			}
-			break;
-		case kLocalDomain:
-			base= CFURLCreateFromFileSystemRepresentation(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kLocalDomainPath), strlen(kLocalDomainPath), TRUE);
-			break;
-		case kSystemDomain:
-			base= CFURLCreateFromFileSystemRepresentation(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kSystemDomainPath), strlen(kSystemDomainPath), TRUE);
-			break;
-		default:
-			break;
-	}
-	if(NULL != base) {
-		switch(folderType) {
-			case kExtensionFolderType:
-				url= CFURLCreateFromFileSystemRepresentationRelativeToBase(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kExtensionName), strlen(kExtensionName), TRUE, base);
-				break;
-			case kApplicationSupportFolderType:
-				url= CFURLCreateFromFileSystemRepresentationRelativeToBase(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kApplicationSupportName), strlen(kApplicationSupportName), TRUE, base);
-				break;
-			case kInternetPlugInFolderType:
-				url= CFURLCreateFromFileSystemRepresentationRelativeToBase(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kInternetPlugInName), strlen(kInternetPlugInName), TRUE, base);
-				break;
-			case kSharedLibrariesFolderType:
-				url= CFURLCreateFromFileSystemRepresentationRelativeToBase(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kSharedLibrariesName), strlen(kSharedLibrariesName), TRUE, base);
-				break;
-			case kContextualMenuItemsFolderType:
-				url= CFURLCreateFromFileSystemRepresentationRelativeToBase(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kContextualMenuItemsName), strlen(kContextualMenuItemsName), TRUE, base);
-				break;
-			case kQuickTimeExtensionsFolderType:
-				url= CFURLCreateFromFileSystemRepresentationRelativeToBase(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kQuickTimeExtensionsName), strlen(kQuickTimeExtensionsName), TRUE, base);
-				break;
-			case kDisplayExtensionsFolderType:
-				url= CFURLCreateFromFileSystemRepresentationRelativeToBase(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kDisplayExtensionsName), strlen(kDisplayExtensionsName), TRUE, base);
-				break;
-			case kPrintingPlugInsFolderType:
-				url= CFURLCreateFromFileSystemRepresentationRelativeToBase(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(kPrintingPlugInsName), strlen(kPrintingPlugInsName), TRUE, base);
-				break;
-			default:
-				break;
-		}
-	}
-	if( (NULL != url) && CFURLGetFSRef(url, foundRef) ) {
-		err= noErr;
-	}
-	if(NULL != url) {
-		CFRelease(url);
-	}
-	if(NULL != base) {
-		CFRelease(base);
-	}
-	if(NULL != home) {
-		CFRelease(home);
-	}
-	return err;
-}
-#define FSFindFolder sys::FSFindFolder
-#endif
 
 	/** An abstraction of a system library.
 	*/
@@ -242,20 +151,20 @@ namespace sys {
 		#if __use_module__
 			_module(NULL)
 		#endif
-	{trace_scope
+	{
 		bool				found= _attempt_core(path, Unmodified); // try a quick and simple load of what they gave us
 		const bool			justAName= (NULL == strchr(path, __path_separator__));
 		const std::string	str(path);
 
-		if(trace_bool(!found) && trace_bool(justAName) ) {
+		if((!found) && (justAName) ) {
 
 			if(NULL != __std_lib_prefix__) { // try adding a prefix
 				found= _attempt_core((__std_lib_prefix__+str).c_str(), Modified);
 			}
-			if(trace_bool(!found) && trace_bool(NULL != __std_lib_suffix__) ) { // try adding a suffix
+			if((!found) && (NULL != __std_lib_suffix__) ) { // try adding a suffix
 				found= _attempt_core((str+__std_lib_suffix__).c_str(), Modified);
 			}
-			if(trace_bool(!found) && trace_bool(NULL != __std_lib_prefix__) && trace_bool(NULL != __std_lib_suffix__) ) { // try adding both
+			if((!found) && (NULL != __std_lib_prefix__) && (NULL != __std_lib_suffix__) ) { // try adding both
 				found= _attempt_core((__std_lib_prefix__+str+__std_lib_suffix__).c_str(), Modified);
 			}
 		}
@@ -264,7 +173,7 @@ namespace sys {
 				static const char * const bundleSuffixes[]= {
 					"", ".framework", ".bundle", ".plugin", ".app", ".kext"
 				};
-				for(size_t index= 0; trace_bool(trace_bool(!found) && trace_bool(index < sizeof(bundleSuffixes)/sizeof(bundleSuffixes[0]))); ++index) {
+				for(size_t index= 0; ((!found) && (index < sizeof(bundleSuffixes)/sizeof(bundleSuffixes[0]))); ++index) {
 					if(justAName) {
 						found= _search_bundle(str+bundleSuffixes[index]);
 					} else {
@@ -283,7 +192,7 @@ namespace sys {
 	}
 	/** Close the library.
 	*/
-	inline Library::~Library() {trace_scope
+	inline Library::~Library() {
 		#if __use_module__
 			if(NULL != _module) {
 				FreeLibrary(_module);
@@ -320,7 +229,7 @@ namespace sys {
 			if(NULL != _bundle) {
 				CFStringRef		str= CFStringCreateWithBytes(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(name), strlen(name), CFStringGetSystemEncoding(), false);
 
-				ptr= trace_bool(NULL != str) ? CFBundleGetFunctionPointerForName(_bundle, str) : NULL;
+				ptr= (NULL != str) ? CFBundleGetFunctionPointerForName(_bundle, str) : NULL;
 				if(NULL != str) {
 					CFRelease(str);
 				}
@@ -342,12 +251,12 @@ namespace sys {
 		@return		true if we were able to load the bundle successfully.
 	*/
 #if __use_bundles__
-	inline bool Library::_load(CFURLRef base, CFStringRef name) {trace_scope
-		CFURLRef	itemPath= trace_bool(trace_bool(NULL != base) && trace_bool(NULL != name))
+	inline bool Library::_load(CFURLRef base, CFStringRef name) {
+		CFURLRef	itemPath= ((NULL != base) && (NULL != name))
 						? CFURLCreateCopyAppendingPathComponent(kCFAllocatorDefault, base, name, true) : NULL;
 
-		//CFShow(trace_bool(itemPath) ? (CFTypeRef)itemPath : (CFTypeRef)CFSTR("NULL"));
-		_bundle= trace_bool(NULL != itemPath) ? CFBundleCreate(kCFAllocatorDefault, itemPath) : NULL;
+		//CFShow((itemPath) ? (CFTypeRef)itemPath : (CFTypeRef)CFSTR("NULL"));
+		_bundle= (NULL != itemPath) ? CFBundleCreate(kCFAllocatorDefault, itemPath) : NULL;
 		if(NULL != base) {
 			CFRelease(base);
 		}
@@ -363,51 +272,16 @@ namespace sys {
 		@note Does nothing unless __use_bundles__
 		@param name	The name of the bundle to load (including extension).
 		@return		true if we found a bundle by that name
-		@todo Test _load(CFURLCreateFromFSRef) returning true
 	*/
-	inline bool Library::_search_bundle(const std::string &name) {trace_scope
+	inline bool Library::_search_bundle(const std::string &name) {
 		#if __use_bundles__
-			typedef CFURLRef (*BundlePath)(CFBundleRef);
-			static const FSVolumeRefNum	domains[]= {kUserDomain, kLocalDomain, kSystemDomain};
-			static const OSType			folders[]= {
-				kExtensionFolderType,			kApplicationSupportFolderType,	kInternetPlugInFolderType,
-				kSharedLibrariesFolderType,		kContextualMenuItemsFolderType,	kQuickTimeExtensionsFolderType,
-				kDisplayExtensionsFolderType,	kPrintingPlugInsFolderType,
-			};
-			static const BundlePath	paths[]= {
-				CFBundleCopyPrivateFrameworksURL,	CFBundleCopySharedFrameworksURL,
-				CFBundleCopyBuiltInPlugInsURL,		CFBundleCopyResourcesDirectoryURL,
-				CFBundleCopySharedSupportURL,		CFBundleCopySupportFilesDirectoryURL,
-				CFBundleCopyBundleURL,
-			};
 			static const char * const absolutePaths[]= {
 				"/Library/Frameworks", "/System/Library/Frameworks", "/System//Library/PrivateFrameworks"
 			};
-			CFBundleRef	mainBundle= CFBundleGetMainBundle();
 			CFStringRef	str= CFStringCreateWithBytes(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(name.data()), name.length(), CFStringGetSystemEncoding(), false);
 
-			// Search inside the main bundle, if there is one
-			if(trace_bool( trace_bool(NULL != mainBundle) && trace_bool(NULL != str) )) {
-				for(size_t index= 0; trace_bool(index < sizeof(paths)/sizeof(paths[0])); ++index) {
-					if(false) {// if(_load(paths[index](mainBundle), str)) {
-						return true;
-					}
-				}
-			}
-			// Search in the standard folders
-			for(size_t domain= 0; trace_bool(trace_bool(str) && trace_bool(domain < sizeof(domains)/sizeof(domains[0]))); ++domain) {
-				for(size_t folder= 0; trace_bool(folder < sizeof(folders)/sizeof(folders[0])); ++folder) {
-					FSRef	systemFolder;
-
-					if(noErr == FSFindFolder(domains[domain], folders[folder], false /*create*/, &systemFolder)) {
-						if(_load(CFURLCreateFromFSRef(kCFAllocatorDefault, &systemFolder), str)) {
-							return true;
-						}
-					}
-				}
-			}
 			// Search in some hard coded, last ditch locations
-			for(size_t path= 0; trace_bool(trace_bool(str) && trace_bool(path < sizeof(absolutePaths)/sizeof(absolutePaths[0]))); ++path) {
+			for(size_t path= 0; ((str) && (path < sizeof(absolutePaths)/sizeof(absolutePaths[0]))); ++path) {
 				if(_load(CFURLCreateFromFileSystemRepresentation(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(absolutePaths[path]), strlen(absolutePaths[path]), true), str)) {
 					return true;
 				}
@@ -423,7 +297,7 @@ namespace sys {
 		@param modified	Is path the one passed in from the client?
 		@return			true if we were able to load the library.
 	*/
-	inline bool Library::_attempt_core(const char *path, PathModified modified) {trace_scope
+	inline bool Library::_attempt_core(const char *path, PathModified modified) {
 		#if __use_module__
 			_module= LoadLibrary(reinterpret_cast<LPCSTR>(path));
 			if(NULL != _module) {
@@ -436,11 +310,11 @@ namespace sys {
 				CFStringRef		str;
 				CFURLRef		url= CFURLCreateFromFileSystemRepresentation(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(path), len, false);
 
-				_bundle= trace_bool(NULL != url) ? CFBundleCreate(kCFAllocatorDefault, url) : NULL;
+				_bundle= (NULL != url) ? CFBundleCreate(kCFAllocatorDefault, url) : NULL;
 
 				 // if not a path, try it as a bundle identifier
-				str= trace_bool(NULL != _bundle) ? NULL : CFStringCreateWithBytes(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(path), len, CFStringGetSystemEncoding(), false);
-				_bundle= trace_bool(NULL != str) ? CFBundleGetBundleWithIdentifier(str) : _bundle;
+				str= (NULL != _bundle) ? NULL : CFStringCreateWithBytes(kCFAllocatorDefault, reinterpret_cast<const UInt8*>(path), len, CFStringGetSystemEncoding(), false);
+				_bundle= (NULL != str) ? CFBundleGetBundleWithIdentifier(str) : _bundle;
 				if(NULL != str) {
 					CFRelease(str);
 				}
@@ -467,7 +341,7 @@ namespace sys {
 		@param line		pass __LINE__
 	*/
 	inline Library::Exception::Exception(const std::string &message, const char *file, int line) throw()
-		:_message(_buildMessage(message, file, line)) {trace_scope}
+		:_message(_buildMessage(message, file, line)) {}
 	/** Creates a new library exception for when you know what function you are in.
 		@param message	The message about what was going on when the exception was thrown.
 		@param file		pass __FILE__
@@ -475,13 +349,13 @@ namespace sys {
 		@param function	pass __FUNCTION__
 	*/
 	inline Library::Exception::Exception(const std::string &message, const char *file, int line, const char *function) throw()
-		:_message(_buildMessage(message, file, line, function)) {trace_scope}
+		:_message(_buildMessage(message, file, line, function)) {}
 	/** Cleans up the _message string.
 	*/
-	inline Library::Exception::~Exception() throw() {trace_scope}
+	inline Library::Exception::~Exception() throw() {}
 	/** Gets the _message string.
 	*/
-	inline const char *Library::Exception::what() const throw() {trace_scope
+	inline const char *Library::Exception::what() const throw() {
 		return _message.c_str();
 	}
 	/** Builds up a message about the exception.
@@ -493,7 +367,7 @@ namespace sys {
 		@param line		__LINE__
 		@param function	__FUNCTION__ or NULL
 	*/
-	inline std::string Library::Exception::_buildMessage(const std::string &message, const char *file, int line, const char *function) {trace_scope
+	inline std::string Library::Exception::_buildMessage(const std::string &message, const char *file, int line, const char *function) {
 		std::string	result(file);
 
 		result.append(1, ':');

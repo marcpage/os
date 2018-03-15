@@ -7,13 +7,6 @@
 #include "POSIXErrno.h"
 #include "Exception.h"
 
-#ifndef trace_scope
-	#define trace_scope ///< in case Tracer.h is not included
-#endif
-#ifndef trace_bool
-	#define trace_bool(x) (x) ///< in case Tracer.h is not included
-#endif
-
 #define AddToConvertToAppleCocoaEpoch	(dt::DateTime(2001,dt::DateTime::Jan,1) - dt::DateTime(0.0))
 #define AddToConvertToDOSEpoch	 		(dt::DateTime(1980,dt::DateTime::Jan,1) - dt::DateTime(0.0))
 #define AddToConvertToUNIXEpoch 		(dt::DateTime(1970,dt::DateTime::Jan,1) - dt::DateTime(0.0))
@@ -94,22 +87,22 @@ namespace dt {
 				http://developer.apple.com/library/mac/#qa/qa1398/_index.html
 	*/
 	inline DateTime::DateTime()
-		:_time() {trace_scope;
+		:_time() {;
 		struct timeval	time;
 		ErrnoOnNegative(gettimeofday(&time,NULL));
 		_time.tv_sec= time.tv_sec;
 		_time.tv_nsec= static_cast<long>(time.tv_usec) * 1000UL;
 	}
 	inline DateTime::DateTime(const DateTime &time)
-		:_time(time._time) {trace_scope;
+		:_time(time._time) {;
 	}
 	inline DateTime::DateTime(const time_t &time)
-		:_time() {trace_scope;
+		:_time() {;
 		_time.tv_sec= time;
 		_time.tv_nsec= 0UL;
 	}
 	inline DateTime::DateTime(const timeval &time)
-		:_time() {trace_scope;
+		:_time() {;
 		_time.tv_sec= time.tv_sec;
 		_time.tv_nsec= static_cast<long>(time.tv_usec) * 1000UL;
 	}
@@ -122,11 +115,11 @@ namespace dt {
 		AssertMessageException(_time.tv_sec != static_cast<time_t>(-1));
 	}
 	inline DateTime::DateTime(tm &time)
-		:_time() {trace_scope;
+		:_time() {;
 		_init(time);
 	}
 	inline DateTime::DateTime(const double &time)
-		:_time() {trace_scope;
+		:_time() {;
 		double	wholeSeconds= floor(time);
 
 		_time.tv_sec= static_cast<time_t>(wholeSeconds);
@@ -159,12 +152,12 @@ namespace dt {
 		}
 		_init(year, month, day, hour, minutes, secs);
 	}
-	inline DateTime::~DateTime() {trace_scope;
+	inline DateTime::~DateTime() {;
 	}
-	inline DateTime::operator time_t() const {trace_scope;
+	inline DateTime::operator time_t() const {;
 		return _time.tv_sec;
 	}
-	inline DateTime::operator timeval() const {trace_scope;
+	inline DateTime::operator timeval() const {;
 		struct timeval	time;
 		value(time);
 		return time;
@@ -172,66 +165,66 @@ namespace dt {
 	inline DateTime::operator const timespec() const {
 		return _time;
 	}
-	inline DateTime::operator double() const {trace_scope;
+	inline DateTime::operator double() const {;
 		return seconds();
 	}
-	inline DateTime &DateTime::operator+=(double secs) {trace_scope;
+	inline DateTime &DateTime::operator+=(double secs) {;
 		*this= *this + secs;
 		return *this;
 	}
-	inline DateTime DateTime::operator+(double secs) const {trace_scope;
+	inline DateTime DateTime::operator+(double secs) const {;
 		return DateTime(seconds() + secs);
 	}
-	inline DateTime &DateTime::operator-=(double secs) {trace_scope;
+	inline DateTime &DateTime::operator-=(double secs) {;
 		*this= *this - secs;
 		return *this;
 	}
-	inline DateTime DateTime::operator-(double secs) const {trace_scope;
+	inline DateTime DateTime::operator-(double secs) const {;
 		return DateTime(seconds() - secs);
 	}
-	inline double DateTime::operator-(const DateTime &other) const {trace_scope;
+	inline double DateTime::operator-(const DateTime &other) const {;
 		return seconds() - other.seconds();
 	}
-	inline DateTime &DateTime::operator=(const DateTime &other) {trace_scope;
+	inline DateTime &DateTime::operator=(const DateTime &other) {;
 		_time= other._time;
 		return *this;
 	}
-	inline bool DateTime::operator==(const DateTime &other) const {trace_scope;
+	inline bool DateTime::operator==(const DateTime &other) const {;
 		return (_time.tv_sec == other._time.tv_sec)
 				&& (_time.tv_nsec == other._time.tv_nsec);
 	}
-	inline bool DateTime::operator!=(const DateTime &other) const {trace_scope;
+	inline bool DateTime::operator!=(const DateTime &other) const {;
 		return (_time.tv_sec != other._time.tv_sec)
 				|| (_time.tv_nsec != other._time.tv_nsec);
 	}
-	inline bool DateTime::operator<(const DateTime &other) const {trace_scope;
+	inline bool DateTime::operator<(const DateTime &other) const {;
 		if(_time.tv_sec == other._time.tv_sec) {
 			return _time.tv_nsec < other._time.tv_nsec;
 		}
 		return _time.tv_sec < other._time.tv_sec;
 	}
-	inline bool DateTime::operator>(const DateTime &other) const {trace_scope;
+	inline bool DateTime::operator>(const DateTime &other) const {;
 		if(_time.tv_sec == other._time.tv_sec) {
 			return _time.tv_nsec > other._time.tv_nsec;
 		}
 		return _time.tv_sec > other._time.tv_sec;
 	}
-	inline bool DateTime::operator<=(const DateTime &other) const {trace_scope;
+	inline bool DateTime::operator<=(const DateTime &other) const {;
 		if(_time.tv_sec == other._time.tv_sec) {
 			return _time.tv_nsec <= other._time.tv_nsec;
 		}
 		return _time.tv_sec <= other._time.tv_sec;
 	}
-	inline bool DateTime::operator>=(const DateTime &other) const {trace_scope;
+	inline bool DateTime::operator>=(const DateTime &other) const {;
 		if(_time.tv_sec == other._time.tv_sec) {
 			return _time.tv_nsec >= other._time.tv_nsec;
 		}
 		return _time.tv_sec >= other._time.tv_sec;
 	}
-	inline double DateTime::seconds() const {trace_scope;
+	inline double DateTime::seconds() const {;
 		return static_cast<double>(_time.tv_sec) + static_cast<double>(_time.tv_nsec) / 1000000000.0;
 	}
-	inline DateTime &DateTime::add(double amount, Span span) {trace_scope;
+	inline DateTime &DateTime::add(double amount, Span span) {;
 		switch(span) {
 			case Weeks:
 				amount*= 7.0;
@@ -248,10 +241,10 @@ namespace dt {
 		}
 		return *this += amount;
 	}
-	inline tm &DateTime::utc(tm &time) const {trace_scope;
+	inline tm &DateTime::utc(tm &time) const {;
 		return *localtime_r(&_time.tv_sec, &time);
 	}
-	inline tm &DateTime::local(tm &time) const {trace_scope;
+	inline tm &DateTime::local(tm &time) const {;
 		return *gmtime_r(&_time.tv_sec, &time);
 	}
 	inline timeval &DateTime::value(timeval &tv) const {

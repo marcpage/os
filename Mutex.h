@@ -4,13 +4,6 @@
 #include <pthread.h>
 #include "Exception.h"
 
-#ifndef trace_scope
-	#define trace_scope ///< in case Tracer.h is not included
-#endif
-#ifndef trace_bool
-	#define trace_bool(x) (x) ///< in case Tracer.h is not included
-#endif
-
 /// Utility Macro to work preprocessor magic, do not use directly
 #define MUTEX_PASTER(x,y) __ ## x ## _ ## y
 /// Creates a unique variable name (per line)
@@ -58,24 +51,24 @@ namespace exec {
 		@param mutex	The mutex to lock and remember.
 	*/
 	inline Mutex::Locker::Locker(Mutex &mutex)
-	:_mutex(mutex) {trace_scope;
+	:_mutex(mutex) {;
 		_mutex.lock();
 	}
 	/** Unlocks the remembered mutex.
 	*/
-	inline Mutex::Locker::~Locker() {trace_scope;
+	inline Mutex::Locker::~Locker() {;
 		_mutex.unlock();
 	}
 	/** Creates a mutex.
 		@throw msg::MessageException	If initing the mutex fails.
 	*/
 	inline Mutex::Mutex()
-	:_mutex() {trace_scope;
+	:_mutex() {;
 		AssertCodeMessageException(pthread_mutex_init(&_mutex, NULL));
 	}
 	/** Destroys the mutex.
 	*/
-	inline Mutex::~Mutex() {trace_scope;
+	inline Mutex::~Mutex() {;
 		int		error= pthread_mutex_destroy(&_mutex);
 		void	*__unused__[]= {&error, &__unused__};
 	}
@@ -83,20 +76,20 @@ namespace exec {
 		If someone already has this mutex lock()'ed,
 		@throw msg::MessageException	If locking the mutex fails.
 	*/
-	inline void Mutex::lock() {trace_scope;
+	inline void Mutex::lock() {;
 		AssertCodeMessageException(pthread_mutex_lock(&_mutex));
 	}
 	/** Allows others to lock this mutex.
 		If someone is already trying to lock() this mutex, they may be allowed to.
 		@throw msg::MessageException	If unlocking the mutex fails.
 	*/
-	inline void Mutex::unlock() {trace_scope;
+	inline void Mutex::unlock() {;
 		AssertCodeMessageException(pthread_mutex_unlock(&_mutex));
 	}
 	/** Gets the system mutex behind the implementation.
 		@return	System mutex used.
 	*/
-	inline Mutex::operator SystemMutex*() {trace_scope;
+	inline Mutex::operator SystemMutex*() {;
 		return &_mutex;
 	}
 };

@@ -3,19 +3,12 @@
 #include "Exception.h"
 #include "POSIXErrno.h"
 
-#ifndef trace_scope
-	#define trace_scope ///< in case Tracer.h is not included
-#endif
-#ifndef trace_bool
-	#define trace_bool(x) (x) ///< in case Tracer.h is not included
-#endif
-
 namespace exec {
 	/**
 		@todo Document
 		@todo Test
 	*/
-	inline std::string &execute(const std::string &command, std::string &stdout, const size_t blocks= 4096) {trace_scope
+	inline std::string &execute(const std::string &command, std::string &stdout, const size_t blocks= 4096) {
 		FILE	*out= ::popen(command.c_str(), "r");
 
 		ErrnoOnNULL(out);
@@ -32,7 +25,7 @@ namespace exec {
 					ErrnoCodeThrow(ferror(out), "stdout error");
 				}
 			}
-		} catch(const std::exception&) {trace_scope
+		} catch(const std::exception&) {
 			::pclose(out);
 			throw;
 		}
