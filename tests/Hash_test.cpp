@@ -10,7 +10,7 @@
 // /tmp/test
 
 int main(int /*argc*/, char * /*argv*/[]) {
-	int	iterations= 100000;
+	int	iterations= 1000000;
 #ifdef __Tracer_h__
 	iterations= 1;
 #endif
