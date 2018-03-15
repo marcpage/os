@@ -20,6 +20,7 @@ typedef std::map<std::string,CompilerTimes>		TestCompilerTimes;
 const double		gTestTimeAllowancePercent= 5;
 const double		gTestMinimumTimeInSeconds= 1;
 const char * const	gCompilerFlags= "-I.. -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -lsqlite3 -framework Carbon";
+const uint32_t		gMinimumPercentCodeCoverage= 60;
 
 TestCompilerTimes	gCompilerTimes;
 Dictionary			gCompilerLocations;
@@ -85,9 +86,11 @@ void runTest(const String &name, const String &compiler, uint32_t testedLines, d
 	std::string		executableName;
 	std::string		logName;
 	std::string		runLogName;
+	std::string		gcovLogName;
 	dt::DateTime	start, end;
 	double			compilePerfTime, compileCoverageTime, runPerfTime, runCoverageTime, totalTime;
 	uint32_t		coverage;
+	uint32_t		uncovered;
 	uint32_t		warnings, errors, failures;
 	bool			displayNewLine= false;
 
@@ -135,14 +138,34 @@ void runTest(const String &name, const String &compiler, uint32_t testedLines, d
 		executableName= name + '_' + compiler + "_trace";
 		logName= executableName + "_compile.log";
 		runLogName= executableName + "_run.log";
+		gcovLogName= executableName + "_gcov.log";
 		command= gCompilerLocations[compiler]
 					+ " -o bin/tests/"+executableName+" tests/"+name+"_test.cpp "
-					+(gDebugging ? " -g " : "")+gCompilerFlags+" &> bin/logs/"+logName;
+					+(gDebugging ? " -g " : "")+gCompilerFlags+" -D__Tracer_h__ -fprofile-arcs -ftest-coverage &> bin/logs/"+logName;
 		compileCoverageTime= runNoResultsExpected(command, "compile trace");
 		command= "bin/tests/"+executableName+" &> bin/logs/"+runLogName;
 		runCoverageTime= runNoResultsExpected(command, "run trace");
 
-		coverage= runIntegerExpected("cat bin/logs/"+runLogName+" | grep ../os/"+name+"\\\\.h: | sort | uniq | wc -l");
+		exec::execute("mkdir -p bin/coverage/"+executableName, results);
+		if(results != "") {
+			printf("WARNING: mkdir '%s'\n", results.c_str());
+		}
+		exec::execute("gcov "+name+"_test.cpp"+" &> bin/logs/"+gcovLogName, results);
+		if(results != "") {
+			printf("WARNING: gcov '%s'\n", results.c_str());
+		}
+		exec::execute("mv *.gcov *.gcno *.gcda bin/coverage/"+executableName+"/", results);
+		if(results != "") {
+			printf("WARNING: mv '%s'\n", results.c_str());
+		}
+
+		coverage= runIntegerExpected("cat bin/coverage/"+executableName+"/"+name+".h.gcov | grep -E '[0-9]+:\\s+[0-9]+:' | wc -l");
+		uncovered= runIntegerExpected("cat bin/coverage/"+executableName+"/"+name+".h.gcov | grep -E '#+:\\s+[0-9]+:' | wc -l");
+		if ((gVerbose && (uncovered > 0)) || (100 * coverage / (coverage + uncovered) < gMinimumPercentCodeCoverage)) {
+			printf("\twarning: %d lines untested (%d tested) %d%%\n", uncovered, coverage, 100 * coverage / (coverage + uncovered));
+			exec::execute("cat bin/coverage/"+executableName+"/"+name+".h.gcov | grep -E '#+:\\s+[0-9]+:'", results);
+			printf("%s\n", results.c_str());
+		}
 		if( (coverage != testedLines) ) {
 			printf("\tTested Lines: %d Expected %d\n", coverage, testedLines);
 			displayNewLine= true;
@@ -287,7 +310,7 @@ int main(int argc, const char * const argv[]) {
 		if(results != "") {
 			printf("WARNING: mkdir '%s'\n", results.c_str());
 		}
-		exec::execute("rm -Rf bin/logs/* bin/tests/*", results);
+		exec::execute("rm -Rf *.gcov *.gcno *.gcda bin/coverage/* bin/logs/* bin/tests/*", results);
 		if(results != "") {
 			printf("WARNING: rm '%s'\n", results.c_str());
 		}
@@ -298,13 +321,19 @@ int main(int argc, const char * const argv[]) {
 			printf("Examining overall coverage ...\n");
 			exec::execute("ls *.h", results);
 			split(results, '\n', headers);
-			runNoResultsExpected("cat bin/logs/*_trace_run.log | grep /os/ | sort | uniq > bin/logs/all_trace.log", "Combining coverage");
 			for(StringList::iterator header= headers.begin(); header != headers.end(); ++header) {
 				uint32_t	coverage;
+				uint32_t	uncovered;
 				bool		found= headerCoverage.count(*header) > 0;
 				int			value= found ? atoi(headerCoverage[*header].c_str()) : 0;
 
-				coverage= runIntegerExpected("cat bin/logs/all_trace.log | grep ../os/"+*header+": | wc -l");
+				coverage= runIntegerExpected("cat bin/coverage/*/"+*header+".gcov | grep -E '[0-9]+:\\s+[0-9]+:' | cut -d: -f2- | sort | uniq | wc -l");
+				uncovered= runIntegerExpected("cat bin/coverage/*/"+*header+".gcov | grep -E '#+:\\s+[0-9]+:' | cut -d: -f2- | sort | uniq | wc -l");
+				if (100 * coverage / (coverage + uncovered) < gMinimumPercentCodeCoverage) {
+					printf("%s coverage low %d%%\n", header->c_str(), 100 * coverage / (coverage + uncovered));
+					exec::execute("cat bin/coverage/*/"+*header+".gcov | grep -E '#+:\\s+[0-9]+:' | cut -d: -f2- | sort | uniq", results);
+					printf("%s\n", results.c_str());
+				}
 				if(found) {
 					if(value != static_cast<int>(coverage)) {
 						printf("%20s\tCoverage: %4d Expected: %4d\n", header->c_str(), coverage, value);

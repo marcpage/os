@@ -1,51 +1,46 @@
 -test
-AtomicInteger		clang++:0:2.426:5.492	g++:0:2.577:5.734	llvm-g++:0:2.586:5.568
-DateTime			clang++:0:2.225:3.516	g++:0:1.786:4.952	llvm-g++:0:1.901:5.280
-Exception			clang++:0:3.010:6.300	g++:0:2.727:5.462	llvm-g++:0:2.732:5.339
-Execute				clang++:0:1.898:4.908	g++:0:2.038:4.865	llvm-g++:0:2.039:4.858
-File				clang++:0:2.488:5.807	g++:0:2.327:5.949	llvm-g++:0:2.401:5.996
-Hash				clang++:0:1.358:2.435	g++:0:1.385:2.370	llvm-g++:0:1.414:2.592
-Library				clang++:0:1.798:3.772	g++:0:1.747:3.866	llvm-g++:0:1.739:3.891
-Mutex				clang++:0:2.461:5.766	g++:0:2.467:5.594	llvm-g++:0:2.451:5.764
-Queue				clang++:0:9.231:19.413	g++:0:9.042:19.037	llvm-g++:0:9.063:19.259
-RWLock				clang++:0:1.592:3.999	g++:0:1.525:3.910	llvm-g++:0:1.593:3.864
-ReferenceCounted	clang++:0:2.379:7.529	g++:0:2.420:7.783	llvm-g++:0:2.476:8.485
-Signal				clang++:0:12.071:25.186	g++:0:12.346:25.334	llvm-g++:0:12.305:25.499
-SocketServer		clang++:0:7.427:1.250	g++:0:7.427:2.093	llvm-g++:0:7.427:4.685
-Sqlite3Plus			clang++:0:0.324:1.390	g++:0:0.324:2.474	llvm-g++:0:0.324:1.961
-Thread				clang++:0:2.152:5.063	g++:0:2.019:6.493	llvm-g++:0:3.056:6.231
+SocketServer		clang++:11:7.427:6.531	g++:11:7.427:5.663	llvm-g++:11:7.427:5.560
+Sqlite3Plus			clang++:58:0.324:9.675	g++:58:0.324:9.982	llvm-g++:58:0.324:9.081
+Hash				clang++:47:1.358:2.606	g++:47:1.385:2.452	llvm-g++:47:1.414:2.611
+RWLock				clang++:20:1.592:3.999	g++:20:1.664:4.056	llvm-g++:20:1.593:4.033
+AtomicInteger		clang++:8:2.426:5.492	g++:8:2.577:5.734	llvm-g++:8:2.586:5.568
+Library				clang++:86:1.798:5.609	g++:86:1.747:3.866	llvm-g++:86:1.739:3.891
+DateTime			clang++:30:2.225:4.523	g++:30:1.786:4.952	llvm-g++:30:1.901:5.280
+Thread				clang++:31:2.152:5.063	g++:31:2.019:6.493	llvm-g++:31:3.056:6.231
+Execute				clang++:14:2.212:8.109	g++:14:2.267:5.143	llvm-g++:14:2.039:5.556
+Exception			clang++:35:3.010:6.300	g++:35:8.559:11.892	llvm-g++:35:3.084:10.108
+File				clang++:92:2.488:6.016	g++:92:6.211:10.022	llvm-g++:92:2.417:10.651
+Mutex				clang++:17:2.461:6.200	g++:17:7.938:12.754	llvm-g++:17:5.156:8.597
+ReferenceCounted	clang++:46:5.271:19.866	g++:46:2.816:15.773	llvm-g++:46:6.380:20.935
+Queue				clang++:43:9.257:21.382	g++:43:9.264:19.685	llvm-g++:43:9.264:19.562
+Signal				clang++:13:12.195:27.350	g++:13:12.346:25.593	llvm-g++:13:12.305:27.931
 
 -header
-Address.h				  0
-AddressIPv4.h			 0
-AddressIPv6.h			 0
-ArchiveFile.h			0
-AtomicInteger.h			 0
-Buffer.h				  0
-BufferAddress.h			  0
-BufferManaged.h			  0
-BufferString.h			  0
-CompactNumber.h			 0
-DateTime.h				 0
-EnumSet.h				0
-Exception.h				 0
-Execute.h				  0
-File.h					 0
-Hash.h					 0
-Library.h				0
-Mutex.h					 0
-OutputStream.h			  0
-OutputStreamFile.h		  0
-OutputStreamMirror.h	  0
-POSIXErrno.h			 0
-Queue.h					 0
-RWLock.h				 0
-ReferenceCounted.h		 0
-ReferencedString.h		0
-Signal.h				  0
-Socket.h				 0
-SocketGeneric.h			 0
-SocketServer.h			 0
-Sqlite3Plus.h			 0
-Thread.h				 0
-Tracer.h				  0
+DateTime.h				30
+Exception.h				35
+Execute.h				14
+File.h					92
+Hash.h					47
+Library.h				86
+Mutex.h					18
+Queue.h					43
+RWLock.h				20
+ReferenceCounted.h		46
+Signal.h				13
+Sqlite3Plus.h			58
+Thread.h				33
+AtomicInteger.h			 9
+POSIXErrno.h			 3
+Address.h				0
+AddressIPv4.h			0
+AddressIPv6.h			0
+Buffer.h				0
+BufferAddress.h			0
+BufferManaged.h			0
+BufferString.h			0
+OutputStream.h			0
+OutputStreamFile.h		0
+OutputStreamMirror.h	0
+Socket.h				0
+SocketGeneric.h			0
+SocketServer.h			0
