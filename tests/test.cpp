@@ -16,6 +16,8 @@ typedef std::vector<String>						StringList;
 typedef std::map<std::string,std::string>		Dictionary;
 typedef std::map<std::string,Times>				CompilerTimes;
 typedef std::map<std::string,CompilerTimes>		TestCompilerTimes;
+typedef std::map<uint32_t,bool>					LinesCovered;
+typedef std::map<std::string,LinesCovered>		FileLinesCovered;
 
 const double		gTestTimeAllowancePercent= 5;
 const double		gTestMinimumTimeInSeconds= 1;
@@ -91,6 +93,7 @@ void runTest(const String &name, const String &compiler, uint32_t testedLines, d
 	double			compilePerfTime, compileCoverageTime, runPerfTime, runCoverageTime, totalTime;
 	uint32_t		coverage;
 	uint32_t		uncovered;
+	uint32_t		percent_coverage;
 	uint32_t		warnings, errors, failures;
 	bool			displayNewLine= false;
 
@@ -105,35 +108,23 @@ void runTest(const String &name, const String &compiler, uint32_t testedLines, d
 	}
 	command= gCompilerLocations[compiler];
 	if(command != "-") {
-		printf("%-18s %9s about %0.3fs\n", name.c_str(), compiler.c_str(), totalTimeInSeconds);
+		printf("%-18s %9s about %7.3fs", name.c_str(), compiler.c_str(), totalTimeInSeconds);
+		fflush(stdout);
 		executableName= name + '_' + compiler + "_performance";
 		logName= executableName + "_compile.log";
 		runLogName= executableName + "_run.log";
+
 		command+= " -o bin/tests/"+executableName+" tests/"+name+"_test.cpp "
 					+(gDebugging ? " -g " : "")+gCompilerFlags+" &> bin/logs/"+logName;
 		compilePerfTime= runNoResultsExpected(command, "compile performance");
+
 		command= "bin/tests/"+executableName+" &> bin/logs/"+runLogName;
 		runPerfTime= runNoResultsExpected(command, "run performance");
 
-		if(runPerfTime < gTestMinimumTimeInSeconds * (1.0 + gTestTimeAllowancePercent/100.0) ) {
-			printf("\tTest is too short, run it %0.1f times\n", 1.0 / runPerfTime);
-		}
-
 		failures= runIntegerExpected("cat bin/logs/"+runLogName+" | grep FAIL | sort | uniq | wc -l");
-		if(failures > 0) {
-			printf("\t%d Test Failures\n", failures);
-		}
-
 		errors= runIntegerExpected("cat bin/logs/"+logName+" | grep error: | sort | uniq | wc -l");
 		errors+= runIntegerExpected("cat bin/logs/"+logName+" | grep ld: | sort | uniq | wc -l");
-		if(errors > 0) {
-			printf("\t%d Compile Errors\n", errors);
-		}
-
 		warnings= runIntegerExpected("cat bin/logs/"+logName+" | grep warning: | sort | uniq | wc -l");
-		if(warnings > 0) {
-			printf("\t%d Compile Warnings\n", warnings);
-		}
 
 		executableName= name + '_' + compiler + "_trace";
 		logName= executableName + "_compile.log";
@@ -161,8 +152,23 @@ void runTest(const String &name, const String &compiler, uint32_t testedLines, d
 
 		coverage= runIntegerExpected("cat bin/coverage/"+executableName+"/"+name+".h.gcov | grep -E '[0-9]+:\\s+[0-9]+:' | wc -l");
 		uncovered= runIntegerExpected("cat bin/coverage/"+executableName+"/"+name+".h.gcov | grep -E '#+:\\s+[0-9]+:' | wc -l");
-		if ((gVerbose && (uncovered > 0)) || (100 * coverage / (coverage + uncovered) < gMinimumPercentCodeCoverage)) {
-			printf("\twarning: %d lines untested (%d tested) %d%%\n", uncovered, coverage, 100 * coverage / (coverage + uncovered));
+		percent_coverage= 100 * coverage / (coverage + uncovered);
+		printf("\t%3d%% coverage\n", percent_coverage);
+
+		if(runPerfTime < gTestMinimumTimeInSeconds * (1.0 + gTestTimeAllowancePercent/100.0) ) {
+			printf("\tTest is too short, run it %0.1f times\n", 1.0 / runPerfTime);
+		}
+		if(failures > 0) {
+			printf("\t%d Test Failures\n", failures);
+		}
+		if(errors > 0) {
+			printf("\t%d Compile Errors\n", errors);
+		}
+		if(warnings > 0) {
+			printf("\t%d Compile Warnings\n", warnings);
+		}
+		if ((gVerbose && (uncovered > 0)) || (percent_coverage < gMinimumPercentCodeCoverage)) {
+			printf("\twarning: %d lines untested (%d tested) %d%%\n", uncovered, coverage, percent_coverage);
 			exec::execute("cat bin/coverage/"+executableName+"/"+name+".h.gcov | grep -E '#+:\\s+[0-9]+:'", results);
 			printf("%s\n", results.c_str());
 		}
@@ -328,6 +334,7 @@ int main(int argc, const char * const argv[]) {
 				int			value= found ? atoi(headerCoverage[*header].c_str()) : 0;
 
 				coverage= runIntegerExpected("cat bin/coverage/*/"+*header+".gcov | grep -E '[0-9]+:\\s+[0-9]+:' | cut -d: -f2- | sort | uniq | wc -l");
+				// This doesn't actually get us a correct listing of uncovered lines
 				uncovered= runIntegerExpected("cat bin/coverage/*/"+*header+".gcov | grep -E '#+:\\s+[0-9]+:' | cut -d: -f2- | sort | uniq | wc -l");
 				if (100 * coverage / (coverage + uncovered) < gMinimumPercentCodeCoverage) {
 					printf("%s coverage low %d%%\n", header->c_str(), 100 * coverage / (coverage + uncovered));

@@ -9,9 +9,9 @@
 	}
 
 #ifdef __Tracer_h__
-	#define TestIterations	1000
+	#define TestIterations	6000
 #else
-	#define TestIterations	30000
+	#define TestIterations	100000
 #endif
 class PassTheBuck : public exec::Thread {
 	public:
@@ -43,7 +43,7 @@ class PassTheBuck : public exec::Thread {
 };
 
 int main(const int /*argc*/, const char * const /*argv*/[]) {
-	PassTheBuck::IntQueue	in(30), out;
+	PassTheBuck::IntQueue	in(30), out(0, 300);
 	PassTheBuck		p1(in, out), p2(in, out), p3(in, out), p4(in, out), p5(in, out);
 	PassTheBuck		p6(in, out), p7(in, out), p8(in, out), p9(in, out), p10(in, out);
 	PassTheBuck		p11(in, out), p12(in, out), p13(in, out), p14(in, out), p15(in, out);

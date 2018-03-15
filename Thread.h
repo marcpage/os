@@ -178,11 +178,11 @@ namespace exec {
 
 		try {
 			result= theThread->run();
-			if(DeleteOnFinish == theThread->_action) {
-				delete theThread;
-			}
 		} catch(const std::exception &exception) {
 			result= theThread->handle(exception, result);
+		}
+		if(DeleteOnFinish == theThread->_action) {
+			delete theThread;
 		}
 		return result;
 	}

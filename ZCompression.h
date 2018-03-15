@@ -4,7 +4,7 @@
 #include <zlib.h>
 #include "Exception.h"
 
-#define zlib_handle_error(code) if(0 != code) throw z::Exception(code, __FILE__, __LINE__); else z::noop()
+#define zlib_handle_error(code) if(0 != (code)) throw z::Exception(code, __FILE__, __LINE__); else z::noop()
 
 namespace z {
 

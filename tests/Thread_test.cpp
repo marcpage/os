@@ -12,6 +12,7 @@ class Printer : public exec::Thread {
 				printf("%s: %d\n", _name, i);
 				sleep(0.00001 /* 10 microseconds */ );
 			}
+			throw std::exception();
 			return NULL;
 		}
 	private:
