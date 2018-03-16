@@ -1,7 +1,7 @@
 -test
-Exception			clang++:35:1.615:4.119	g++:35:1.661:4.298	llvm-g++:35:1.676:4.653
-SocketServer		clang++:11:7.427:8.749	g++:11:7.427:8.293	llvm-g++:11:7.427:6.755
-Sqlite3Plus			clang++:58:3.024:9.675	g++:58:2.741:9.982	llvm-g++:58:2.601:9.081
+ZCompression		clang++:23:1.625:2.874	g++:23:1.626:2.992	llvm-g++:23:1.977:3.189
+Exception			clang++:35:1.930:4.619	g++:35:1.682:4.423	llvm-g++:35:1.676:4.653
+Sqlite3Plus			clang++:58:3.024:9.675	g++:58:3.838:9.982	llvm-g++:58:2.601:9.081
 Hash				clang++:47:12.548:14.184	g++:47:12.550:14.146	llvm-g++:47:11.758:13.217
 RWLock				clang++:20:1.728:4.702	g++:20:1.762:4.636	llvm-g++:20:1.792:4.789
 AtomicInteger		clang++:8:3.463:5.492	g++:8:3.655:5.734	llvm-g++:8:3.863:5.568
@@ -12,8 +12,9 @@ Execute				clang++:14:4.048:10.648	g++:14:4.418:11.352	llvm-g++:14:4.641:11.511
 File				clang++:92:4.522:7.135	g++:92:6.211:10.022	llvm-g++:92:4.206:10.651
 Mutex				clang++:17:4.980:7.015	g++:17:7.938:12.754	llvm-g++:17:5.156:8.597
 ReferenceCounted	clang++:46:5.271:19.866	g++:46:4.185:15.773	llvm-g++:46:6.380:20.935
-Queue				clang++:43:32.014:35.371	g++:44:32.888:36.337	llvm-g++:44:31.875:35.256
+Queue				clang++:44:32.014:35.371	g++:44:32.888:36.337	llvm-g++:44:31.875:35.256
 Signal				clang++:13:12.195:27.350	g++:13:12.346:25.593	llvm-g++:13:12.305:27.931
+SocketServer		clang++:11:7.427:8.749	g++:11:7.427:8.293	llvm-g++:11:7.427:6.755
 
 -header
 Address.h				  3
@@ -31,9 +32,6 @@ File.h					 92
 Hash.h					 47
 Library.h				 86
 Mutex.h					 18
-OutputStream.h			0
-OutputStreamFile.h		0
-OutputStreamMirror.h	0
 POSIXErrno.h			104
 Queue.h					 44
 RWLock.h				 20
@@ -44,4 +42,4 @@ SocketGeneric.h			 15
 SocketServer.h			 11
 Sqlite3Plus.h			 58
 Thread.h				 39
-ZCompression.h			0
+ZCompression.h			 23
