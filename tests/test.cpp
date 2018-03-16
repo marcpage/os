@@ -295,25 +295,31 @@ void findFileCoverage(const String &file, uint32_t &covered, uint32_t &uncovered
 	StringList		parts;
 	LinesCovered	coveredLines;
 
-	exec::execute("cat bin/coverage/*/"+file+".gcov | grep -v -E -e '-:\\s+[0-9]+:' | cut -d: -f1-2", results);
-	split(results, '\n', lines);
-	for (StringList::iterator line = lines.begin(); line != lines.end(); ++line) {
-		split(*line, ':', parts);
-
-		const bool lineRun = strip(parts[0]).substr(0,1) != "#";
-		int lineNumber = strtol(strip(parts[1]));
-		
-		if (!coveredLines[lineNumber] && lineRun) {
-			coveredLines[lineNumber] = true;
-		}
-	}
 	covered = 0;
 	uncovered = 0;
-	for (LinesCovered::iterator i = coveredLines.begin(); i != coveredLines.end(); ++i) {
-		if (i->second) {
-			covered += 1;
-		} else {
-			uncovered += 1;
+	exec::execute("cat bin/coverage/*/"+file+".gcov | grep -v -E -e '-:\\s+[0-9]+:' | cut -d: -f1-2", results);
+	split(results, '\n', lines);
+	
+	if (strip(results).length() > 0) {
+		for (StringList::iterator line = lines.begin(); line != lines.end(); ++line) {
+			split(*line, ':', parts);
+			
+			if (parts.size() != 2) {
+				continue;
+			}
+			const bool lineRun = strip(parts[0]).substr(0,1) != "#";
+			int lineNumber = strtol(strip(parts[1]));
+		
+			if (!coveredLines[lineNumber] && lineRun) {
+				coveredLines[lineNumber] = true;
+			}
+		}
+		for (LinesCovered::iterator i = coveredLines.begin(); i != coveredLines.end(); ++i) {
+			if (i->second) {
+				covered += 1;
+			} else {
+				uncovered += 1;
+			}
 		}
 	}
 }
@@ -375,7 +381,7 @@ int main(int argc, const char * const argv[]) {
 				int			value= found ? strtol(strip(headerCoverage[*header])) : 0;
 				
 				findFileCoverage(*header, coverage, uncovered);
-				if ( (100 * coverage / (coverage + uncovered) < gMinimumPercentCodeCoverage) || (gVerbose && (uncovered > 0))) {
+				if ( ((coverage + uncovered > 0) && (100 * coverage / (coverage + uncovered) < gMinimumPercentCodeCoverage)) || (gVerbose && (uncovered > 0))) {
 					printf("%s coverage low %d%%\n", header->c_str(), 100 * coverage / (coverage + uncovered));
 					exec::execute("cat bin/coverage/*/"+*header+".gcov | grep -E '#+:\\s+[0-9]+:' | cut -d: -f2- | sort | uniq", results);
 					printf("%s\n", results.c_str());

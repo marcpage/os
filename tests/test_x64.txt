@@ -44,3 +44,4 @@ SocketGeneric.h			0
 SocketServer.h			0
 Sqlite3Plus.h			58
 Thread.h				33
+ZCompression.h			0
