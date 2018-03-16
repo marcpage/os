@@ -299,17 +299,17 @@ void findFileCoverage(const String &file, uint32_t &covered, uint32_t &uncovered
 	uncovered = 0;
 	exec::execute("cat bin/coverage/*/"+file+".gcov | grep -v -E -e '-:\\s+[0-9]+:' | cut -d: -f1-2", results);
 	split(results, '\n', lines);
-	
+
 	if (strip(results).length() > 0) {
 		for (StringList::iterator line = lines.begin(); line != lines.end(); ++line) {
 			split(*line, ':', parts);
-			
+
 			if (parts.size() != 2) {
 				continue;
 			}
 			const bool lineRun = strip(parts[0]).substr(0,1) != "#";
 			int lineNumber = strtol(strip(parts[1]));
-		
+
 			if (!coveredLines[lineNumber] && lineRun) {
 				coveredLines[lineNumber] = true;
 			}
@@ -330,7 +330,7 @@ void findFileCoverage(const String &file, uint32_t &covered, uint32_t &uncovered
 int main(int argc, const char * const argv[]) {
 	StringList				testsToRun;
 	Dictionary				headerCoverage, testMetrics;
-	
+
 	loadExpectations(headerCoverage, testMetrics, testsToRun);
 	for(int arg= 1; arg < argc; ++arg) {
 		if(String("debug") == argv[arg]) {
@@ -379,15 +379,15 @@ int main(int argc, const char * const argv[]) {
 				uint32_t	uncovered;
 				bool		found= headerCoverage.count(*header) > 0;
 				int			value= found ? strtol(strip(headerCoverage[*header])) : 0;
-				
+
 				findFileCoverage(*header, coverage, uncovered);
-				if ( ((coverage + uncovered > 0) && (100 * coverage / (coverage + uncovered) < gMinimumPercentCodeCoverage)) || (gVerbose && (uncovered > 0))) {
+				if ( ((value >= 0) && (coverage + uncovered > 0) && (100 * coverage / (coverage + uncovered) < gMinimumPercentCodeCoverage)) || (gVerbose && (uncovered > 0))) {
 					printf("%s coverage low %d%%\n", header->c_str(), 100 * coverage / (coverage + uncovered));
 					exec::execute("cat bin/coverage/*/"+*header+".gcov | grep -E '#+:\\s+[0-9]+:' | cut -d: -f2- | sort | uniq", results);
 					printf("%s\n", results.c_str());
 				}
 				if(found) {
-					if(value != static_cast<int>(coverage)) {
+					if(abs(value) != static_cast<int>(coverage)) {
 						printf("%20s\tCoverage: %4d Expected: %4d\n", header->c_str(), coverage, value);
 					}
 				} else {

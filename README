@@ -16,4 +16,6 @@ clang++ tests/test.cpp -I.. -o bin/test -Wall -Weffc++ -Wextra -Wshadow -Wwrite-
 bin/test
 
 mkdir -p documentation
-doxygen os.dox
+doxygen os.dox 2> bin/logs/doxygen.txt
+DOCS=`cat bin/logs/doxygen.txt | wc -l`
+if [ $DOCS -ne "0" ]; then echo $DOCS documentation messages; fi

@@ -1,17 +1,17 @@
 -test
 Sqlite3Plus			clang++:58:3.024:9.675	g++:58:2.741:9.982	llvm-g++:58:2.601:9.081
-Hash				clang++:47:7.852:9.083	g++:47:8.317:9.570	llvm-g++:47:7.913:9.157
-RWLock				clang++:20:1.728:4.687	g++:20:1.762:4.636	llvm-g++:20:1.792:4.789
+Hash				clang++:47:12.548:14.184	g++:47:12.550:14.146	llvm-g++:47:11.758:13.217
+RWLock				clang++:20:1.728:4.702	g++:20:1.762:4.636	llvm-g++:20:1.792:4.789
 AtomicInteger		clang++:8:3.245:5.492	g++:8:3.655:5.734	llvm-g++:8:3.863:5.568
 Library				clang++:86:5.946:8.924	g++:86:4.037:6.275	llvm-g++:86:3.715:5.933
 DateTime			clang++:30:4.472:6.090	g++:30:4.606:6.361	llvm-g++:30:4.689:6.452
-Thread				clang++:35:2.866:6.979	g++:35:2.526:6.822	llvm-g++:35:3.056:6.723
-Execute				clang++:14:2.712:8.109	g++:14:2.371:6.233	llvm-g++:14:2.334:6.229
-Exception			clang++:35:3.010:6.300	g++:35:8.559:11.892	llvm-g++:35:3.084:10.108
-File				clang++:92:2.872:6.016	g++:92:6.211:10.022	llvm-g++:92:3.121:10.651
-Mutex				clang++:17:3.904:6.200	g++:17:7.938:12.754	llvm-g++:17:5.156:8.597
-ReferenceCounted	clang++:46:5.271:19.866	g++:46:3.109:15.773	llvm-g++:46:6.380:20.935
-Queue				clang++:44:32.014:35.371	g++:44:31.981:35.345	llvm-g++:44:31.875:35.256
+Thread				clang++:35:3.033:7.151	g++:35:2.998:7.053	llvm-g++:35:3.056:6.723
+Execute				clang++:14:4.048:10.648	g++:14:4.418:11.352	llvm-g++:14:4.641:11.511
+Exception			clang++:35:3.010:6.300	g++:35:8.559:11.892	llvm-g++:35:3.311:10.108
+File				clang++:92:4.522:7.135	g++:92:6.211:10.022	llvm-g++:92:4.206:10.651
+Mutex				clang++:17:4.980:7.015	g++:17:7.938:12.754	llvm-g++:17:5.156:8.597
+ReferenceCounted	clang++:46:5.271:19.866	g++:46:4.185:15.773	llvm-g++:46:6.380:20.935
+Queue				clang++:43:32.014:35.371	g++:44:32.888:36.337	llvm-g++:44:31.875:35.256
 Signal				clang++:13:12.195:27.350	g++:13:12.346:25.593	llvm-g++:13:12.305:27.931
 SocketServer		clang++:11:7.427:6.531	g++:11:7.427:5.663	llvm-g++:11:7.427:5.560
 
@@ -34,14 +34,14 @@ Mutex.h					18
 OutputStream.h			0
 OutputStreamFile.h		0
 OutputStreamMirror.h	0
-POSIXErrno.h			 3
-Queue.h					43
+POSIXErrno.h			-36
+Queue.h					44
 RWLock.h				20
 ReferenceCounted.h		46
 Signal.h				13
-Socket.h				0
-SocketGeneric.h			0
-SocketServer.h			0
+Socket.h				18
+SocketGeneric.h			13
+SocketServer.h			11
 Sqlite3Plus.h			58
-Thread.h				33
+Thread.h				37
 ZCompression.h			0
