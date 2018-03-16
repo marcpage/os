@@ -64,9 +64,11 @@ int main(int argc, const char * const argv[]) {
 		displayResults(results);
 		db.exec("SELECT * FROM `storage` WHERE `id` = '2';", &results);
 		displayResults(results);
+	#ifndef __Tracer_h__
 		for (int i = 0; i < 2000; ++i) {
 			db.addRow("storage", row);
 		}
+	#endif
 	} catch(const std::exception &exception) {
 		printf("FAILED: Exception: %s\n", exception.what());
 	}

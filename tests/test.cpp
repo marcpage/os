@@ -6,18 +6,18 @@
 #include "os/Execute.h"
 #include "os/DateTime.h"
 #include "os/File.h"
+#include "os/Exception.h"
 
 struct Times {
 	double		perfCompile, perfRun, traceCompile, traceRun;
 	uint32_t	testedLines, warnings;
 };
-typedef std::string								String;
-typedef std::vector<String>						StringList;
-typedef std::map<std::string,std::string>		Dictionary;
-typedef std::map<std::string,Times>				CompilerTimes;
-typedef std::map<std::string,CompilerTimes>		TestCompilerTimes;
-typedef std::map<uint32_t,bool>					LinesCovered;
-typedef std::map<std::string,LinesCovered>		FileLinesCovered;
+typedef std::string							String;
+typedef std::vector<String>					StringList;
+typedef std::map<String,String>				Dictionary;
+typedef std::map<String,Times>				CompilerTimes;
+typedef std::map<String,CompilerTimes>		TestCompilerTimes;
+typedef std::map<uint32_t,bool>				LinesCovered;
 
 const double		gTestTimeAllowancePercent= 5;
 const double		gTestMinimumTimeInSeconds= 1;
@@ -30,7 +30,7 @@ bool				gDebugging= false;
 bool				gVerbose= false;
 
 String &stripEOL(String &s) {
-	while( (s.size() > 0) && (s[s.size()-1] == '\n') ) {
+	while( (s.size() > 0) && ((s[s.size()-1] == '\n') || (s[s.size()-1] == '\r')) ) {
 		s.erase(s.size()-1);
 	}
 	return s;
@@ -61,15 +61,27 @@ StringList &split(const String &string, const char character, StringList &parts)
 	return parts;
 }
 
+long strtol(const String &s, int base=10) {
+	char	*endptr = NULL;
+	long	value = strtol(s.c_str(), &endptr, base);
+
+	try {
+		AssertMessageException( (NULL != endptr) && ('\0' == *endptr) );
+	} catch(const std::exception &) {
+		printf("strtol('%s', %d) -> endptr = %d value=%ld\n", s.c_str(), base, *endptr, value);
+		throw;
+	}
+	return value;
+}
+
 int runIntegerExpected(const String &command) {
 	String	results;
 
-	exec::execute(command, results);
-	return atoi(results.c_str());
+	return strtol(strip(exec::execute(command, results)));
 }
 
 double runNoResultsExpected(const String &command, const char * const action) {
-	std::string		results;
+	String		results;
 	double			duration;
 	dt::DateTime	start;
 
@@ -83,12 +95,12 @@ double runNoResultsExpected(const String &command, const char * const action) {
 }
 
 void runTest(const String &name, const String &compiler, uint32_t testedLines, double durationInSeconds, double totalTimeInSeconds) {
-	std::string		results;
-	std::string		command;
-	std::string		executableName;
-	std::string		logName;
-	std::string		runLogName;
-	std::string		gcovLogName;
+	String		results;
+	String		command;
+	String		executableName;
+	String		logName;
+	String		runLogName;
+	String		gcovLogName;
 	dt::DateTime	start, end;
 	double			compilePerfTime, compileCoverageTime, runPerfTime, runCoverageTime, totalTime;
 	uint32_t		coverage;
@@ -213,14 +225,14 @@ void runTest(const String &name, const String &compilerResults) {
 
 	split(compilerResults, ';', compilers);
 	for(StringList::iterator compilerInfo= compilers.begin(); compilerInfo != compilers.end(); ++compilerInfo) {
-		std::string	compiler;
+		String	compiler;
 		uint32_t	testedLines;
 		double		durationInSeconds;
 		double		totalTimeInSeconds;
 
 		split(*compilerInfo, ':', values);
 		compiler= values[0];
-		testedLines= atoi(values[1].c_str());
+		testedLines= strtol(strip(values[1]));
 		durationInSeconds= atof(values[2].c_str());
 		totalTimeInSeconds= atof(values[3].c_str());
 		runTest(name, compiler, testedLines, durationInSeconds, totalTimeInSeconds);
@@ -230,9 +242,9 @@ void runTest(const String &name, const String &compilerResults) {
 
 void loadExpectations(Dictionary &headerCoverage, Dictionary &testMetrics, StringList &testOrder) {
 	const char * const	processor= "x64";
-	io::File			expectations(std::string("tests/test_")+processor+".txt",
+	io::File			expectations(String("tests/test_")+processor+".txt",
 										io::File::Text, io::File::ReadOnly);
-	std::string			line;
+	String			line;
 	Dictionary			*current= NULL;
 	bool				eof;
 
@@ -254,7 +266,7 @@ void loadExpectations(Dictionary &headerCoverage, Dictionary &testMetrics, Strin
 			String		key, value;
 			String		separator= "";
 
-			for(std::string::size_type c= 0; c < line.size(); ++c) {
+			for(String::size_type c= 0; c < line.size(); ++c) {
 				if(line[c] == ' ') {
 					line[c]= '\t';
 				}
@@ -277,23 +289,52 @@ void loadExpectations(Dictionary &headerCoverage, Dictionary &testMetrics, Strin
 	} while(!eof);
 }
 
+void findFileCoverage(const String &file, uint32_t &covered, uint32_t &uncovered) {
+	String		results;
+	StringList		lines;
+	StringList		parts;
+	LinesCovered	coveredLines;
+
+	exec::execute("cat bin/coverage/*/"+file+".gcov | grep -v -E -e '-:\\s+[0-9]+:' | cut -d: -f1-2", results);
+	split(results, '\n', lines);
+	for (StringList::iterator line = lines.begin(); line != lines.end(); ++line) {
+		split(*line, ':', parts);
+
+		const bool lineRun = strip(parts[0]).substr(0,1) != "#";
+		int lineNumber = strtol(strip(parts[1]));
+		
+		if (!coveredLines[lineNumber] && lineRun) {
+			coveredLines[lineNumber] = true;
+		}
+	}
+	covered = 0;
+	uncovered = 0;
+	for (LinesCovered::iterator i = coveredLines.begin(); i != coveredLines.end(); ++i) {
+		if (i->second) {
+			covered += 1;
+		} else {
+			uncovered += 1;
+		}
+	}
+}
+
 /**
 	@todo Evaluate performance of compile and run of various compilers
 */
 int main(int argc, const char * const argv[]) {
 	StringList				testsToRun;
 	Dictionary				headerCoverage, testMetrics;
-
+	
 	loadExpectations(headerCoverage, testMetrics, testsToRun);
 	for(int arg= 1; arg < argc; ++arg) {
-		if(std::string("debug") == argv[arg]) {
+		if(String("debug") == argv[arg]) {
 			gDebugging= true;
-		} else if(std::string("list") == argv[arg]) {
+		} else if(String("list") == argv[arg]) {
 			testsToRun.clear();
 			for(StringList::iterator test= testsToRun.begin(); test != testsToRun.end(); ++test) {
 				printf("%s\n", test->c_str());
 			}
-		} else if(std::string("verbose") == argv[arg]) {
+		} else if(String("verbose") == argv[arg]) {
 			gVerbose= true;
 		} else {
 			bool	found= testMetrics.count(argv[arg]) > 0;
@@ -309,7 +350,7 @@ int main(int argc, const char * const argv[]) {
 		}
 	}
 	try {
-		std::string	results;
+		String	results;
 		StringList	headers;
 
 		exec::execute("mkdir -p bin/tests bin/logs", results);
@@ -331,12 +372,10 @@ int main(int argc, const char * const argv[]) {
 				uint32_t	coverage;
 				uint32_t	uncovered;
 				bool		found= headerCoverage.count(*header) > 0;
-				int			value= found ? atoi(headerCoverage[*header].c_str()) : 0;
-
-				coverage= runIntegerExpected("cat bin/coverage/*/"+*header+".gcov | grep -E '[0-9]+:\\s+[0-9]+:' | cut -d: -f2- | sort | uniq | wc -l");
-				// This doesn't actually get us a correct listing of uncovered lines
-				uncovered= runIntegerExpected("cat bin/coverage/*/"+*header+".gcov | grep -E '#+:\\s+[0-9]+:' | cut -d: -f2- | sort | uniq | wc -l");
-				if (100 * coverage / (coverage + uncovered) < gMinimumPercentCodeCoverage) {
+				int			value= found ? strtol(strip(headerCoverage[*header])) : 0;
+				
+				findFileCoverage(*header, coverage, uncovered);
+				if ( (100 * coverage / (coverage + uncovered) < gMinimumPercentCodeCoverage) || (gVerbose && (uncovered > 0))) {
 					printf("%s coverage low %d%%\n", header->c_str(), 100 * coverage / (coverage + uncovered));
 					exec::execute("cat bin/coverage/*/"+*header+".gcov | grep -E '#+:\\s+[0-9]+:' | cut -d: -f2- | sort | uniq", results);
 					printf("%s\n", results.c_str());
