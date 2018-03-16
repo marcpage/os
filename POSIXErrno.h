@@ -30,15 +30,17 @@ namespace posix { namespace err {
 	class Errno : public std::exception {
 		public:
 			/// tell us what the error is
-			Errno(int value, const char *file= NULL, int line= 0) throw();
+			Errno(int value, const char *errnoName, const char *file= NULL, int line= 0) throw();
 			/// tell us what the error is and a message
-			Errno(const std::string &message, int value, const char *file= NULL, int line= 0) throw();
+			Errno(const std::string &message, int value, const char *errnoName, const char *file= NULL, int line= 0) throw();
 			/// Copy constructor
 			Errno(const Errno &other);
 			/// assignment operator
 			Errno &operator=(const Errno &other);
 			/// destructs _message
 			virtual ~Errno() throw();
+			/// Gets the name of the errno
+			virtual const char *name();
 			/// gets the message
 			virtual const char* what() const throw();
 			/// throws if errno is not 0
@@ -50,15 +52,16 @@ namespace posix { namespace err {
 			int			_errno;		///< The error code
 
 			/// Helper function to initialize from the various constructors.
-			template<class S> std::string *_init(S message, const char *file, int line, int value);
+			template<class S> std::string *_init(S message, const char *errnoName, const char *file, int line, int value);
 	};
 
 /// Temporary define for declaring classes for each errno value
-#define ErrnoException(name) \
-	class name##_Errno : public Errno { \
+#define ErrnoException(errno_name) \
+	class errno_name##_Errno : public Errno { \
 		public: \
-		name##_Errno(const char *file= NULL, int line= 0) throw():Errno(name, file, line) {} \
-		name##_Errno(const std::string &message, const char *file= NULL, int line= 0) throw():Errno(message, name, file, line) {} \
+		virtual const char *name() {return #errno_name;} \
+		errno_name##_Errno(const char *file= NULL, int line= 0) throw():Errno(errno_name, #errno_name, file, line) {} \
+		errno_name##_Errno(const std::string &message, const char *file= NULL, int line= 0) throw():Errno(message, errno_name, #errno_name, file, line) {} \
 	}
 	ErrnoException(E2BIG);			ErrnoException(EACCES);			ErrnoException(EADDRINUSE);
 	ErrnoException(EADDRNOTAVAIL);	ErrnoException(EAFNOSUPPORT);	ErrnoException(EAGAIN);
@@ -102,10 +105,10 @@ namespace posix { namespace err {
 #endif
 #undef ErrnoException
 
-	inline Errno::Errno(int value, const char *file, int line) throw()
-		:_message(_init("", file, line, value)), _errno(value) {}
-	inline Errno::Errno(const std::string &message, int value, const char *file, int line) throw()
-		:_message(_init(message, file, line, value)), _errno(value) {}
+	inline Errno::Errno(int value, const char *errnoName, const char *file, int line) throw()
+		:_message(_init("", errnoName, file, line, value)), _errno(value) {}
+	inline Errno::Errno(const std::string &message, int value, const char *errnoName, const char *file, int line) throw()
+		:_message(_init(message, errnoName, file, line, value)), _errno(value) {}
 	inline Errno::Errno(const Errno &other)
 		:std::exception(), _message(other._message), _errno(other._errno) {
 		if(NULL != _message) {
@@ -137,6 +140,9 @@ namespace posix { namespace err {
 	inline Errno::~Errno() throw() {
 		delete _message;
 		_message= NULL;
+	}
+	inline const char *Errno::name() {
+		return "[Unknown]";
 	}
 	inline const char* Errno::what() const throw() {
 		if(NULL != _message) {
@@ -193,12 +199,12 @@ namespace posix { namespace err {
 #endif
 #undef ErrnoCase
 				default:
-					throw Errno(message, errnoCode, file, line);
+					throw Errno(message, errnoCode, "[Unknown]", file, line);
 			}
 		}
 	}
 	inline void Errno::_noop() {}
-	template<class S> inline std::string *Errno::_init(S message, const char *file, int line, int value) {
+	template<class S> inline std::string *Errno::_init(S message, const char *errnoName, const char *file, int line, int value) {
 		std::string	*messagePtr= NULL;
 		try {
 			messagePtr = new std::string(message);
@@ -214,7 +220,7 @@ namespace posix { namespace err {
 					std::ostringstream	stream;
 
 					stream << value;
-					stream << " : ";
+					stream << " [" << errnoName << "] : ";
 					stream << strerror(value);
 					messagePtr->append(" Errno: ").append(stream.str());
 				}

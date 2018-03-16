@@ -22,7 +22,7 @@ typedef std::map<uint32_t,bool>				LinesCovered;
 const double		gTestTimeAllowancePercent= 5;
 const double		gTestMinimumTimeInSeconds= 1;
 const char * const	gCompilerFlags= "-I.. -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -lsqlite3 -framework Carbon";
-const uint32_t		gMinimumPercentCodeCoverage= 60;
+const uint32_t		gMinimumPercentCodeCoverage= 66;
 
 TestCompilerTimes	gCompilerTimes;
 Dictionary			gCompilerLocations;
@@ -149,7 +149,7 @@ void runTest(const String &name, const String &compiler, uint32_t testedLines, d
 		command= "bin/tests/"+executableName+" &> bin/logs/"+runLogName;
 		runCoverageTime= runNoResultsExpected(command, "run trace");
 
-		exec::execute("mkdir -p bin/coverage/"+executableName, results);
+		exec::execute("mkdir -p bin/coverage/"+executableName+" 2>&1", results);
 		if(results != "") {
 			printf("WARNING: mkdir '%s'\n", results.c_str());
 		}
@@ -157,31 +157,39 @@ void runTest(const String &name, const String &compiler, uint32_t testedLines, d
 		if(results != "") {
 			printf("WARNING: gcov '%s'\n", results.c_str());
 		}
-		exec::execute("mv *.gcov *.gcno *.gcda bin/coverage/"+executableName+"/", results);
+		exec::execute("mv *.gcov *.gcno *.gcda bin/coverage/"+executableName+"/ 2>&1", results);
 		if(results != "") {
 			printf("WARNING: mv '%s'\n", results.c_str());
 		}
 
-		coverage= runIntegerExpected("cat bin/coverage/"+executableName+"/"+name+".h.gcov | grep -E '[0-9]+:\\s+[0-9]+:' | wc -l");
-		uncovered= runIntegerExpected("cat bin/coverage/"+executableName+"/"+name+".h.gcov | grep -E '#+:\\s+[0-9]+:' | wc -l");
-		percent_coverage= 100 * coverage / (coverage + uncovered);
+		coverage= runIntegerExpected("cat bin/coverage/"+executableName+"/"+name+".h.gcov 2> /dev/null | grep -E '[0-9]+:\\s+[0-9]+:' | wc -l");
+		uncovered= runIntegerExpected("cat bin/coverage/"+executableName+"/"+name+".h.gcov 2> /dev/null | grep -E '#+:\\s+[0-9]+:' | wc -l");
+		percent_coverage= (coverage + uncovered) > 0 ? 100 * coverage / (coverage + uncovered) : 0;
 		printf("\t%3d%% coverage\n", percent_coverage);
 
 		if(runPerfTime < gTestMinimumTimeInSeconds * (1.0 + gTestTimeAllowancePercent/100.0) ) {
-			printf("\tTest is too short, run it %0.1f times\n", 1.0 / runPerfTime);
+			printf("\tTest is too short, run it %0.1f times\n", runPerfTime > 0 ? 1.0 / runPerfTime : 10.0);
 		}
 		if(failures > 0) {
 			printf("\t%d Test Failures\n", failures);
+			exec::execute("cat bin/logs/"+runLogName+" | grep FAIL", results);
+			printf("%s\n", results.c_str());
 		}
 		if(errors > 0) {
 			printf("\t%d Compile Errors\n", errors);
+			exec::execute("cat bin/logs/"+logName+" | grep error:", results);
+			printf("%s\n", results.c_str());
+			exec::execute("cat bin/logs/"+logName+" | grep ld:", results);
+			printf("%s\n", results.c_str());
 		}
 		if(warnings > 0) {
 			printf("\t%d Compile Warnings\n", warnings);
+			exec::execute("cat bin/logs/"+logName+" | grep warning:", results);
+			printf("%s\n", results.c_str());
 		}
 		if ((gVerbose && (uncovered > 0)) || (percent_coverage < gMinimumPercentCodeCoverage)) {
 			printf("\twarning: %d lines untested (%d tested) %d%%\n", uncovered, coverage, percent_coverage);
-			exec::execute("cat bin/coverage/"+executableName+"/"+name+".h.gcov | grep -E '#+:\\s+[0-9]+:'", results);
+			exec::execute("cat bin/coverage/"+executableName+"/"+name+".h.gcov 2> /dev/null | grep -E '#+:\\s+[0-9]+:'", results);
 			printf("%s\n", results.c_str());
 		}
 		if( (coverage != testedLines) ) {
@@ -297,7 +305,7 @@ void findFileCoverage(const String &file, uint32_t &covered, uint32_t &uncovered
 
 	covered = 0;
 	uncovered = 0;
-	exec::execute("cat bin/coverage/*/"+file+".gcov | grep -v -E -e '-:\\s+[0-9]+:' | cut -d: -f1-2", results);
+	exec::execute("cat bin/coverage/*/"+file+".gcov 2> /dev/null | grep -v -E -e '-:\\s+[0-9]+:' | cut -d: -f1-2", results);
 	split(results, '\n', lines);
 
 	if (strip(results).length() > 0) {
@@ -383,7 +391,7 @@ int main(int argc, const char * const argv[]) {
 				findFileCoverage(*header, coverage, uncovered);
 				if ( ((value >= 0) && (coverage + uncovered > 0) && (100 * coverage / (coverage + uncovered) < gMinimumPercentCodeCoverage)) || (gVerbose && (uncovered > 0))) {
 					printf("%s coverage low %d%%\n", header->c_str(), 100 * coverage / (coverage + uncovered));
-					exec::execute("cat bin/coverage/*/"+*header+".gcov | grep -E '#+:\\s+[0-9]+:' | cut -d: -f2- | sort | uniq", results);
+					exec::execute("cat bin/coverage/*/"+*header+".gcov 2> /dev/null | grep -E '#+:\\s+[0-9]+:' | cut -d: -f2- | sort | uniq", results);
 					printf("%s\n", results.c_str());
 				}
 				if(found) {

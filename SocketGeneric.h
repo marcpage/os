@@ -40,7 +40,9 @@ namespace net {
 	/** After closing the socket, it is made invalid.
 	*/
 	inline void SocketGeneric::close() {
-		ErrnoOnNegative(::close(_socket));
+		if (-1 != _socket) {
+			ErrnoOnNegative(::close(_socket));
+		}
 		_socket= -1;
 	}
 	inline SocketGeneric::SocketGeneric()

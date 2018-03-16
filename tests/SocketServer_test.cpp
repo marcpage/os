@@ -1,12 +1,12 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <vector>
+#include "os/Thread.h"
 #include "os/SocketServer.h"
 #include "os/AddressIPv4.h"
 #include "os/AddressIPv6.h"
 #include "os/BufferManaged.h"
 #include "os/BufferString.h"
-#include "os/Thread.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <vector>
 
 class Echo : public exec::Thread {
 	public:
@@ -34,10 +34,10 @@ class Echo : public exec::Thread {
 				if(0 == amountIn) {
 					shutdown();
 				} else {
-					printf("received->sent('%s')\n", std::string(reinterpret_cast<char*>(buffer.start()), amountIn).c_str());
+					printf("THREAD: %p: received->sent('%s')\n", exec::ThreadId::current().thread(), std::string(reinterpret_cast<char*>(buffer.start()), amountIn).c_str());
 					amountOut= _connection->write(buffer, amountIn);
 					if(amountOut != amountIn) {
-						printf("FAILED: we read %ld but we wrote %ld\n", amountIn, amountOut);
+						printf("THREAD: %p: FAILED: we read %ld but we wrote %ld\n", exec::ThreadId::current().thread(), amountIn, amountOut);
 					}
 				}
 			}
@@ -67,7 +67,7 @@ class Server : public exec::Thread {
 		virtual ~Server() {
 			for(ServerThreads::iterator thrd= _threads.begin(); thrd != _threads.end(); ++thrd) {
 				if((*thrd)->running()) {
-					printf("FAIL: thread failed to exit\n");
+					printf("THREAD: %p: FAIL: thread failed to exit\n", exec::ThreadId::current().thread());
 				}
 				delete *thrd;
 				*thrd= NULL;
@@ -86,16 +86,25 @@ class Server : public exec::Thread {
 					net::AddressIPv6	connectedTo;
 					net::Socket			*connection= new net::Socket();
 
-					printf("Waiting for connection\n");
+					printf("THREAD: %p: Waiting for connection\n", exec::ThreadId::current().thread());
 					_server.accept(connectedTo, *connection);
-					printf("Connection received\n");
+					printf("THREAD: %p: Connection received\n", exec::ThreadId::current().thread());
 					_threads.push_back(new Echo(connection));
+					while (_threads.size() > 1000) {
+						for (ServerThreads::iterator thread = _threads.begin(); thread != _threads.end(); ++thread) {
+							if (!(*thread)->running()) {
+								delete *thread;
+								_threads.erase(thread);
+								break;
+							}
+						}
+					}
 				}
 			} catch(const std::exception &exception) {
 				if(_exiting) {
-					printf("Server Thread: %s\n", exception.what());
+					printf("THREAD: %p: EXPECTED: Server Thread: %s\n", exec::ThreadId::current().thread(), exception.what());
 				} else {
-					printf("FAILED: Server Thread Exception: %s\n", exception.what());
+					printf("THREAD: %p: FAILED: Server Thread Exception: %s\n", exec::ThreadId::current().thread(), exception.what());
 				}
 			}
 			for(ServerThreads::iterator thrd= _threads.begin(); thrd != _threads.end(); ++thrd) {
@@ -107,7 +116,7 @@ class Server : public exec::Thread {
 			return NULL;
 		}
 		virtual void *handle(const std::exception &exception, void *result) {
-			printf("FAIL: Exception: %s\n", exception.what());
+			printf("THREAD: %p: FAIL: Exception: %s\n", exec::ThreadId::current().thread(), exception.what());
 			return result;
 		}
 	private:
@@ -121,40 +130,45 @@ class Server : public exec::Thread {
 };
 
 int main(const int argc, const char * const argv[]) {
-	int	iterations= 100000;
+	int	iterations= 5000;
 #ifdef __Tracer_h__
 	iterations= 3;
 #endif
-	for(int i= 0; i < iterations; ++i) {
-		try	{
-			in_port_t			port= (argc == 2) ? atoi(argv[1]) : 8086;
-			Server				server(port);
-			net::AddressIPv4	local(port);
-			net::Socket			connection(local.family());
-			BufferManaged		readBuffer(4096);
-			std::string			writeString;
-			BufferString		writeBuffer(writeString);
-			size_t				amount;
+	try	{
+		in_port_t			port= (argc == 2) ? atoi(argv[1]) : 8086;
+		Server				server(port);
+		BufferManaged		readBuffer(4096);
+		std::string			writeString;
+		BufferString		writeBuffer(writeString);
+		size_t				amount;
 
-			printf("Connecting\n");
-			connection.connect(local);
-			writeString= "Hello";
-			printf("Writing %s\n", writeString.c_str());
-			amount= connection.write(writeBuffer);
-			if(amount != writeString.size()) {
-				printf("FAIL: Unable to write Hello\n");
+		for(int i= 0; i < iterations; ++i) {
+			try {
+				net::AddressIPv4	local(port);
+				net::Socket			connection(local.family());
+
+				printf("THREAD: %p: Connecting\n", exec::ThreadId::current().thread());
+				connection.connect(local);
+				writeString= "Hello";
+				printf("THREAD: %p: Writing %s\n", exec::ThreadId::current().thread(), writeString.c_str());
+				amount= connection.write(writeBuffer);
+				if(amount != writeString.size()) {
+					printf("THREAD: %p: FAIL: Unable to write Hello\n", exec::ThreadId::current().thread());
+				}
+				printf("THREAD: %p: Reading\n", exec::ThreadId::current().thread());
+				amount= connection.read(readBuffer, amount);
+				if(amount != writeString.size()) {
+					printf("THREAD: %p: FAIL: Unable to read Hello\n", exec::ThreadId::current().thread());
+				}
+				printf("THREAD: %p: Closing\n", exec::ThreadId::current().thread());
+				connection.close();
+			} catch(const std::exception &exception) {
+				printf("THREAD: %p: FAILED: exception thrown on main thread, iteration %d: %s\n", exec::ThreadId::current().thread(), i, exception.what());
 			}
-			printf("Reading\n");
-			amount= connection.read(readBuffer, amount);
-			if(amount != writeString.size()) {
-				printf("FAIL: Unable to read Hello\n");
-			}
-			printf("Closing\n");
-			connection.close();
-			server.shutdown();
-		} catch(const std::exception &exception) {
-			printf("FAILED: exception thrown on main thread, iteration %d: %s\n", i, exception.what());
 		}
+		server.shutdown();
+	} catch(const std::exception &exception) {
+		printf("THREAD: %p: FAILED: exception thrown on main thread: %s\n", exec::ThreadId::current().thread(), exception.what());
 	}
 	return 0;
 }
