@@ -21,7 +21,8 @@ int main(int /*argc*/, char * /*argv*/[]) {
 
 			dotest(std::string("sha256") == hash::SHA256Hasher().name());
 			dotest(hash::SpecificHash<hash::SHA256Hasher>("test", 4) == hash::SpecificHash<hash::SHA256Hasher>("test", 4));
-			hash::SpecificHash<hash::SHA256Hasher>("test", 4).hex(hash);
+			dotest(hash::SpecificHash<hash::SHA256Hasher>("test", 4).hex(hash) == "f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2");
+			fprintf(stderr, "FAIL %s\n", hash::SpecificHash<hash::SHA256Hasher>("test", 4).hex(hash).c_str());
 			dotest(hash::SpecificHash<hash::SHA256Hasher>("test",4) == hash::SpecificHash<hash::SHA256Hasher>(hash.c_str()));
 			dotest(hash::SpecificHash<hash::SHA256Hasher>(hash.c_str()).valid());
 			dotest(hash::SpecificHash<hash::SHA256Hasher>("test", 4).valid());
