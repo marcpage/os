@@ -9,7 +9,7 @@ class Printer : public exec::Thread {
 		virtual ~Printer() {}
 	protected:
 		virtual void *run() {
-			for(int i=0; i < 5600; ++i) {
+			for(int i=0; i < 6000; ++i) {
 				printf("%s: %d\n", _name, i);
 				dt::DateTime start;
 				
@@ -22,7 +22,9 @@ class Printer : public exec::Thread {
 				sleep(0.01, Milliseconds); // 10 microseconds
 				sleep(10, Microseconds); // 10 microseconds
 				double duration = dt::DateTime() - start;
-				printf("Expecting 80 us, but we have %0.3f us\n", duration * 1000 * 1000);
+				if (duration > 20 * 80 * 1000 * 1000) {
+					printf("FAILED: Expecting 80 us, but we have %0.3f us\n", duration * 1000 * 1000);
+				}
 			}
 			throw std::exception();
 			return NULL;

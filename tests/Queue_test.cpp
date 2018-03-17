@@ -9,9 +9,9 @@
 	}
 
 #ifdef __Tracer_h__
-	#define TestIterations	6000
+	#define TestIterations	30
 #else
-	#define TestIterations	100000
+	#define TestIterations	4000
 #endif
 class PassTheBuck : public exec::Thread {
 	public:
@@ -27,7 +27,7 @@ class PassTheBuck : public exec::Thread {
 			try	{
 				while(_running || !_in.empty()) {
 					_out.enqueue(_in.dequeue());
-					exec::Thread::sleep(5, exec::Thread::Milliseconds);
+					exec::Thread::sleep(5, Milliseconds);
 				}
 			} catch(const std::exception &exception) {
 				fprintf(stderr, "EXCEPTION: %s id=%p\n", exception.what(),this);
@@ -43,7 +43,7 @@ class PassTheBuck : public exec::Thread {
 };
 
 int main(const int /*argc*/, const char * const /*argv*/[]) {
-	PassTheBuck::IntQueue	in(30), out(0, 300);
+	PassTheBuck::IntQueue	in(3), out(0, 300);
 	PassTheBuck		p1(in, out), p2(in, out), p3(in, out), p4(in, out), p5(in, out);
 	PassTheBuck		p6(in, out), p7(in, out), p8(in, out), p9(in, out), p10(in, out);
 	PassTheBuck		p11(in, out), p12(in, out), p13(in, out), p14(in, out), p15(in, out);
@@ -62,7 +62,7 @@ int main(const int /*argc*/, const char * const /*argv*/[]) {
 			fullCount++;
 		}
 		in.enqueue(value);
-		//printf("in.size()=%d full=%s\n", in.size(), in.full() ? "true" : "false");
+		printf("in.size()=%d full=%s\n", in.size(), in.full() ? "true" : "false");
 	}
 	for(unsigned int thread= 0; thread < sizeof(threads)/sizeof(threads[0]); ++thread) {
 		threads[thread]->done();
