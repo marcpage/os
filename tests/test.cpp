@@ -22,7 +22,7 @@ typedef std::map<uint32_t,bool>				LinesCovered;
 const double		gTestTimeAllowancePercent= 5;
 const double		gTestMinimumTimeInSeconds= 1;
 const char * const	gCompilerFlags= "-I.. -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -lz -lsqlite3 -framework Carbon";
-const uint32_t		gMinimumPercentCodeCoverage= 66;
+const uint32_t		gMinimumPercentCodeCoverage= 75;
 
 TestCompilerTimes	gCompilerTimes;
 Dictionary			gCompilerLocations;
@@ -168,7 +168,7 @@ void runTest(const String &name, const String &compiler, uint32_t testedLines, d
 		printf("\t%3d%% coverage\n", percent_coverage);
 
 		if(runPerfTime < gTestMinimumTimeInSeconds * (1.0 + gTestTimeAllowancePercent/100.0) ) {
-			printf("\tTest is too short, run it %0.1f times\n", runPerfTime > 0 ? 1.0 / runPerfTime : 10.0);
+			printf("\tTest is too short (%0.5fs), run it %0.1f times\n", runPerfTime, runPerfTime > 0.0 ? 1.0 / runPerfTime : 10.0);
 		}
 		if(failures > 0) {
 			printf("\t%d Test Failures\n", failures);

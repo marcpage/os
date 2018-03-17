@@ -2,7 +2,7 @@
 #include "os/Library.h"
 
 int main(const int argc, const char * const argv[]) {
-	int	iterations= 500;
+	int	iterations= 110;
 #ifdef __Tracer_h__
 	iterations= 1;
 #endif
@@ -19,42 +19,49 @@ int main(const int argc, const char * const argv[]) {
 		try	{
 			printf("z:zlibVersion=%s\n", sys::Library("z").function<zlibVersion>("zlibVersion")());
 		} catch(const std::exception &exception) {
-			fprintf(stderr, "EXCEPTION(z:zlibVersion): %s\n", exception.what());
+			fprintf(stderr, "FAILED: EXCEPTION(z:zlibVersion): %s\n", exception.what());
 		}
 		try	{
 			printf("libz:zlibVersion=%s\n", sys::Library("libz").function<zlibVersion>("zlibVersion")());
 		} catch(const std::exception &exception) {
-			fprintf(stderr, "EXCEPTION(libz:zlibVersion): %s\n", exception.what());
+			fprintf(stderr, "FAILED: EXCEPTION(libz:zlibVersion): %s\n", exception.what());
 		}
 		try	{
 			printf("z.dylib:zlibVersion=%s\n", sys::Library("z.dylib").function<zlibVersion>("zlibVersion")());
 		} catch(const std::exception &exception) {
-			fprintf(stderr, "EXCEPTION(z.dylib:zlibVersion): %s\n", exception.what());
+			fprintf(stderr, "FAILED: EXCEPTION(z.dylib:zlibVersion): %s\n", exception.what());
 		}
 		try	{
 			printf("libz.dylib:zlibVersion=%s\n", sys::Library("libz.dylib").function<zlibVersion>("zlibVersion")());
 		} catch(const std::exception &exception) {
-			fprintf(stderr, "EXCEPTION(libz.dylib:zlibVersion): %s\n", exception.what());
+			fprintf(stderr, "FAILED: EXCEPTION(libz.dylib:zlibVersion): %s\n", exception.what());
 		}
 		try	{
 			printf("libz.dylib:zlibVersion=%s\n", sys::Library("/usr/lib/libz.dylib").function<zlibVersion>("zlibVersion")());
 		} catch(const std::exception &exception) {
-			fprintf(stderr, "EXCEPTION(libz.dylib:zlibVersion): %s\n", exception.what());
+			fprintf(stderr, "FAILED: EXCEPTION(libz.dylib:zlibVersion): %s\n", exception.what());
 		}
 		try	{
 			printf("Carbon:TickCount=%d\n", sys::Library("Carbon").function<tick_count>("TickCount")());
 		} catch(const std::exception &exception) {
-			fprintf(stderr, "EXCEPTION(Carbon:TickCount): %s\n", exception.what());
+			fprintf(stderr, "FAILED: EXCEPTION(Carbon:TickCount): %s\n", exception.what());
 		}
 		try	{
 			printf("Carbon.framework:TickCount=%d\n", sys::Library("Carbon.framework").function<tick_count>("TickCount")());
 		} catch(const std::exception &exception) {
-			fprintf(stderr, "EXCEPTION(Carbon.framework:TickCount): %s\n", exception.what());
+			fprintf(stderr, "FAILED: EXCEPTION(Carbon.framework:TickCount): %s\n", exception.what());
 		}
 		try	{
 			printf("Carbon.framework:TickCount=%d\n", sys::Library("/System/Library/Frameworks/Carbon.framework").function<tick_count>("TickCount")());
 		} catch(const std::exception &exception) {
-			fprintf(stderr, "EXCEPTION(Carbon.framework:TickCount): %s\n", exception.what());
+			fprintf(stderr, "FAILED: EXCEPTION(Carbon.framework:TickCount): %s\n", exception.what());
+		}
+		try {
+			sys::Library("Nonsense Library");
+			fprintf(stderr, "FAILED: Expected an exception for Nonsense Library\n");
+		} catch(const sys::Library::Exception &) {
+		} catch(const std::exception &exception) {
+			fprintf(stderr, "FAILED: Expected an exception for Nonsense Library\n");
 		}
 	}
 	return 0;

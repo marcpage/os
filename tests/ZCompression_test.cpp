@@ -2,7 +2,7 @@
 #include "os/ZCompression.h"
 
 int main(const int , const char * const []) {
-	int	iterations= 100;
+	int	iterations= 60;
 #ifdef __Tracer_h__
 	iterations= 1;
 #endif
@@ -32,16 +32,40 @@ int main(const int , const char * const []) {
 		try {
 			z::compress(source, compressed);
 			z::uncompress(compressed, uncompressed);
-			printf("FAILED: We should have thrown and exception for size being to small\n");
+			printf("FAILED: We should have thrown an exception for size being to small\n");
 		} catch(const z::Exception &) {
 		} catch(const std::exception &exception) {
-			printf("FAILED: We threw an unexpected exception: %s\n", exception.what());
+			printf("FAILED: We threw an unexpected exception (small size): %s\n", exception.what());
 		}
 		z::compress(source, compressed);
 		z::uncompress(compressed, uncompressed, source.size());
-			if (uncompressed != source) {
-				printf("FAILED: \n---- source ----\n%s\n------ destination -----\n%s\n------------\n", source.c_str(), uncompressed.c_str());
+		if (uncompressed != source) {
+			printf("FAILED: \n---- source ----\n%s\n------ destination -----\n%s\n------------\n", source.c_str(), uncompressed.c_str());
+		}
+		for (int level = 0; level <= 9; ++level) {
+			for (unsigned int index = 0; index < sizeof(testCases)/sizeof(testCases[0]); ++index) {
+				source = testCases[index];
+				z::compress(source, compressed, level);
+				z::uncompress(compressed, uncompressed);
+				if (uncompressed != source) {
+					printf("FAILED: iteration %d[%d] source '%s' -> '%s'\n", index, i, source.c_str(), uncompressed.c_str());
+				}
 			}
+		}
+		try {
+			z::compress(source, compressed, 10);
+			printf("FAILED: We should have thrown an exception for bad level (10)\n");
+		} catch(const z::Exception &) {
+		} catch(const std::exception &exception) {
+			printf("FAILED: We threw an unexpected exception (10): %s\n", exception.what());
+		}
+		try {
+			z::uncompress(source, compressed);
+			printf("FAILED: We should have thrown an exception for corrupted compressed data\n");
+		} catch(const z::Exception &) {
+		} catch(const std::exception &exception) {
+			printf("FAILED: We threw an unexpected exception (corrupted): %s\n", exception.what());
+		}
 	}
 	return 0;
 }
