@@ -10,7 +10,7 @@
 #ifdef __Tracer_h__
 	#define TestIterations	100
 #else
-	#define TestIterations	3000
+	#define TestIterations	5000
 #endif
 
 class Adder : public exec::Thread {

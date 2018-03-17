@@ -135,7 +135,7 @@ int main(const int argc, const char * const argv[]) {
 	iterations= 3;
 #endif
 	try	{
-		in_port_t			port= (argc == 2) ? atoi(argv[1]) : 8082;
+		in_port_t			port= (argc == 2) ? atoi(argv[1]) : 8081;
 		Server				server(port);
 		BufferManaged		readBuffer(4096);
 		std::string			writeString;

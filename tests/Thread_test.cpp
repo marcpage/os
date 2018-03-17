@@ -9,10 +9,10 @@ class Printer : public exec::Thread {
 		virtual ~Printer() {}
 	protected:
 		virtual void *run() {
-			for(int i=0; i < 6000; ++i) {
+			for(int i=0; i < 8000; ++i) {
 				printf("%s: %d\n", _name, i);
 				dt::DateTime start;
-				
+
 				sleep(0.000000000000045, Years); // 10 microseconds
 				sleep(0.000000000016534, Weeks); // 10 microseconds
 				sleep(0.000000000115741, Days); // 10 microseconds

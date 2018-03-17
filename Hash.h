@@ -120,6 +120,8 @@ namespace hash {
 		static void hash(const void *data, size_t dataSize, void *hash) { CC_SHA256(data, dataSize, reinterpret_cast<unsigned char*>(hash));}
 	};
 
+	typedef SpecificHash<SHA256Hasher>	sha256;
+	typedef SpecificHash<MD5Hasher>		md5;
 #endif
 
 
@@ -221,8 +223,8 @@ namespace hash {
 
 		value.clear();
 		for(int i= 0; (i < static_cast<int>(sizeof(_hash))); ++i) {
-			value.append(1, hexDigits[_hash[i] & 0x0F]);
 			value.append(1, hexDigits[_hash[i] >> 4]);
+			value.append(1, hexDigits[_hash[i] & 0x0F]);
 		}
 		return value;
 	}
@@ -231,11 +233,11 @@ namespace hash {
 		bool		eosFound= false;
 		AssertMessageException(strlen(hash) <= Size * 2);
 		for(int byte= 0; (byte < static_cast<int>(sizeof(_hash))); ++byte) {
-			const int	nibble1= byte * 2;
+			const int	nibble1= byte * 2 + 1;
 			eosFound= ((eosFound) || (hash[nibble1] == '\0'));
 			std::string::size_type	found1= eosFound ? 0 : hexDigits.find(hash[nibble1]);
 
-			const int	nibble2= nibble1 + 1;
+			const int	nibble2= nibble1 - 1;
 			eosFound= ((eosFound) || (hash[nibble1] == '\0'));
 			std::string::size_type	found2= eosFound ? 0 : hexDigits.find(hash[nibble2]);
 
