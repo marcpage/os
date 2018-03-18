@@ -22,20 +22,14 @@ namespace crypto {
 			static void handle(CCCryptorStatus status, const std::string &call, const char *file= NULL, int line= 0);
 			/// Generic crypto exception
 			Exception(const std::string &message, const char *file= NULL, int line= 0) throw():msg::Exception(message, file, line) {}
-			/// Copy constructor
-			Exception(const Exception &other):msg::Exception(other) {}
-			/// assignment operator
-			Exception &operator=(const Exception &other) {return msg::Exception::operator=(other);}
 			/// destructs _message
 			virtual ~Exception() throw() {}
-	}
+	};
 
 	#define DeclareError(name, message) \
 	class name##Error : public Exception { \
 		public: \
 			name##Error(const std::string &call, const char *file= NULL, int line= 0) throw():Exception(call + " : " message, file, line) {} \
-			name##Error(const name##Error &other):Exception(other) {} \
-			name##Error &operator=(const name##Error &other) {return Exception=(other);} \
 			virtual ~name##Error() throw() {} \
 	}
 
@@ -70,7 +64,7 @@ namespace crypto {
 	template<CCAlgorithm algorithm, CCOptions options, size_t keyLength, size_t blockSize, size_t ivLength>
 	class SymetricCryptor {
 		public:
-			SymetricCryptor(const void *key):_key(reinterpret_cast<char*>(key), keyLength) {}
+			SymetricCryptor(const void *key):_key(reinterpret_cast<const char*>(key), keyLength) {}
 			SymetricCryptor(const std::string &key):_key(key) {
 				// TODO throw exception if _key.length() != keyLength
 			}
@@ -78,10 +72,10 @@ namespace crypto {
 			size_t key_length() {return keyLength;}
 			size_t iv_length() {return ivLength;}
 			size_t encrypt(const void *data, size_t length, void *out, size_t outSize, const void *iv=NULL) {
-				return _crypt(kCCEncrypt, data, length, out, outSize, outDataSize, iv);
+				return _crypt(kCCEncrypt, data, length, out, outSize, iv);
 			}
 			size_t decrypt(const void *data, size_t length, void *out, size_t outSize, const void *iv=NULL) {
-				return _crypt(kCCDecrypt, data, length, out, outSize, outDataSize, iv);
+				return _crypt(kCCDecrypt, data, length, out, outSize, iv);
 			}
 			std::string &encrypt(const std::string &data, std::string &out, const std::string &iv="") {
 				return _crypt(kCCEncrypt, data, out, iv);
@@ -101,10 +95,10 @@ namespace crypto {
 			}
 		private:
 			std::string _key;
-			size_t _crypt(CCOperation op, const void *data, size_t length, void *out, const void *iv) {
+			size_t _crypt(CCOperation op, const void *data, size_t length, void *out, size_t outSize, const void *iv) {
 				size_t outDataSize = 0;
 
-				CCHandle(CCCrypt(op, algorithm, options, iv, data, length, out, outSize, &outDataSize));
+				CCHandle(CCCrypt(op, algorithm, options, _key.data(), _key.length(), iv, data, length, out, outSize, &outDataSize));
 				return outDataSize;
 			}
 			std::string &_crypt(CCOperation op, const std::string &data, std::string &out, const std::string &iv) {
@@ -118,7 +112,7 @@ namespace crypto {
 				out.erase(outSize);
 				return out;
 			}
-	}
+	};
 
 	typedef SymetricCryptor<kCCAlgorithmAES, kCCOptionPKCS7Padding, kCCKeySizeAES256, kCCBlockSizeAES128, kCCBlockSizeAES128> AES256_CBC_Padded;
 	typedef SymetricCryptor<kCCAlgorithmAES, 0, kCCKeySizeAES256, kCCBlockSizeAES128, kCCBlockSizeAES128> AES256_CBC;
