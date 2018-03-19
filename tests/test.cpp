@@ -297,7 +297,7 @@ void loadExpectations(Dictionary &headerCoverage, Dictionary &testMetrics, Strin
 	} while(!eof);
 }
 
-void findFileCoverage(const String &file, uint32_t &covered, uint32_t &uncovered) {
+void findFileCoverage(const String &file, uint32_t &covered, uint32_t &uncovered, StringList &uncoveredLines) {
 	String		results;
 	StringList		lines;
 	StringList		parts;
@@ -305,16 +305,18 @@ void findFileCoverage(const String &file, uint32_t &covered, uint32_t &uncovered
 
 	covered = 0;
 	uncovered = 0;
-	exec::execute("cat bin/coverage/*/"+file+".gcov 2> /dev/null | grep -v -E -e '-:\\s+[0-9]+:' | cut -d: -f1-2", results);
+	uncoveredLines.clear();
+	exec::execute("cat bin/coverage/*/"+file+".gcov 2> /dev/null | grep -v -E -e '-:\\s+[0-9]+:' | cut -d: -f1-", results);
 	split(results, '\n', lines);
-
+	
 	if (strip(results).length() > 0) {
 		for (StringList::iterator line = lines.begin(); line != lines.end(); ++line) {
 			split(*line, ':', parts);
 
-			if (parts.size() != 2) {
+			if (parts.size() < 2) {
 				continue;
 			}
+
 			const bool lineRun = strip(parts[0]).substr(0,1) != "#";
 			int lineNumber = strtol(strip(parts[1]));
 
@@ -327,6 +329,20 @@ void findFileCoverage(const String &file, uint32_t &covered, uint32_t &uncovered
 				covered += 1;
 			} else {
 				uncovered += 1;
+			}
+		}
+		for (StringList::iterator line = lines.begin(); line != lines.end(); ++line) {
+			split(*line, ':', parts);
+
+			if (parts.size() < 2) {
+				continue;
+			}
+			
+			int lineNumber = strtol(strip(parts[1]));
+			
+			if (!coveredLines[lineNumber]) {
+				uncoveredLines.push_back(*line);
+				coveredLines[lineNumber] = true;
 			}
 		}
 	}
@@ -387,12 +403,14 @@ int main(int argc, const char * const argv[]) {
 				uint32_t	uncovered;
 				bool		found= headerCoverage.count(*header) > 0;
 				int			value= found ? strtol(strip(headerCoverage[*header])) : 0;
-
-				findFileCoverage(*header, coverage, uncovered);
+				StringList	uncoveredLines;
+				
+				findFileCoverage(*header, coverage, uncovered, uncoveredLines);
 				if ( ((value >= 0) && (coverage + uncovered > 0) && (100 * coverage / (coverage + uncovered) < gMinimumPercentCodeCoverage)) || (gVerbose && (uncovered > 0))) {
 					printf("%s coverage low %d%%\n", header->c_str(), 100 * coverage / (coverage + uncovered));
-					exec::execute("cat bin/coverage/*/"+*header+".gcov 2> /dev/null | grep -E '#+:\\s+[0-9]+:' | cut -d: -f2- | sort | uniq", results);
-					printf("%s\n", results.c_str());
+					for (StringList::iterator i = uncoveredLines.begin(); i != uncoveredLines.end(); ++i) {
+						printf("%s\n", i->c_str());
+					}
 				}
 				if(found) {
 					if(abs(value) != static_cast<int>(coverage)) {

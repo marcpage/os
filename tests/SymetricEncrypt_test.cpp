@@ -49,6 +49,13 @@ int main(int /*argc*/, char * /*argv*/[]) {
 			} catch(const std::exception &exception) {
 				printf("FAILED: Exception: %s\n", exception.what());
 			}
+			try {
+				crypto::AES256(std::string("hello"));
+				printf("FAILED: bad key passed\n");
+			} catch(const crypto::ParamError &) {
+			} catch(const std::exception &exception) {
+				printf("FAILED: bad key Exception: %s\n", exception.what());
+			}
 			source = "";
 			for (int iteration = 0; iteration < 256; ++iteration) {
 				try {

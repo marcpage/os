@@ -61,12 +61,13 @@ namespace crypto {
      			throw new Exception(call, file, line);
      	}
 	}
+	
 	template<CCAlgorithm algorithm, CCOptions options, size_t keyLength, size_t blockSize, size_t ivLength>
 	class SymetricCryptor {
 		public:
 			SymetricCryptor(const void *key):_key(reinterpret_cast<const char*>(key), keyLength) {}
 			SymetricCryptor(const std::string &key):_key(key) {
-				// TODO throw exception if _key.length() != keyLength
+				CCHandle(key.length() == keyLength ? kCCSuccess : kCCParamError);
 			}
 			virtual ~SymetricCryptor() {}
 			size_t key_length() {return keyLength;}

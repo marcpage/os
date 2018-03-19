@@ -1,18 +1,18 @@
 -test
-SymetricEncrypt		clang++:31:1.429:2.940\	g++:31:1.444:2.953	llvm-g++:31:1.571:3.006
+SymetricEncrypt		clang++:34:1.429:2.967	g++:34:1.567:3.351	llvm-g++:34:1.571:3.213
+Thread				clang++:41:1.627:5.106	g++:41:1.682:5.082	llvm-g++:41:1.599:4.918
 Hash				clang++:61:2.073:3.463	g++:61:1.904:3.228	llvm-g++:61:2.009:3.396
 SocketServer		clang++:11:16.916:18.561	g++:11:5.388:7.013	llvm-g++:11:9.211:10.849
 ReferenceCounted	clang++:46:1.989:3.473	g++:46:1.842:3.247	llvm-g++:46:1.810:3.190
 Mutex				clang++:17:2.086:3.529	g++:17:2.071:3.597	llvm-g++:17:2.104:3.705
-Queue				clang++:43:1.220:3.233	g++:43:1.211:3.243	llvm-g++:43:1.237:3.115
+Queue				clang++:43:1.220:3.233	g++:43:1.273:3.243	llvm-g++:43:1.237:3.115
 Signal				clang++:13:1.220:3.643	g++:13:1.211:3.583	llvm-g++:13:1.205:3.546
 File				clang++:92:1.746:3.778	g++:92:1.660:3.615	llvm-g++:92:1.616:3.533
 Execute				clang++:14:1.682:5.208	g++:14:1.658:5.421	llvm-g++:14:1.733:5.742
 DateTime			clang++:30:5.018:6.976	g++:30:5.068:7.103	llvm-g++:30:5.141:7.245
 Sqlite3Plus			clang++:58:1.978:5.015	g++:58:1.960:4.862	llvm-g++:58:1.991:4.906
-AtomicInteger		clang++:8:1.938:3.608	g++:8:1.941:3.675	llvm-g++:8:1.871:3.547
-Library				clang++:108:3.632:5.887	g++:108:3.506:5.544	llvm-g++:108:3.453:5.417
-Library				clang++:108:3.632:5.718	g++:108:3.426:5.429	llvm-g++:108:3.417:5.402
+AtomicInteger		clang++:8:1.938:3.608	g++:8:1.941:3.675	llvm-g++:8:2.178:4.162
+Library				clang++:108:3.632:5.887	g++:108:3.474:5.557	llvm-g++:108:3.519:5.543
 ZCompression		clang++:25:1.625:2.874	g++:25:1.785:3.281	llvm-g++:25:1.310:2.686
 Exception			clang++:35:1.930:4.619	g++:35:1.797:4.817	llvm-g++:35:1.778:4.653
 RWLock				clang++:20:1.728:4.702	g++:20:1.762:4.658	llvm-g++:20:1.792:4.789
@@ -41,7 +41,7 @@ Signal.h				 13
 Socket.h				 17
 SocketGeneric.h			 15
 SocketServer.h			 11
-SymetricEncrypt.h		 31
+SymetricEncrypt.h		 34
 Sqlite3Plus.h			 58
 Thread.h				 43
 ZCompression.h			 25
