@@ -8,7 +8,7 @@
 	}
 
 int main(int /*argc*/, char * /*argv*/[]) {
-	int	iterations= 1;//1000;
+	int	iterations= 300;
 #ifdef __Tracer_h__
 	iterations= 1;
 #endif
@@ -50,7 +50,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
 				printf("FAILED: Exception: %s\n", exception.what());
 			}
 			source = "";
-			for (int iteration = 0; iteration < 4096; ++iteration) {
+			for (int iteration = 0; iteration < 256; ++iteration) {
 				try {
 					dotest(source == crypto::AES256_CBC(key).decrypt(crypto::AES256_CBC(key).encrypt(source)));
 					if ( source.size() % 16 != 0) {
@@ -72,18 +72,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
 			dotest("1234567890123456" == crypto::AES256_EBC_Padded(key).decrypt(crypto::AES256_EBC_Padded(key).encrypt("1234567890123456")));
 			dotest("1234567890123456" == crypto::AES256_EBC(key).decrypt(crypto::AES256_EBC(key).encrypt("1234567890123456")));
 			iv = "1234567890123456";
-			printf("FAILED: Starting\n");
-			try {
-				if (source == crypto::AES256(key).decrypt(crypto::AES256(key).encrypt(source, iv), iv)) {
-					printf("FAILED: it worked\n");
-				} else {
-					printf("FAILED: it didn't work\n");
-				}
-
-			} catch(const std::exception &exception) {
-				printf("FAILED: iv Exception: %s\n", exception.what());
-			}
-			printf("FAILED: Done\n");
+			dotest(source == crypto::AES256(key).decrypt(crypto::AES256(key).encrypt(source, iv), iv));
 		} catch(const std::exception &exception) {
 			printf("FAILED: Exception: %s\n", exception.what());
 		}
