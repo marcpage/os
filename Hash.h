@@ -15,6 +15,11 @@
 	#include <CommonCrypto/CommonDigest.h>
 #endif
 
+#if OpenSSLAvailable
+	#include <openssl/sha.h>
+	#include <openssl/md5.h>
+#endif
+
 /** Hashing support.
 */
 namespace hash {
@@ -42,7 +47,7 @@ namespace hash {
 			virtual const char *name() const= 0;
 	};
 	/** The specific instantiation of a Hash.
-		@tparam Hasher	See SHA256Hasher below as an example.
+		@tparam Hasher	See CommonCryptoSHA256Hasher below as an example.
 						Must implement name(), hash() and have a member Size.
 	*/
 	template<class Hasher>
@@ -84,10 +89,38 @@ namespace hash {
 			uint8_t	_hash[Size];
 	};
 
+#if OpenSSLAvailable
+
+	struct OpenSLLMD5Hasher {
+		enum {
+			Size= MD5_DIGEST_LENGTH
+		};
+		static const char *name() { return "md5";}
+		static void hash(const void *data, size_t dataSize, void *hash) {MD5(reinterpret_cast<const unsigned char*>(data), dataSize, reinterpret_cast<unsigned char*>(hash));}
+	};
+
+	struct OpenSSLSHA256Hasher {
+		enum {
+			Size= SHA256_DIGEST_LENGTH
+		};
+		static const char *name() { return "sha256";}
+		static void hash(const void *data, size_t dataSize, void *hash) {SHA256(reinterpret_cast<const unsigned char*>(data), dataSize, reinterpret_cast<unsigned char*>(hash));}
+	};
+
+#if __APPLE_CC__ || __APPLE__
+	typedef SpecificHash<OpenSSLSHA256Hasher>	openssl_sha256;
+	typedef SpecificHash<OpenSLLMD5Hasher>		openssl_md5;
+#else
+	typedef SpecificHash<OpenSSLSHA256Hasher>	sha256;
+	typedef SpecificHash<OpenSLLMD5Hasher>		md5;
+#endif
+
+#endif
+
 #if __APPLE_CC__ || __APPLE__
 
 	/// An MD5 example of a hasher. See SpecificHash.
-	struct MD5Hasher {
+	struct CommonCryptoMD5Hasher {
 		enum {
 			Size= CC_MD5_DIGEST_LENGTH ///< Every SpecificHash hasher must have a Size enum. This is the number of bytes in the hash.
 		};
@@ -104,7 +137,7 @@ namespace hash {
 	};
 
 	/// A SHA256 example of a hasher. See SpecificHash.
-	struct SHA256Hasher {
+	struct CommonCryptoSHA256Hasher {
 		enum {
 			Size= CC_SHA256_DIGEST_LENGTH ///< Every SpecificHash hasher must have a Size enum. This is the number of bytes in the hash.
 		};
@@ -120,8 +153,8 @@ namespace hash {
 		static void hash(const void *data, size_t dataSize, void *hash) { CC_SHA256(data, dataSize, reinterpret_cast<unsigned char*>(hash));}
 	};
 
-	typedef SpecificHash<SHA256Hasher>	sha256;
-	typedef SpecificHash<MD5Hasher>		md5;
+	typedef SpecificHash<CommonCryptoSHA256Hasher>	sha256;
+	typedef SpecificHash<CommonCryptoMD5Hasher>		md5;
 #endif
 
 

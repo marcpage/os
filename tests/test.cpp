@@ -21,7 +21,7 @@ typedef std::map<uint32_t,bool>				LinesCovered;
 
 const double		gTestTimeAllowancePercent= 5;
 const double		gTestMinimumTimeInSeconds= 1;
-const char * const	gCompilerFlags= "-I.. -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -lz -lsqlite3 -framework Carbon";
+const char * const	gCompilerFlags= "-I.. -I/usr/local/Cellar/openssl/1.0.2n/include -DOpenSSLAvailable=1 -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -lcrypto -lz -lsqlite3 -framework Carbon";
 const uint32_t		gMinimumPercentCodeCoverage= 75;
 
 TestCompilerTimes	gCompilerTimes;
@@ -308,7 +308,7 @@ void findFileCoverage(const String &file, uint32_t &covered, uint32_t &uncovered
 	uncoveredLines.clear();
 	exec::execute("cat bin/coverage/*/"+file+".gcov 2> /dev/null | grep -v -E -e '-:\\s+[0-9]+:' | cut -d: -f1-", results);
 	split(results, '\n', lines);
-	
+
 	if (strip(results).length() > 0) {
 		for (StringList::iterator line = lines.begin(); line != lines.end(); ++line) {
 			split(*line, ':', parts);
@@ -337,9 +337,9 @@ void findFileCoverage(const String &file, uint32_t &covered, uint32_t &uncovered
 			if (parts.size() < 2) {
 				continue;
 			}
-			
+
 			int lineNumber = strtol(strip(parts[1]));
-			
+
 			if (!coveredLines[lineNumber]) {
 				uncoveredLines.push_back(*line);
 				coveredLines[lineNumber] = true;
@@ -404,7 +404,7 @@ int main(int argc, const char * const argv[]) {
 				bool		found= headerCoverage.count(*header) > 0;
 				int			value= found ? strtol(strip(headerCoverage[*header])) : 0;
 				StringList	uncoveredLines;
-				
+
 				findFileCoverage(*header, coverage, uncovered, uncoveredLines);
 				if ( ((value >= 0) && (coverage + uncovered > 0) && (100 * coverage / (coverage + uncovered) < gMinimumPercentCodeCoverage)) || (gVerbose && (uncovered > 0))) {
 					printf("%s coverage low %d%%\n", header->c_str(), 100 * coverage / (coverage + uncovered));
