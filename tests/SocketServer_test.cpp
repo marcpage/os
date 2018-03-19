@@ -60,6 +60,8 @@ class Server : public exec::Thread {
 				_server(_serverAddress.family()),
 				_exiting(false),
 				_threads() {
+			_server.reuseAddress();
+			_server.reusePort();
 			_server.bind(_serverAddress);
 			_server.listen(1);
 			start();
@@ -130,7 +132,7 @@ class Server : public exec::Thread {
 };
 
 int main(const int argc, const char * const argv[]) {
-	int	iterations= 5000;
+	int	iterations= 5300;
 #ifdef __Tracer_h__
 	iterations= 3;
 #endif

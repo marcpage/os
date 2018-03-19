@@ -50,7 +50,7 @@ class Tester : public exec::Thread {
 
 int main(const int argc, const char * const argv[]) {
 	exec::ReferenceCounted	*item= new exec::ReferenceCounted();
-	int						count= 50000;
+	int						count= 55000;
 
 #ifdef __Tracer_h__
 	count= 100;

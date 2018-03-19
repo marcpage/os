@@ -8,7 +8,7 @@
 	}
 
 int main(int /*argc*/, char * /*argv*/[]) {
-	int	iterations= 300;
+	int	iterations= 400;
 #ifdef __Tracer_h__
 	iterations= 1;
 #endif

@@ -2,7 +2,7 @@
 #include "os/ZCompression.h"
 
 int main(const int , const char * const []) {
-	int	iterations= 60;
+	int	iterations= 100;
 #ifdef __Tracer_h__
 	iterations= 1;
 #endif

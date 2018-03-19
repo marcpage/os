@@ -18,6 +18,10 @@ namespace net {
 			virtual ~SocketServer();
 			/// @brief Bind to an address to listen to
 			void bind(Address &address);
+			/// @todo Document
+			void reuseAddress(bool resuse=true);
+			/// @todo Document
+			void reusePort(bool resuse=true);
 			/// @brief listen for a connection
 			void listen(int backlog);
 			/// @brief Wait for a connection
@@ -39,6 +43,22 @@ namespace net {
 	*/
 	inline void SocketServer::bind(Address &address) {
 		ErrnoOnNegative(::bind(_socket, address, address.size()));
+	}
+	/**
+		@todo Document
+	*/
+	inline void SocketServer::reuseAddress(bool reuse) {
+		int	enable = reuse ? 1 : 0;
+
+		ErrnoOnNegative(::setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)));
+	}
+	/**
+		@todo Document
+	*/
+	inline void SocketServer::reusePort(bool reuse) {
+		int	enable = reuse ? 1 : 0;
+
+		ErrnoOnNegative(::setsockopt(_socket, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)));
 	}
 	/**
 		@param backlog	The number of connects that can be waiting between calls to <code>accept</code>.
