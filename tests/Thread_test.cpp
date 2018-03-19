@@ -9,7 +9,7 @@ class Printer : public exec::Thread {
 		virtual ~Printer() {}
 	protected:
 		virtual void *run() {
-			for(int i=0; i < 8000; ++i) {
+			for(int i=0; i < 8500; ++i) {
 				printf("%s: %d\n", _name, i);
 				dt::DateTime start;
 

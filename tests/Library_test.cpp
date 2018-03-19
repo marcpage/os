@@ -2,7 +2,7 @@
 #include "os/Library.h"
 
 int main(const int argc, const char * const argv[]) {
-	int	iterations= 350;
+	int	iterations= 400;
 #ifdef __Tracer_h__
 	iterations= 1;
 #endif
