@@ -8,7 +8,7 @@
 	}
 
 int main(int /*argc*/, char * /*argv*/[]) {
-	int	iterations= 1000;
+	int	iterations= 1;//1000;
 #ifdef __Tracer_h__
 	iterations= 1;
 #endif
@@ -20,6 +20,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
 			std::string		source = "test ";
 			std::string		encrypted;
 			std::string		decrypted;
+			std::string		iv;
 
 			while(source.length() < 1024) {
 				dotest(source == crypto::AES256(key).decrypt(crypto::AES256(key).encrypt(source)));
@@ -48,6 +49,41 @@ int main(int /*argc*/, char * /*argv*/[]) {
 			} catch(const std::exception &exception) {
 				printf("FAILED: Exception: %s\n", exception.what());
 			}
+			source = "";
+			for (int iteration = 0; iteration < 4096; ++iteration) {
+				try {
+					dotest(source == crypto::AES256_CBC(key).decrypt(crypto::AES256_CBC(key).encrypt(source)));
+					if ( source.size() % 16 != 0) {
+						printf("FAILED: Iteration %d Exception: %s\n", iteration, "no error");
+					}
+				} catch(const crypto::AlignmentError &) {
+					if ( source.size() % 16 == 0) {
+						printf("FAILED: Iteration %d Exception: %s\n", iteration, "no error");
+					}
+				} catch(const std::exception &exception) {
+					printf("FAILED: AES256_CBC Iteration %d Exception: %s\n", iteration, exception.what());
+				}
+				source += "a";
+			}
+			dotest("test" == crypto::AES256_CBC_Padded(key).decrypt(crypto::AES256_CBC_Padded(key).encrypt("test")));
+			dotest("test" == crypto::AES256_EBC_Padded(key).decrypt(crypto::AES256_EBC_Padded(key).encrypt("test")));
+			dotest("1234567890123456" == crypto::AES256_CBC_Padded(key).decrypt(crypto::AES256_CBC_Padded(key).encrypt("1234567890123456")));
+			dotest("1234567890123456" == crypto::AES256_CBC(key).decrypt(crypto::AES256_CBC(key).encrypt("1234567890123456")));
+			dotest("1234567890123456" == crypto::AES256_EBC_Padded(key).decrypt(crypto::AES256_EBC_Padded(key).encrypt("1234567890123456")));
+			dotest("1234567890123456" == crypto::AES256_EBC(key).decrypt(crypto::AES256_EBC(key).encrypt("1234567890123456")));
+			iv = "1234567890123456";
+			printf("FAILED: Starting\n");
+			try {
+				if (source == crypto::AES256(key).decrypt(crypto::AES256(key).encrypt(source, iv), iv)) {
+					printf("FAILED: it worked\n");
+				} else {
+					printf("FAILED: it didn't work\n");
+				}
+
+			} catch(const std::exception &exception) {
+				printf("FAILED: iv Exception: %s\n", exception.what());
+			}
+			printf("FAILED: Done\n");
 		} catch(const std::exception &exception) {
 			printf("FAILED: Exception: %s\n", exception.what());
 		}

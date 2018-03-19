@@ -77,10 +77,10 @@ namespace crypto {
 			size_t decrypt(const void *data, size_t length, void *out, size_t outSize, const void *iv=NULL) {
 				return _crypt(kCCDecrypt, data, length, out, outSize, iv);
 			}
-			std::string &encrypt(const std::string &data, std::string &out, const std::string &iv="") {
+			std::string &encrypt(const std::string &data, std::string &out, const std::string &iv) {
 				return _crypt(kCCEncrypt, data, out, iv);
 			}
-			std::string &decrypt(const std::string &data, std::string &out, const std::string &iv="") {
+			std::string &decrypt(const std::string &data, std::string &out, const std::string &iv) {
 				return _crypt(kCCDecrypt, data, out, iv);
 			}
 			std::string encrypt(const std::string &data, const std::string &iv="") {
@@ -108,7 +108,7 @@ namespace crypto {
 					throw IVWrongSizeError("Initialization Vector (iv) is wrong size", __FILE__, __LINE__);
 				}
 				out.assign(data.length() + blockSize, '\0');
-				outSize = _crypt(op, data.data(), data.length(), const_cast<char*>(out.data()), out.length(), iv.data());
+				outSize = _crypt(op, data.data(), data.length(), const_cast<char*>(out.data()), out.length(), iv.length() == 0 ? NULL : iv.data());
 				out.erase(outSize);
 				return out;
 			}
