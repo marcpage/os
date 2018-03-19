@@ -21,7 +21,8 @@ typedef std::map<uint32_t,bool>				LinesCovered;
 
 const double		gTestTimeAllowancePercent= 5;
 const double		gTestMinimumTimeInSeconds= 1;
-const char * const	gCompilerFlags= "-I.. -DOpenSSLAvailable=1 -I/usr/local/Cellar/openssl/1.0.2n/include -L/usr/local/Cellar/openssl/1.0.2n/lib -lcrypto -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -lz -lsqlite3 -framework Carbon";
+//const char * const	gCompilerFlags= "-I.. -DOpenSSLAvailable=1 -I/usr/local/Cellar/openssl/1.0.2n/include -L/usr/local/Cellar/openssl/1.0.2n/lib -lcrypto -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -lz -lsqlite3 -framework Carbon";
+const char * const	gCompilerFlags= "-I.. -lcrypto -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -lz -lsqlite3 -framework Carbon";
 const uint32_t		gMinimumPercentCodeCoverage= 75;
 
 TestCompilerTimes	gCompilerTimes;

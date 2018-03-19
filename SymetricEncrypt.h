@@ -23,10 +23,10 @@ namespace crypto {
 			virtual ~SymetricKey() {}
 			std::string encrypt(const std::string &data) const;
 			std::string decrypt(const std::string &encrypted) const;
-			std::string encrypt(const std::string &data, const std::string &iv) const;
-			std::string decrypt(const std::string &encrypted, const std::string &iv) const;
-			virtual std::string &encrypt(const std::string &data, const std::string &iv, std::string &encrypted) const=0;
-			virtual std::string &decrypt(const std::string &encrypted, const std::string &iv, std::string &data) const=0;
+			std::string encryptWithIV(const std::string &data, const std::string &iv) const;
+			std::string decryptWithIV(const std::string &encrypted, const std::string &iv) const;
+			virtual std::string &encryptInPlace(const std::string &data, const std::string &iv, std::string &encrypted) const=0;
+			virtual std::string &decryptInPlace(const std::string &encrypted, const std::string &iv, std::string &data) const=0;
 	};
 
 	template<class SpecificCryptor>
@@ -35,8 +35,8 @@ namespace crypto {
 			SpecificSymetricKey(const void *data, size_t dataSize);
 			SpecificSymetricKey(const std::string &data);
 			virtual ~SpecificSymetricKey() {}
-			virtual std::string &encrypt(const std::string &data, const std::string &iv, std::string &encrypted) const;
-			virtual std::string &decrypt(const std::string &encrypted, const std::string &iv, std::string &data) const;
+			virtual std::string &encryptInPlace(const std::string &data, const std::string &iv, std::string &encrypted) const;
+			virtual std::string &decryptInPlace(const std::string &encrypted, const std::string &iv, std::string &data) const;
 		private:
 			std::string _key;
 	};
@@ -49,7 +49,7 @@ namespace crypto {
 			virtual ~Exception() throw() {}
 	};
 
-	#define EncryptAssert(name, condition) if (!(condition)) {throw name##Error(condition, __FILE__, __LINE__);} else msg::noop()
+	#define EncryptAssert(name, condition) if (!(condition)) {throw name##Error(#condition, __FILE__, __LINE__);} else msg::noop()
 	#define DeclareError(name, message) \
 	class name##Error : public Exception { \
 		public: \
@@ -64,27 +64,27 @@ namespace crypto {
 	DeclareError(Alignment, "Input size was not aligned properly");
 	DeclareError(Decode, "Input data did not decode or decrypt properly");
 	DeclareError(Unimplemented, "Function not implemented for the current algorithm");
-	DeclareError(IVWrongSize, "Function not implemented for the current algorithm");
+	DeclareError(IVWrongSize, "Initialization Vector is the wrong size");
 
 	inline std::string SymetricKey::encrypt(const std::string &data) const {
 		std::string encrypted;
 
-		return encrypt(data, "", encrypted);
+		return encryptInPlace(data, "", encrypted);
 	}
 	inline std::string SymetricKey::decrypt(const std::string &encrypted) const {
 		std::string decrypted;
 
-		return encrypt(encrypted, "", decrypted);
+		return decryptInPlace(encrypted, "", decrypted);
 	}
-	inline std::string SymetricKey::encrypt(const std::string &data, const std::string &iv) const {
+	inline std::string SymetricKey::encryptWithIV(const std::string &data, const std::string &iv) const {
 		std::string encrypted;
 
-		return encrypt(data, iv, encrypted);
+		return encryptInPlace(data, iv, encrypted);
 	}
-	inline std::string SymetricKey::decrypt(const std::string &encrypted, const std::string &iv) const {
+	inline std::string SymetricKey::decryptWithIV(const std::string &encrypted, const std::string &iv) const {
 		std::string decrypted;
 
-		return encrypt(encrypted, iv, decrypted);
+		return decryptInPlace(encrypted, iv, decrypted);
 	}
 
 	template<class SpecificCryptor>
@@ -96,14 +96,24 @@ namespace crypto {
 		EncryptAssert(KeySize, data.length() == SpecificCryptor::Size);
 	}
 	template<class SpecificCryptor>
-	inline std::string &SpecificSymetricKey<SpecificCryptor>::encrypt(const std::string &data, const std::string &iv, std::string &encrypted) const {
-		EncryptAssert(IVWrongSize, iv.length() == SpecificCryptor::IVLength);
-		return SpecificCryptor::encrypt(data, iv, encrypted);
+	inline std::string &SpecificSymetricKey<SpecificCryptor>::encryptInPlace(const std::string &data, const std::string &iv, std::string &encrypted) const {
+		EncryptAssert(IVWrongSize, (iv.length() == SpecificCryptor::IVLength) || (iv.length() == 0));
+		encrypted.assign(data.size() + SpecificCryptor::BlockSize, '\0');
+
+		size_t encryptedSize= SpecificCryptor::encrypt(_key.data(), data.data(), data.length(), const_cast<char*>(encrypted.data()), encrypted.length(), iv.length() ? iv.data() : NULL);
+
+		encrypted.erase(encryptedSize);
+		return encrypted;
 	}
 	template<class SpecificCryptor>
-	inline std::string &SpecificSymetricKey<SpecificCryptor>::decrypt(const std::string &encrypted, const std::string &iv, std::string &data) const {
-		EncryptAssert(IVWrongSize, iv.length() == SpecificCryptor::IVLength);
-		return SpecificCryptor::decrypt(data, iv, encrypted);
+	inline std::string &SpecificSymetricKey<SpecificCryptor>::decryptInPlace(const std::string &encrypted, const std::string &iv, std::string &data) const {
+		EncryptAssert(IVWrongSize, (iv.length() == SpecificCryptor::IVLength) || (iv.length() == 0));
+		data.assign(encrypted.size() + SpecificCryptor::BlockSize, '\0');
+
+		size_t encryptedSize= SpecificCryptor::decrypt(_key.data(), encrypted.data(), encrypted.length(), const_cast<char*>(data.data()), data.length(), iv.length() ? iv.data() : NULL);
+
+		data.erase(encryptedSize);
+		return data;
 	}
 
 #if __APPLE_CC__ || __APPLE__
