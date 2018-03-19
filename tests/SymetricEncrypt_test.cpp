@@ -22,6 +22,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
 			std::string		decrypted;
 			std::string		iv;
 
+			cryptor.encrypt(source, "");
 			while(source.length() < 1024) {
 				dotest(source == crypto::AES256(key).decrypt(crypto::AES256(key).encrypt(source)));
 				source += "test";
