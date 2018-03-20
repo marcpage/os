@@ -8,7 +8,7 @@
 	}
 
 int main(int /*argc*/, char * /*argv*/[]) {
-	int	iterations= 400;
+	int	iterations= 500;
 #ifdef __Tracer_h__
 	iterations= 1;
 #endif
@@ -21,7 +21,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
 			std::string		encrypted;
 			std::string		decrypted;
 			std::string		iv;
-			
+
 			fprintf(stderr, "AES256 size test\n");
 			while(source.length() < 128) {
 				fprintf(stderr, "test length=%lu\n", source.length());
