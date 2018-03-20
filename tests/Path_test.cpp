@@ -10,9 +10,9 @@ int main(int ,const char * const []) {
 #endif
 	for(int i= 0; i < iterations; ++i) {
 		try {
-			io::Path test("bin/logs//");
+			io::Path working("bin/logs//");
+			io::Path test(working + "Path_test_file.txt");
 
-			test = test + "Path_test_file.txt";
 			if (!test.parent().isDirectory()) {
 				printf("FAILED: Parent directory does not exist: %s\n", std::string(test).c_str());
 			}
@@ -25,6 +25,7 @@ int main(int ,const char * const []) {
 			if (!test.isRelative()) {
 				printf("FAILED: Should be relative: %s\n", std::string(test).c_str());
 			}
+
 			if (test.isFile()) {
 				test.remove();
 			}
@@ -49,6 +50,10 @@ int main(int ,const char * const []) {
 				printf("FAILED: Deleted %s but a link is there\n", std::string(test).c_str());
 			}
 
+			test = working + "Path_test_directory";
+			if (test.isDirectory()) {
+				test.remove();
+			}
 			test.mkdir();
 			if (test.isFile()) {
 				printf("FAILED: Created %s as a directory but it is a file\n", std::string(test).c_str());
