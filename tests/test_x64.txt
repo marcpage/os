@@ -1,17 +1,18 @@
 -test
+Path				clang++:54:1.730:3.338	g++:54:1.474:2.728	llvm-g++:54:1.558:2.758
+Hash				clang++:61:2.663:3.585	g++:61:3.470:4.612	llvm-g++:61:3.042:4.133
+SymetricEncrypt		clang++:49:2.235:3.852	g++:49:1.989:3.676	llvm-g++:49:2.418:3.877
+Sqlite3Plus			clang++:58:5.221:7.046	g++:58:4.194:5.890	llvm-g++:58:2.853:5.145
 Mutex				clang++:17:4.672:5.846	g++:17:3.151:4.355	llvm-g++:17:2.464:3.941
 Queue				clang++:43:1.220:3.233	g++:43:1.273:3.243	llvm-g++:43:1.237:3.658
 DateTime			clang++:30:5.707:7.505	g++:30:5.717:7.627	llvm-g++:30:5.830:7.799
-Sqlite3Plus			clang++:58:5.221:7.046	g++:58:2.551:5.070	llvm-g++:58:2.853:5.145
 AtomicInteger		clang++:8:2.484:3.842	g++:8:2.727:4.167	llvm-g++:8:2.674:4.180
-File				clang++:92:1.920:3.778	g++:92:1.994:3.956	llvm-g++:92:1.936:3.701
-Hash				clang++:61:2.073:3.463	g++:61:1.904:3.228	llvm-g++:61:2.009:3.396
-SymetricEncrypt		clang++:49:2.235:3.852	g++:49:1.989:3.676	llvm-g++:49:2.257:3.877
+File				clang++:92:1.920:3.819	g++:92:1.994:4.238	llvm-g++:92:1.936:3.701
 SocketServer		clang++:17:16.916:18.561	g++:17:7.346:9.335	llvm-g++:17:9.980:11.537
 Thread				clang++:41:2.202:6.211	g++:41:1.942:6.018	llvm-g++:41:2.206:6.211
 ReferenceCounted	clang++:46:1.989:3.473	g++:46:1.842:3.247	llvm-g++:46:2.085:3.883
-Signal				clang++:13:1.220:3.643	g++:13:1.211:3.583	llvm-g++:13:1.205:3.546
-Execute				clang++:14:2.122:5.409	g++:14:1.961:5.617	llvm-g++:14:1.733:5.742
+Signal				clang++:13:1.220:3.643	g++:13:1.211:5.952	llvm-g++:13:1.205:3.546
+Execute				clang++:14:2.178:5.696	g++:14:1.961:5.617	llvm-g++:14:2.344:5.742
 Library				clang++:108:4.004:6.219	g++:108:4.092:6.179	llvm-g++:108:4.027:6.117
 ZCompression		clang++:25:2.178:3.510	g++:25:2.179:3.525	llvm-g++:25:2.203:3.567
 Exception			clang++:35:2.555:5.118	g++:35:2.475:5.014	llvm-g++:35:2.509:5.122
@@ -29,11 +30,12 @@ BufferString.h			  5
 DateTime.h				 30
 Exception.h				 35
 Execute.h				 14
-File.h					 92
+File.h					 98
 Hash.h					 62
 Library.h				108
 Mutex.h					 18
 POSIXErrno.h			104
+Path.h					 54
 Queue.h					 43
 RWLock.h				 20
 ReferenceCounted.h		 46

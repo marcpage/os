@@ -7,6 +7,7 @@
 #include "os/DateTime.h"
 #include "os/File.h"
 #include "os/Exception.h"
+#include "os/Path.h"
 
 struct Times {
 	double		perfCompile, perfRun, traceCompile, traceRun;
@@ -21,7 +22,6 @@ typedef std::map<uint32_t,bool>				LinesCovered;
 
 const double		gTestTimeAllowancePercent= 5;
 const double		gTestMinimumTimeInSeconds= 1;
-//const char * const	gCompilerFlags= "-I.. -DOpenSSLAvailable=1 -I/usr/local/Cellar/openssl/1.0.2n/include -L/usr/local/Cellar/openssl/1.0.2n/lib -lcrypto -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -lz -lsqlite3 -framework Carbon";
 const char * const	gCompilerFlags= "-I.. -lcrypto -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -lz -lsqlite3 -framework Carbon";
 const uint32_t		gMinimumPercentCodeCoverage= 75;
 
@@ -95,7 +95,7 @@ double runNoResultsExpected(const String &command, const char * const action) {
 	return duration;
 }
 
-void runTest(const String &name, const String &compiler, uint32_t testedLines, double durationInSeconds, double totalTimeInSeconds) {
+void runTest(const String &name, const String &compiler, const io::Path &openssl, uint32_t testedLines, double durationInSeconds, double totalTimeInSeconds) {
 	String		results;
 	String		command;
 	String		executableName;
@@ -109,7 +109,11 @@ void runTest(const String &name, const String &compiler, uint32_t testedLines, d
 	uint32_t		percent_coverage;
 	uint32_t		warnings, errors, failures;
 	bool			displayNewLine= false;
+	std::string		otherFlags = "";
 
+	if (!openssl.isEmpty()) {
+		otherFlags = String(" -DOpenSSLAvailable=1 -lcrypto -I") + String(openssl);
+	}
 	if(gCompilerLocations[compiler].size() == 0) {
 		exec::execute("which "+compiler, results);
 		if(stripEOL(results).size() == 0) {
@@ -128,10 +132,16 @@ void runTest(const String &name, const String &compiler, uint32_t testedLines, d
 		runLogName= executableName + "_run.log";
 
 		command+= " -o bin/tests/"+executableName+" tests/"+name+"_test.cpp "
-					+(gDebugging ? " -g " : "")+gCompilerFlags+" &> bin/logs/"+logName;
+					+(gDebugging ? " -g " : "")+gCompilerFlags+otherFlags+" &> bin/logs/"+logName;
+		if (gVerbose) {
+			printf("EXECUTING: %s\n", command.c_str());
+		}
 		compilePerfTime= runNoResultsExpected(command, "compile performance");
 
 		command= "bin/tests/"+executableName+" &> bin/logs/"+runLogName;
+		if (gVerbose) {
+			printf("EXECUTING: %s\n", command.c_str());
+		}
 		runPerfTime= runNoResultsExpected(command, "run performance");
 
 		failures= runIntegerExpected("cat bin/logs/"+runLogName+" | grep FAIL | sort | uniq | wc -l");
@@ -145,9 +155,15 @@ void runTest(const String &name, const String &compiler, uint32_t testedLines, d
 		gcovLogName= executableName + "_gcov.log";
 		command= gCompilerLocations[compiler]
 					+ " -o bin/tests/"+executableName+" tests/"+name+"_test.cpp "
-					+(gDebugging ? " -g " : "")+gCompilerFlags+" -D__Tracer_h__ -fprofile-arcs -ftest-coverage &> bin/logs/"+logName;
+					+(gDebugging ? " -g " : "")+gCompilerFlags+otherFlags+" -D__Tracer_h__ -fprofile-arcs -ftest-coverage &> bin/logs/"+logName;
+		if (gVerbose) {
+			printf("EXECUTING: %s\n", command.c_str());
+		}
 		compileCoverageTime= runNoResultsExpected(command, "compile trace");
 		command= "bin/tests/"+executableName+" &> bin/logs/"+runLogName;
+		if (gVerbose) {
+			printf("EXECUTING: %s\n", command.c_str());
+		}
 		runCoverageTime= runNoResultsExpected(command, "run trace");
 
 		exec::execute("mkdir -p bin/coverage/"+executableName+" 2>&1", results);
@@ -228,7 +244,7 @@ void runTest(const String &name, const String &compiler, uint32_t testedLines, d
 	}
 }
 
-void runTest(const String &name, const String &compilerResults) {
+void runTest(const String &name, const io::Path &openssl, const String &compilerResults) {
 	StringList	compilers;
 	StringList	values;
 
@@ -244,7 +260,7 @@ void runTest(const String &name, const String &compilerResults) {
 		testedLines= strtol(strip(values[1]));
 		durationInSeconds= atof(values[2].c_str());
 		totalTimeInSeconds= atof(values[3].c_str());
-		runTest(name, compiler, testedLines, durationInSeconds, totalTimeInSeconds);
+		runTest(name, compiler, openssl, testedLines, durationInSeconds, totalTimeInSeconds);
 	}
 }
 
@@ -355,6 +371,7 @@ void findFileCoverage(const String &file, uint32_t &covered, uint32_t &uncovered
 int main(int argc, const char * const argv[]) {
 	StringList				testsToRun;
 	Dictionary				headerCoverage, testMetrics;
+	io::Path					openssl;
 
 	loadExpectations(headerCoverage, testMetrics, testsToRun);
 	for(int arg= 1; arg < argc; ++arg) {
@@ -367,6 +384,14 @@ int main(int argc, const char * const argv[]) {
 			}
 		} else if(String("verbose") == argv[arg]) {
 			gVerbose= true;
+		} else if(String(argv[arg]).find("openssl=") == 0) {
+			openssl = io::Path(String(argv[arg]).substr(8));
+			if (!openssl.isDirectory()) {
+				printf("WARNING: %s is not a directory, disabling openssl\n", String(openssl).c_str());
+				openssl = io::Path();
+			} else {
+				printf("Enabling openssl with headers at: %s\n", String(openssl).c_str());
+			}
 		} else {
 			bool	found= testMetrics.count(argv[arg]) > 0;
 
@@ -393,7 +418,7 @@ int main(int argc, const char * const argv[]) {
 			printf("WARNING: rm '%s'\n", results.c_str());
 		}
 		for(StringList::iterator test= testsToRun.begin(); test != testsToRun.end(); ++test) {
-			runTest(*test, testMetrics[*test]);
+			runTest(*test, openssl, testMetrics[*test]);
 		}
 		if(testsToRun.size() > 0) {
 			printf("Examining overall coverage ...\n");
