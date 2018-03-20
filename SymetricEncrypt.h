@@ -15,6 +15,12 @@
 	#include <CommonCrypto/CommonCryptor.h>
 #endif
 
+#if OpenSSLAvailable
+	#include <openssl/evp.h>
+	#include <openssl/aes.h>
+	#include <openssl/err.h>
+#endif
+
 namespace crypto {
 
 	class SymetricKey {
@@ -116,6 +122,79 @@ namespace crypto {
 		return data;
 	}
 
+#if OpenSSLAvailable
+
+	#define OSSLHandle(call) handleOpenSSLResult( (call), #call, __FILE__, __LINE__)
+
+	void handleOpenSSLResult(int status, const std::string &call, const char *file, int line) {
+		if(!status) {
+			std::string buffer(512, '\0');
+			ERR_error_string(ERR_get_error(), const_cast<char*>(buffer.data()));
+			buffer.erase(strlen(buffer.c_str()));
+			throw Exception(std::string("OpenSSL Error (" + call + "): ") + buffer, file, line);
+		}
+	}
+
+	void handleOpenSSLResult(void *pointer, const std::string &call, const char *file, int line) {
+		handleOpenSSLResult(NULL == pointer ? 0 : 1, call, file, line);
+	}
+
+	class OpenSSLContext {
+		public:
+			OpenSSLContext() {
+				OSSLHandle(_context = EVP_CIPHER_CTX_new());
+			}
+			~OpenSSLContext() {
+				OSSLHandle(EVP_CIPHER_CTX_cleanup(_context));
+			}
+			operator const EVP_CIPHER_CTX*() const {
+				return _context;
+			}
+			operator EVP_CIPHER_CTX*() const {
+				return _context;
+			}
+		private:
+			EVP_CIPHER_CTX *_context;
+	};
+
+	template<typename cipher, bool padding, int keySize, int blockSize, int ivSize>
+	struct OpenSSLAES {
+		enum {
+			Size= 32//AES_256_KEY_SIZE
+		};
+		enum {
+			BlockSize= AES_BLOCK_SIZE
+		};
+		enum {
+			IVLength= AES_BLOCK_SIZE
+		};
+		static size_t encrypt(const void *key, const void *data, size_t length, void *out, size_t outBufferSize, const void *iv) {
+			return _crypt(1, key, data, length, out, outBufferSize, iv);
+		}
+		static size_t decrypt(const void *key, const void *data, size_t length, void *out, size_t outBufferSize, const void *iv) {
+			return _crypt(0, key, data, length, out, outBufferSize, iv);
+		}
+		private:
+		static size_t _crypt(int enc, const void *key, const void *data, size_t length, void *out, size_t outBufferSize, const void *iv) {
+			unsigned char *outBuffer = reinterpret_cast<unsigned char*>(out);
+			int	bytesWritten;
+			OpenSSLContext context;
+			const EVP_CIPHER *cipher_type = cipher();
+
+			OSSLHandle(EVP_CipherInit_ex(context, cipher_type, NULL, reinterpret_cast<const unsigned char*>(key), reinterpret_cast<const unsigned char*>(iv), enc));
+			AssertMessageException(EVP_CIPHER_CTX_key_length(context) == Size);
+			AssertMessageException( (NULL == iv) || (EVP_CIPHER_CTX_iv_length(context) == IVLength) );
+			OSSLHandle(EVP_CIPHER_CTX_set_padding(context, padding ? 1 : 0));
+
+			OSSLHandle(EVP_CipherUpdate(context, outBuffer, &bytesWritten, reinterpret_cast<const unsigned char*>(data), length));
+			OSSLHandle(EVP_CipherFinal_ex(context, outBuffer, &bytesWritten));
+			return bytesWritten;
+		}
+	};
+
+	#undef OSSLHandle
+#endif
+
 #if __APPLE_CC__ || __APPLE__
 	#define CCHandle(call) handleCCCryptorStatus( (call), #call, __FILE__, __LINE__)
 
@@ -152,15 +231,16 @@ namespace crypto {
 			IVLength= ivLength
 		};
 		static size_t encrypt(const void *key, const void *data, size_t length, void *out, size_t outBufferSize, const void *iv) {
-			size_t outDataSize = 0;
-
-			CCHandle(CCCrypt(kCCEncrypt, algorithm, options, key, keyLength, iv, data, length, out, outBufferSize, &outDataSize));
-			return outDataSize;
+			return _crypt(kCCEncrypt, key, data, length, out, outBufferSize, iv);
 		}
 		static size_t decrypt(const void *key, const void *data, size_t length, void *out, size_t outBufferSize, const void *iv) {
+			return _crypt(kCCDecrypt, key, data, length, out, outBufferSize, iv);
+		}
+		private:
+		static size_t _crypt(CCOperation op, const void *key, const void *data, size_t length, void *out, size_t outBufferSize, const void *iv) {
 			size_t outDataSize = 0;
 
-			CCHandle(CCCrypt(kCCDecrypt, algorithm, options, key, keyLength, iv, data, length, out, outBufferSize, &outDataSize));
+			CCHandle(CCCrypt(op, algorithm, options, key, keyLength, iv, data, length, out, outBufferSize, &outDataSize));
 			return outDataSize;
 		}
 	};
@@ -179,12 +259,10 @@ namespace crypto {
 
 	// Cleanup internal define
 	#undef CCHandle
-	#undef EncryptAssert
-	#undef DeclareError
 #endif
 }
 
-#undef CCHandle
+#undef EncryptAssert
 #undef DeclareError
 
 #endif // __SymetricEncrypt_h__
