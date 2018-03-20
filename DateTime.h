@@ -89,7 +89,7 @@ namespace dt {
 	inline DateTime::DateTime()
 		:_time() {;
 		struct timeval	time;
-		ErrnoOnNegative(gettimeofday(&time,NULL));
+		ErrnoOnNegative(::gettimeofday(&time,NULL));
 		_time.tv_sec= time.tv_sec;
 		_time.tv_nsec= static_cast<long>(time.tv_usec) * 1000UL;
 	}
@@ -242,10 +242,10 @@ namespace dt {
 		return *this += amount;
 	}
 	inline tm &DateTime::utc(tm &time) const {;
-		return *localtime_r(&_time.tv_sec, &time);
+		return *::localtime_r(&_time.tv_sec, &time);
 	}
 	inline tm &DateTime::local(tm &time) const {;
-		return *gmtime_r(&_time.tv_sec, &time);
+		return *::gmtime_r(&_time.tv_sec, &time);
 	}
 	inline timeval &DateTime::value(timeval &tv) const {
 		tv.tv_sec= _time.tv_sec;
