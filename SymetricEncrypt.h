@@ -157,7 +157,7 @@ namespace crypto {
 			EVP_CIPHER_CTX *_context;
 	};
 
-	template<typename cipher, bool padding, int keySize, int blockSize, int ivSize>
+	template<const EVP_CIPHER *cipher(void), bool padding, int keySize, int blockSize, int ivSize>
 	struct OpenSSLAES {
 		enum {
 			Size= keySize
@@ -175,7 +175,10 @@ namespace crypto {
 			return _crypt(0, key, data, length, out, outBufferSize, iv);
 		}
 		private:
-		static size_t _crypt(int enc, const void *key, const void *data, size_t length, void *out, size_t outBufferSize, const void *iv) {
+		/**
+			@todo and probably fix
+		*/
+		static size_t _crypt(int enc, const void *key, const void *data, size_t length, void *out, size_t /*outBufferSize*/, const void *iv) {
 			unsigned char *outBuffer = reinterpret_cast<unsigned char*>(out);
 			int	bytesWritten;
 			OpenSSLContext context;
@@ -192,18 +195,12 @@ namespace crypto {
 		}
 	};
 
-	typedef OpenSSLAES<EVP_aes_256_cbc> OpenSSL_AES256_CBC_Padded_Cryptor;
-	typedef OpenSSLAES<EVP_aes_256_cbc> OpenSSL_AES256_CBC_Cryptor;
-
-EVP_aes_256_cbc (void)
-const EVP_CIPHER * 	EVP_aes_128_cfb8 (void)
-const EVP_CIPHER * 	EVP_aes_192_cfb8 (void)
-const EVP_CIPHER * 	EVP_aes_256_cfb8 (void)
-
+	typedef OpenSSLAES<EVP_aes_256_cbc, true, 32, AES_BLOCK_SIZE, AES_BLOCK_SIZE> OpenSSL_AES256_CBC_Padded_Cryptor;
+	typedef OpenSSLAES<EVP_aes_256_cbc, false, 32, AES_BLOCK_SIZE, AES_BLOCK_SIZE> OpenSSL_AES256_CBC_Cryptor;
 
 #if __APPLE_CC__ || __APPLE__
-	typedef SpecificSymetricKey<OpenSSL_AES256_CBC_Padded_Cryptor, true, 32, AES_BLOCK_SIZE, AES_BLOCK_SIZE> OpenSSL_AES256_CBC_Padded;
-	typedef SpecificSymetricKey<OpenSSL_AES256_CBC_Cryptor, false, 32, AES_BLOCK_SIZE, AES_BLOCK_SIZE> OpenSSL_AES256_CBC;
+	typedef SpecificSymetricKey<OpenSSL_AES256_CBC_Padded_Cryptor> OpenSSL_AES256_CBC_Padded;
+	typedef SpecificSymetricKey<OpenSSL_AES256_CBC_Cryptor> OpenSSL_AES256_CBC;
 
 	typedef OpenSSL_AES256_CBC_Padded OpenSSL_AES256;
 #else
