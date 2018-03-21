@@ -373,7 +373,11 @@ int main(int argc, const char * const argv[]) {
 	Dictionary				headerCoverage, testMetrics;
 	io::Path					openssl;
 
-	loadExpectations(headerCoverage, testMetrics, testsToRun);
+	try {
+		loadExpectations(headerCoverage, testMetrics, testsToRun);
+	} catch(const std::exception &exception) {
+		printf("ERROR: Unable to load expectations %s\n", exception.what());
+	}
 	for(int arg= 1; arg < argc; ++arg) {
 		if(String("debug") == argv[arg]) {
 			gDebugging= true;
