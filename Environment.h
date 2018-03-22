@@ -9,6 +9,8 @@
 #include <map>
 #include "POSIXErrno.h"
 
+extern char *environ[];
+
 namespace env {
 
 	enum Action {
@@ -36,17 +38,16 @@ namespace env {
 		ErrnoOnNegative(::unsetenv(name.c_str()));
 	}
 	Dictionary &list(Dictionary &env) {
-		extern char *environ[];
 		
 		env.clear();
 		for (int i= 0; NULL != environ[i]; ++i) {
 			String	field= environ[i];
 			String::size_type equalPos= field.find('=');
 			
-			if (String::npos == equalsPos) {
+			if (String::npos == equalPos) {
 				env[field]= "";
 			} else {
-				env[field.substr(0, equalPos)] = field.substr(equalpos + 1);
+				env[field.substr(0, equalPos)] = field.substr(equalPos + 1);
 			}
 		}
 		return env;
