@@ -9,6 +9,8 @@
 #include "os/Exception.h"
 #include "os/Path.h"
 #include "os/Sqlite3Plus.h"
+#include "os/Hash.h"
+#include "os/Environment.h"
 
 struct Times {
 	double		perfCompile, perfRun, traceCompile, traceRun;
@@ -96,7 +98,7 @@ double runNoResultsExpected(const String &command, const char * const action) {
 	return duration;
 }
 
-void updateStats(Sqlite3::DB &db, const String &name, const String &headerHash, const String &testHash, const String &compiler, int linesRun, int linesNotRun, double traceBuildTime, double traceRunTime, double buildTime, double runTime) {
+void updateStats(Sqlite3::DB &db, const String &name, const String &headerHash, const String &testHash, const String &compiler, int linesRun, int linesNotRun, double traceBuildTime, double traceRunTime, double buildTime, double runTime, const String &options) {
 	Sqlite3::DB::Row	row;
 	String				buffer;
 
@@ -110,8 +112,17 @@ void updateStats(Sqlite3::DB &db, const String &name, const String &headerHash, 
 	row["trace_run_time"]= Sqlite3::toString(traceRunTime, buffer);
 	row["build_time"]= Sqlite3::toString(buildTime, buffer);
 	row["run_time"]= Sqlite3::toString(runTime, buffer);
-	row["timestamp"]= "timestamp";
+	row["options"]= options;
+	row["timestamp"]= dt::DateTime().format("%Y/%m/%d %H:%M:%S", buffer);
 	db.addRow("run", row);
+}
+
+String &hashFile(const String &path, String &buffer) {
+	io::File	source(path, io::File::Text, io::File::ReadOnly);
+	String		contents;
+
+	source.read(contents);
+	return hash::sha256(contents).hex(buffer);
 }
 
 void runTest(const String &name, const String &compiler, const io::Path &openssl, uint32_t testedLines, double durationInSeconds, double totalTimeInSeconds, Sqlite3::DB &db) {
@@ -121,14 +132,20 @@ void runTest(const String &name, const String &compiler, const io::Path &openssl
 	String		logName;
 	String		runLogName;
 	String		gcovLogName;
-	double			compilePerfTime, compileCoverageTime, runPerfTime, runCoverageTime, totalTime;
-	uint32_t		coverage;
-	uint32_t		uncovered;
-	uint32_t		percent_coverage;
-	uint32_t		warnings, errors, failures;
-	bool			displayNewLine= false;
-	std::string		otherFlags = "";
+	double		compilePerfTime, compileCoverageTime, runPerfTime, runCoverageTime, totalTime;
+	uint32_t	coverage;
+	uint32_t	uncovered;
+	uint32_t	percent_coverage;
+	uint32_t	warnings, errors, failures;
+	bool		displayNewLine= false;
+	String		otherFlags = "";
+	String		headerHash;
+	String		testHash;
+	const String		testSourcePath = "tests/"+name+"_test.cpp";
+	const String		headerPath = name+".h";
 
+	hashFile(testSourcePath, testHash);
+	hashFile(headerPath, headerHash);
 	if (!openssl.isEmpty()) {
 		otherFlags = String(" -DOpenSSLAvailable=1 -lcrypto -I") + String(openssl);
 	}
@@ -149,7 +166,7 @@ void runTest(const String &name, const String &compiler, const io::Path &openssl
 		logName= executableName + "_compile.log";
 		runLogName= executableName + "_run.log";
 
-		command+= " -o bin/tests/"+executableName+" tests/"+name+"_test.cpp "
+		command+= " -o bin/tests/"+executableName+" "+testSourcePath+" "
 					+(gDebugging ? " -g " : "")+gCompilerFlags+otherFlags+" &> bin/logs/"+logName;
 		if (gVerbose) {
 			printf("EXECUTING: %s\n", command.c_str());
@@ -259,7 +276,7 @@ void runTest(const String &name, const String &compiler, const io::Path &openssl
 		gCompilerTimes[name][compiler].traceRun= runCoverageTime;
 		gCompilerTimes[name][compiler].testedLines= coverage;
 		gCompilerTimes[name][compiler].warnings= warnings;
-		updateStats(db, name, "header hash", "test hash", compiler, coverage, uncovered, compileCoverageTime, runCoverageTime, compilePerfTime, runPerfTime);
+		updateStats(db, name, headerHash, testHash, compiler, coverage, uncovered, compileCoverageTime, runCoverageTime, compilePerfTime, runPerfTime, openssl.isEmpty() ? "" : "openssl");
 	}
 }
 
@@ -431,7 +448,7 @@ int main(int argc, const char * const argv[]) {
 	try {
 		String		results;
 		StringList	headers;
-		Sqlite3::DB	db("/tmp/tests.sqlite3");
+		Sqlite3::DB	db(env::get("HOME") + "/Library/Caches/tests.sqlite3");
 
 		db.exec("CREATE TABLE IF NOT EXISTS `run` ("
 					"`name` VARCHAR(256), "
@@ -444,6 +461,7 @@ int main(int argc, const char * const argv[]) {
 					"`trace_run_time` REAL, "
 					"`build_time` REAL, "
 					"`run_time` REAL, "
+					"`options` TEXT, "
 					"`timestamp` VARCHAR(20));"
 		);
 		exec::execute("mkdir -p bin/tests bin/logs", results);

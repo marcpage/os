@@ -1,5 +1,5 @@
 -test
-DateTime			clang++:30:6.564:8.332	g++:30:5.717:7.627	llvm-g++:30:5.928:8.282
+DateTime			clang++:38:3.239:4.485	g++:38:3.817:5.087	llvm-g++:38:3.077:4.265
 SymetricEncrypt		clang++:47:2.458:4.227	g++:47:2.350:4.081	llvm-g++:47:2.418:3.956
 Path				clang++:54:3.031:4.964	g++:54:3.318:5.154	llvm-g++:54:2.943:4.846
 Hash				clang++:61:2.663:3.585	g++:61:3.470:4.612	llvm-g++:61:3.042:4.133
@@ -27,7 +27,7 @@ Buffer.h				  3
 BufferAddress.h			  5
 BufferManaged.h			  4
 BufferString.h			  5
-DateTime.h				 30
+DateTime.h				 38
 Exception.h				 35
 Execute.h				 14
 File.h					 98
@@ -47,3 +47,5 @@ SymetricEncrypt.h		 47
 Sqlite3Plus.h			 58
 Thread.h				 43
 ZCompression.h			 25
+AsymetricEncrypt.h		  0
+Environment.h			  0
