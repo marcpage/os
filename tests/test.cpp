@@ -450,7 +450,8 @@ int main(int argc, const char * const argv[]) {
 	try {
 		String		results;
 		StringList	headers;
-		Sqlite3::DB	db(env::get("HOME") + "/Library/Caches/tests.sqlite3");
+		String		parentDirectory= io::Path(argv[0]).canonical().parent().parent().name();
+		Sqlite3::DB	db(env::get("HOME") + "/Library/Caches/" + parentDirectory + "_tests.sqlite3");
 
 		db.exec("CREATE TABLE IF NOT EXISTS `run` ("
 					"`name` VARCHAR(256), "

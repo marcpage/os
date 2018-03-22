@@ -5,7 +5,8 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <os/POSIXErrno.h>
+#include <stdlib.h>
+#include "os/POSIXErrno.h"
 
 /**
 	@todo Document
@@ -41,6 +42,7 @@ namespace io {
 			void symlink(const Path &contents) const;
 			Path parent() const;
 			std::string name() const;
+			Path canonical() const;
 			Path operator+(const Path &name) const;
 			Path operator+(const std::string &name) const;
 			Path &operator=(const Path &other);
@@ -137,6 +139,13 @@ namespace io {
 			return _path;
 		}
 		return _path.substr(sepPos + 1);
+	}
+	inline Path Path::canonical() const {
+		std::string	buffer(PATH_MAX, '\0');
+
+		ErrnoOnNULL(::realpath(std::string(*this).c_str(), const_cast<char*>(buffer.data())));
+		buffer.erase(::strlen(buffer.c_str()));
+		return buffer;
 	}
 	inline Path Path::operator+(const Path &name) const {
 		return Path(_path + "/" + name._path);
