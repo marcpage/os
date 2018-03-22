@@ -4,6 +4,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <math.h>
+#include <string>
 #include "POSIXErrno.h"
 #include "Exception.h"
 
@@ -44,6 +45,7 @@ namespace dt {
 				AM,
 				PM
 			};
+			typedef std::string String;
 			DateTime();
 			DateTime(const DateTime &time);
 			DateTime(const time_t &time);
@@ -76,6 +78,7 @@ namespace dt {
 			tm &local(tm &time) const;
 			timeval &value(timeval &tv) const;
 			timespec &value(timespec &ts) const;
+			String &format(const String &format, String &buffer) const;
 		private:
 			timespec	_time;
 			void _init(tm &time, double fractionalSeconds= 0.0);
@@ -255,6 +258,16 @@ namespace dt {
 	inline timespec &DateTime::value(timespec &ts) const {
 		ts= _time;
 		return ts;
+	}
+	inline DateTime::String &DateTime::format(const String &format, String &buffer) const {
+		size_t		size;
+		struct tm	time;
+
+		local(time);
+		buffer.assign(format.length() * 15, '\0');
+		size = ::strftime(const_cast<char*>(buffer.data()), buffer.length(), format.c_str(), &time);
+		buffer.erase(size);
+		return buffer;
 	}
 }
 

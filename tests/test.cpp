@@ -8,6 +8,7 @@
 #include "os/File.h"
 #include "os/Exception.h"
 #include "os/Path.h"
+#include "os/Sqlite3Plus.h"
 
 struct Times {
 	double		perfCompile, perfRun, traceCompile, traceRun;
@@ -95,14 +96,31 @@ double runNoResultsExpected(const String &command, const char * const action) {
 	return duration;
 }
 
-void runTest(const String &name, const String &compiler, const io::Path &openssl, uint32_t testedLines, double durationInSeconds, double totalTimeInSeconds) {
+void updateStats(Sqlite3::DB &db, const String &name, const String &headerHash, const String &testHash, const String &compiler, int linesRun, int linesNotRun, double traceBuildTime, double traceRunTime, double buildTime, double runTime) {
+	Sqlite3::DB::Row	row;
+	String				buffer;
+
+	row["name"]= name;
+	row["header_hash"]= headerHash;
+	row["test_hash"]= testHash;
+	row["compiler"]= compiler;
+	row["lines_run"]= Sqlite3::toString(linesRun, buffer);
+	row["code_lines"]= Sqlite3::toString(linesRun + linesNotRun, buffer);
+	row["trace_build_time"]= Sqlite3::toString(traceBuildTime, buffer);
+	row["trace_run_time"]= Sqlite3::toString(traceRunTime, buffer);
+	row["build_time"]= Sqlite3::toString(buildTime, buffer);
+	row["run_time"]= Sqlite3::toString(runTime, buffer);
+	row["timestamp"]= "timestamp";
+	db.addRow("run", row);
+}
+
+void runTest(const String &name, const String &compiler, const io::Path &openssl, uint32_t testedLines, double durationInSeconds, double totalTimeInSeconds, Sqlite3::DB &db) {
 	String		results;
 	String		command;
 	String		executableName;
 	String		logName;
 	String		runLogName;
 	String		gcovLogName;
-	dt::DateTime	start, end;
 	double			compilePerfTime, compileCoverageTime, runPerfTime, runCoverageTime, totalTime;
 	uint32_t		coverage;
 	uint32_t		uncovered;
@@ -241,10 +259,11 @@ void runTest(const String &name, const String &compiler, const io::Path &openssl
 		gCompilerTimes[name][compiler].traceRun= runCoverageTime;
 		gCompilerTimes[name][compiler].testedLines= coverage;
 		gCompilerTimes[name][compiler].warnings= warnings;
+		updateStats(db, name, "header hash", "test hash", compiler, coverage, uncovered, compileCoverageTime, runCoverageTime, compilePerfTime, runPerfTime);
 	}
 }
 
-void runTest(const String &name, const io::Path &openssl, const String &compilerResults) {
+void runTest(const String &name, const io::Path &openssl, const String &compilerResults, Sqlite3::DB &db) {
 	StringList	compilers;
 	StringList	values;
 
@@ -260,7 +279,7 @@ void runTest(const String &name, const io::Path &openssl, const String &compiler
 		testedLines= strtol(strip(values[1]));
 		durationInSeconds= atof(values[2].c_str());
 		totalTimeInSeconds= atof(values[3].c_str());
-		runTest(name, compiler, openssl, testedLines, durationInSeconds, totalTimeInSeconds);
+		runTest(name, compiler, openssl, testedLines, durationInSeconds, totalTimeInSeconds, db);
 	}
 }
 
@@ -410,9 +429,23 @@ int main(int argc, const char * const argv[]) {
 		}
 	}
 	try {
-		String	results;
+		String		results;
 		StringList	headers;
+		Sqlite3::DB	db("/tmp/tests.sqlite3");
 
+		db.exec("CREATE TABLE IF NOT EXISTS `run` ("
+					"`name` VARCHAR(256), "
+					"`header_hash` VARCHAR(32), "
+					"`test_hash` VARCHAR(32), "
+					"`compiler` VARCHAR(10), "
+					"`lines_run` INT, "
+					"`code_lines` INT, "
+					"`trace_build_time` REAL, "
+					"`trace_run_time` REAL, "
+					"`build_time` REAL, "
+					"`run_time` REAL, "
+					"`timestamp` VARCHAR(20));"
+		);
 		exec::execute("mkdir -p bin/tests bin/logs", results);
 		if(results != "") {
 			printf("WARNING: mkdir '%s'\n", results.c_str());
@@ -422,7 +455,7 @@ int main(int argc, const char * const argv[]) {
 			printf("WARNING: rm '%s'\n", results.c_str());
 		}
 		for(StringList::iterator test= testsToRun.begin(); test != testsToRun.end(); ++test) {
-			runTest(*test, openssl, testMetrics[*test]);
+			runTest(*test, openssl, testMetrics[*test], db);
 		}
 		if(testsToRun.size() > 0) {
 			printf("Examining overall coverage ...\n");

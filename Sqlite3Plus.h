@@ -89,12 +89,13 @@ namespace Sqlite3 {
 	/// An Sqlite3 database
 	class DB {
 	public:
-		typedef std::map<std::string,std::string>	Row;
-		typedef std::vector<Row>					Results;
+		typedef std::string				String;
+		typedef std::map<String,String>	Row;
+		typedef std::vector<Row>		Results;
 		/** @brief Opens or Creates a database at the given path
 		 @throw Sqlite3::Exception	If there is any problem executing the query
 		 */
-		DB(const char *filepath);
+		DB(const String &filepath);
 		/// Closes and cleans up the database
 		~DB();
 		/** @brief Executes an sql query
@@ -103,13 +104,13 @@ namespace Sqlite3 {
 						Filled with Rows of items describing the results
 		 @throw Sqlite3::Exception	If there is any problem executing the query
 		 */
-		void exec(const std::string &command, Results *rows= NULL);
+		void exec(const String &command, Results *rows= NULL);
 		/** @brief Adds a row to the given table.
 			@param table	The name of the table to add the row to
 			@param row		The data for the row to add
 			@throw Sqlite3::Exception	If there is any problem adding the row
 		*/
-		void addRow(const std::string &table, const Row &row);
+		void addRow(const String &table, const Row &row);
 	private:
 		sqlite3					*_db;	///< The database reference
 
@@ -189,9 +190,9 @@ namespace Sqlite3 {
 
 	// ****** DB implementation ******
 
-	inline DB::DB(const char *filepath)
+	inline DB::DB(const String &filepath)
 		:_db(NULL) {
-		Sql3ThrowIfDbError(_db, sqlite3_open(filepath, &_db));
+		Sql3ThrowIfDbError(_db, sqlite3_open(filepath.c_str(), &_db));
 	}
 	inline DB::~DB() {
 		if(sqlite3_close(_db)) {
@@ -199,7 +200,7 @@ namespace Sqlite3 {
 		}
 		_db= NULL;
 	}
-	inline void DB::exec(const std::string &command, Results *rows) {
+	inline void DB::exec(const String &command, Results *rows) {
 		sqlite3_stmt	*statement= NULL;
 		int				stepResult;
 
@@ -213,8 +214,8 @@ namespace Sqlite3 {
 			if(SQLITE_ROW == stepResult) {
 				if(NULL != rows) {
 					const int	columns= sqlite3_column_count(statement);
-					Row			row;
-					std::string	key;
+					Row		row;
+					String	key;
 
 					for(int column= 0; (column < columns); ++column) {
 						const int	columnSize= sqlite3_column_bytes(statement, column);
@@ -231,12 +232,12 @@ namespace Sqlite3 {
 		} while(SQLITE_DONE != stepResult);
 		Sql3ThrowIfDbError(_db, sqlite3_finalize(statement));
 	}
-	void DB::addRow(const std::string &table, const Row &row) {
-		sqlite3_stmt				*statement= NULL;
-		std::string					command("INSERT INTO `");
-		std::string					values;
-		char						separator= ' ';
-		std::vector<std::string>	keys;
+	void DB::addRow(const String &table, const Row &row) {
+		sqlite3_stmt		*statement= NULL;
+		String				command("INSERT INTO `");
+		String				values;
+		char				separator= ' ';
+		std::vector<String>	keys;
 
 		command.append(table).append("` (");
 		for(Row::const_iterator column= row.begin(); (column != row.end()); ++column) {
@@ -248,8 +249,8 @@ namespace Sqlite3 {
 		command.append(") VALUES (").append(values).append(");");
 		Sql3ThrowIfDbError(_db, sqlite3_prepare_v2(_db, command.c_str(), command.length(), &statement, NULL));
 		int	valueIndex= 1;
-		for(std::vector<std::string>::iterator	keyPtr= keys.begin(); (keyPtr != keys.end()); ++keyPtr, ++valueIndex) {
-			const std::string	&value= row.find(*keyPtr)->second;
+		for(std::vector<String>::iterator	keyPtr= keys.begin(); (keyPtr != keys.end()); ++keyPtr, ++valueIndex) {
+			const String	&value= row.find(*keyPtr)->second;
 
 			sqlite3_bind_blob(statement, valueIndex, value.data(), value.size(), SQLITE_TRANSIENT);
 		}

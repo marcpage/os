@@ -14,4 +14,4 @@ test:bin/test
 
 bin/test:tests/test.cpp *.h
 	@mkdir -p bin
-	@clang++ os/tests/test.cpp -o $@ -I. -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings
+	@clang++ tests/test.cpp -o $@ -I.. -lsqlite3 -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings
