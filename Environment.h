@@ -6,6 +6,7 @@
 */
 
 #include <string>
+#include <map>
 #include "POSIXErrno.h"
 
 namespace env {
@@ -14,10 +15,13 @@ namespace env {
 		Overwrite,
 		DoNotOverwrite
 	};
-	bool has(const std::string &name) {
+	typedef std::string 				String;
+	typedef std::map<String, String>	Dictionary;
+	
+	bool has(const String &name) {
 		return NULL != ::getenv(name.c_str());
 	}
-	std::string get(const std::string &name) {
+	String get(const String &name) {
 		const char *value = ::getenv(name.c_str());
 
 		if (NULL == value) {
@@ -25,11 +29,27 @@ namespace env {
 		}
 		return value;
 	}
-	void set(const std::string &name, const std::string &value, Action action=Overwrite) {
+	void set(const String &name, const String &value, Action action=Overwrite) {
 		ErrnoOnNegative(::setenv(name.c_str(), value.c_str(), Overwrite == action ? 1 : 0));
 	}
-	void clear(const std::string &name) {
+	void clear(const String &name) {
 		ErrnoOnNegative(::unsetenv(name.c_str()));
+	}
+	Dictionary &list(Dictionary &env) {
+		extern char *environ[];
+		
+		env.clear();
+		for (int i= 0; NULL != environ[i]; ++i) {
+			String	field= environ[i];
+			String::size_type equalPos= field.find('=');
+			
+			if (String::npos == equalsPos) {
+				env[field]= "";
+			} else {
+				env[field.substr(0, equalPos)] = field.substr(equalpos + 1);
+			}
+		}
+		return env;
 	}
 
 }
