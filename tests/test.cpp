@@ -12,6 +12,8 @@
 #include "os/Hash.h"
 #include "os/Environment.h"
 
+// select name, compiler, options, count(*), avg(run_time), min(run_time), max(run_time), avg(100*lines_run/code_lines), min(100*lines_run/code_lines), max(100*lines_run/code_lines) from run group by name, test_hash, header_hash, compiler, options;
+
 struct Times {
 	double		perfCompile, perfRun, traceCompile, traceRun;
 	uint32_t	testedLines, warnings;
