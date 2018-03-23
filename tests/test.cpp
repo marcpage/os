@@ -14,6 +14,8 @@
 
 // select name, compiler, options, count(*) as count, avg(run_time) as average_run_time, min(run_time) as min_run_time, max(run_time) as max_run_time, avg(100*lines_run/code_lines) as average_coverage, min(100*lines_run/code_lines) as min_coverage, max(100*lines_run/code_lines) as max_coverage from run group by name, test_hash, header_hash, compiler, options;
 
+// select name, compiler, options, count(*) as count, avg(run_time) as average_run_time, min(run_time) as min_run_time, max(run_time) as max_run_time, avg(100*lines_run/code_lines) as average_coverage, min(100*lines_run/code_lines) as min_coverage, max(100*lines_run/code_lines) as max_coverage from run group by name, source_identifier, compiler, options;
+
 struct Times {
 	double		perfCompile, perfRun, traceCompile, traceRun;
 	uint32_t	testedLines, warnings;
@@ -27,7 +29,7 @@ typedef std::map<uint32_t,bool>				LinesCovered;
 
 const double		gTestTimeAllowancePercent= 5;
 const double		gTestMinimumTimeInSeconds= 1;
-const char * const	gCompilerFlags= "-I.. -lcrypto -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -lz -lsqlite3 -framework Carbon";
+const char * const	gCompilerFlags= "-I.. -MMD -lcrypto -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -lz -lsqlite3 -framework Carbon";
 const uint32_t		gMinimumPercentCodeCoverage= 75;
 
 TestCompilerTimes	gCompilerTimes;
@@ -100,7 +102,7 @@ double runNoResultsExpected(const String &command, const char * const action) {
 	return duration;
 }
 
-void updateStats(Sqlite3::DB &db, const String &name, const String &headerHash, const String &testHash, const String &compiler, int linesRun, int linesNotRun, double traceBuildTime, double traceRunTime, double buildTime, double runTime, const String &options) {
+void updateStats(Sqlite3::DB &db, const String &name, const String &headerHash, const String &testHash, const String &compiler, int linesRun, int linesNotRun, double traceBuildTime, double traceRunTime, double buildTime, double runTime, const String &options, const String &sourceIdentifier) {
 	Sqlite3::DB::Row	row;
 	String				buffer;
 
@@ -115,16 +117,68 @@ void updateStats(Sqlite3::DB &db, const String &name, const String &headerHash, 
 	row["build_time"]= Sqlite3::toString(buildTime, buffer);
 	row["run_time"]= Sqlite3::toString(runTime, buffer);
 	row["options"]= options;
+	row["source_identifier"]= sourceIdentifier;
 	row["timestamp"]= dt::DateTime().format("%Y/%m/%d %H:%M:%S", buffer);
 	db.addRow("run", row);
 }
 
-String &hashFile(const String &path, String &buffer) {
+String fileContents(const String &path) {
 	io::File	source(path, io::File::Text, io::File::ReadOnly);
 	String		contents;
 
 	source.read(contents);
-	return hash::sha256(contents).hex(buffer);
+	return contents;
+}
+
+String &hashFile(const String &path, String &buffer) {
+	return hash::sha256(fileContents(path)).hex(buffer);
+}
+
+String::size_type skip(const String &text, String::size_type &index, bool whitespace) {
+	while ( (index < text.length()) && ((::isspace(text[index]) != 0) == whitespace) ) {++index;}
+	return index;
+}
+
+void removeLineEndingEscapes(String &text) {
+	String::size_type	backslash= 0;
+
+	while (backslash != String::npos) {
+		if (String::npos != (backslash= text.find("\\\n"))) {
+			text.replace(backslash, 2, 1, ' ');
+		} else if (String::npos != (backslash= text.find("\\\r\n"))) {
+			text.replace(backslash, 3, 1, ' ');
+		} else if (String::npos != (backslash= text.find("\\\r"))) {
+			text.replace(backslash, 2, 1, ' ');
+		}
+	}
+}
+
+String sourceIdentifier(const String &dependenciesPath) {
+	String				contents= fileContents(dependenciesPath);
+	String::size_type	startPos= contents.find(':');
+	String				identifier("");
+	String				hashBuffer;
+	String				prefix("");
+
+	removeLineEndingEscapes(contents);
+	if (String::npos != startPos) {
+		String::size_type	endPos;
+		String				path;
+
+		++startPos;
+		while (startPos < contents.length()) {
+			skip(contents, startPos, true);
+			endPos= startPos;
+			skip(contents, endPos, false);
+			strip(path.assign(contents, startPos, endPos - startPos));
+			if (path.length() > 0) {
+				identifier+= prefix+path+":"+hashFile(path, hashBuffer);
+				prefix= ",";
+			}
+			startPos= endPos;
+		}
+	}
+	return identifier;
 }
 
 void runTest(const String &name, const String &compiler, const io::Path &openssl, uint32_t testedLines, double durationInSeconds, double totalTimeInSeconds, Sqlite3::DB &db) {
@@ -143,6 +197,7 @@ void runTest(const String &name, const String &compiler, const io::Path &openssl
 	String		otherFlags = "";
 	String		headerHash;
 	String		testHash;
+	String		executablePath;
 	const String		testSourcePath = "tests/"+name+"_test.cpp";
 	const String		headerPath = name+".h";
 
@@ -167,15 +222,15 @@ void runTest(const String &name, const String &compiler, const io::Path &openssl
 		executableName= name + '_' + compiler + "_performance";
 		logName= executableName + "_compile.log";
 		runLogName= executableName + "_run.log";
-
-		command+= " -o bin/tests/"+executableName+" "+testSourcePath+" "
+		executablePath= "bin/tests/"+executableName;
+		command+= " -o "+executablePath+" "+testSourcePath+" "
 					+(gDebugging ? " -g " : "")+gCompilerFlags+otherFlags+" &> bin/logs/"+logName;
 		if (gVerbose) {
 			printf("EXECUTING: %s\n", command.c_str());
 		}
 		compilePerfTime= runNoResultsExpected(command, "compile performance");
 
-		command= "bin/tests/"+executableName+" &> bin/logs/"+runLogName;
+		command= executablePath+" &> bin/logs/"+runLogName;
 		if (gVerbose) {
 			printf("EXECUTING: %s\n", command.c_str());
 		}
@@ -190,14 +245,15 @@ void runTest(const String &name, const String &compiler, const io::Path &openssl
 		logName= executableName + "_compile.log";
 		runLogName= executableName + "_run.log";
 		gcovLogName= executableName + "_gcov.log";
+		executablePath= "bin/tests/"+executableName;
 		command= gCompilerLocations[compiler]
-					+ " -o bin/tests/"+executableName+" tests/"+name+"_test.cpp "
+					+ " -o "+executablePath+" tests/"+name+"_test.cpp "
 					+(gDebugging ? " -g " : "")+gCompilerFlags+otherFlags+" -D__Tracer_h__ -fprofile-arcs -ftest-coverage &> bin/logs/"+logName;
 		if (gVerbose) {
 			printf("EXECUTING: %s\n", command.c_str());
 		}
 		compileCoverageTime= runNoResultsExpected(command, "compile trace");
-		command= "bin/tests/"+executableName+" &> bin/logs/"+runLogName;
+		command= executablePath+" &> bin/logs/"+runLogName;
 		if (gVerbose) {
 			printf("EXECUTING: %s\n", command.c_str());
 		}
@@ -278,7 +334,7 @@ void runTest(const String &name, const String &compiler, const io::Path &openssl
 		gCompilerTimes[name][compiler].traceRun= runCoverageTime;
 		gCompilerTimes[name][compiler].testedLines= coverage;
 		gCompilerTimes[name][compiler].warnings= warnings;
-		updateStats(db, name, headerHash, testHash, compiler, coverage, uncovered, compileCoverageTime, runCoverageTime, compilePerfTime, runPerfTime, openssl.isEmpty() ? "" : "openssl");
+		updateStats(db, name, headerHash, testHash, compiler, coverage, uncovered, compileCoverageTime, runCoverageTime, compilePerfTime, runPerfTime, openssl.isEmpty() ? "" : "openssl", sourceIdentifier(executablePath+".d"));
 	}
 }
 
@@ -457,6 +513,7 @@ int main(int argc, const char * const argv[]) {
 					"`name` VARCHAR(256), "
 					"`header_hash` VARCHAR(32), "
 					"`test_hash` VARCHAR(32), "
+					"`source_identifier` TEXT, "
 					"`compiler` VARCHAR(10), "
 					"`lines_run` INT, "
 					"`code_lines` INT, "
