@@ -123,11 +123,16 @@ void updateStats(Sqlite3::DB &db, const String &name, const String &headerHash, 
 }
 
 String fileContents(const String &path) {
-	io::File	source(path, io::File::Text, io::File::ReadOnly);
-	String		contents;
+	try {
+		io::File	source(path, io::File::Text, io::File::ReadOnly);
+		String		contents;
 
-	source.read(contents);
-	return contents;
+		source.read(contents);
+		return contents;
+	} catch(const posix::err::Errno &) {
+		fprintf(stderr, "Error: Unable to read '%s'\n", path.c_str());
+		throw;
+	}
 }
 
 String &hashFile(const String &path, String &buffer) {
