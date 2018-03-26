@@ -23,7 +23,7 @@ class BufferAddress : public Buffer {
 		/// @brief The address of the buffer
 		void	*_buffer;
 		/// @brief The size of the buffer
-		size_t	_size;
+		const size_t	_size;
 		BufferAddress(const BufferAddress&); ///< @brief Prevent Usage
 		BufferAddress &operator=(const BufferAddress&); ///< @brief Prevent Usage
 };
