@@ -29,7 +29,7 @@ typedef std::map<uint32_t,bool>				LinesCovered;
 
 const double		gTestTimeAllowancePercent= 5;
 const double		gTestMinimumTimeInSeconds= 1;
-const char * const	gCompilerFlags= "-I.. -MMD -lcrypto -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -lz -lsqlite3 -framework Carbon";
+const char * const	gCompilerFlags= "-I.. -I. -MMD -lcrypto -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -lz -lsqlite3 -framework Carbon";
 const uint32_t		gMinimumPercentCodeCoverage= 75;
 
 TestCompilerTimes	gCompilerTimes;
