@@ -119,6 +119,19 @@ String &hashFile(const String &path, String &buffer) {
 	return hash::sha256(fileContents(path)).hex(buffer);
 }
 
+void getHeaderStats(Sqlite3::DB &db, const String &name, int &linesRun, int &linesNotRun, const std::string &testNames) {
+	Sqlite3::DB::Results	results;
+
+	db.exec("SELECT name,lines_run,code_lines,timestamp FROM header WHERE name LIKE '" + name + "' AND tests LIKE '" + testNames + "' ORDER BY timestamp DESC;", &results);
+	if (results.size() > 0) {
+		linesRun= std::stoi(results[0]["lines_run"]);
+		linesNotRun= std::stoi(results[0]["lines_run"]) - linesRun;
+	} else {
+		linesRun= 0;
+		linesNotRun= 0;
+	}
+}
+
 void updateHeaderStats(Sqlite3::DB &db, const String &name, int linesRun, int linesNotRun, const std::string &testNames) {
 	Sqlite3::DB::Row	row;
 	String				buffer;
@@ -578,8 +591,22 @@ int main(int argc, const char * const argv[]) {
 				bool		found= headerCoverage.count(*header) > 0;
 				int			value= found ? strtol(strip(headerCoverage[*header])) : 0;
 				StringList	uncoveredLines;
+				int			expectedLinesRun= 0, expectedLinesNotRun= 0;
 
+				getHeaderStats(db, *header, expectedLinesRun, expectedLinesNotRun, testNames);
 				findFileCoverage(*header, coverage, uncovered, uncoveredLines, testNames, db);
+				if ( ( (coverage > 0) && (uncovered > 0) )
+						&& ((coverage != uint32_t(expectedLinesRun)) || (uncovered != uint32_t(expectedLinesNotRun))) ) {
+					printf("%s coverage changed %d/%d -> %d/%d (%d%% -> %d%%)\n",
+						header->c_str(),
+						expectedLinesRun,
+							expectedLinesRun + expectedLinesNotRun,
+						coverage,
+							coverage + uncovered,
+						100 * expectedLinesRun / (expectedLinesRun + expectedLinesNotRun),
+						100 * coverage / (coverage + uncovered)
+					);
+				}
 				if ( ((value >= 0)
 							&& (coverage + uncovered > 0)
 							&& (100 * coverage / (coverage + uncovered) < gMinimumPercentCodeCoverage))
