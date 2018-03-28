@@ -13,7 +13,6 @@
 #include "os/Environment.h"
 
 // select name, compiler, options, count(*) as count, avg(run_time) as average_run_time, min(run_time) as min_run_time, max(run_time) as max_run_time, avg(100*lines_run/code_lines) as average_coverage, min(100*lines_run/code_lines) as min_coverage, max(100*lines_run/code_lines) as max_coverage from run group by name, test_hash, header_hash, compiler, options;
-
 // select name, compiler, options, count(*) as count, avg(run_time) as average_run_time, min(run_time) as min_run_time, max(run_time) as max_run_time, avg(100*lines_run/code_lines) as average_coverage, min(100*lines_run/code_lines) as min_coverage, max(100*lines_run/code_lines) as max_coverage from run group by name, source_identifier, compiler, options;
 
 struct Times {
@@ -119,7 +118,7 @@ String &hashFile(const String &path, String &buffer) {
 	return hash::sha256(fileContents(path)).hex(buffer);
 }
 
-void getHeaderStats(Sqlite3::DB &db, const String &options, const String &name, int &linesRun, int &linesNotRun, const std::string &testNames, int &bestPercent) {
+void getHeaderStats(Sqlite3::DB &db, const String &name, const String &options, int &linesRun, int &linesNotRun, const std::string &testNames, int &bestPercent) {
 	Sqlite3::DB::Results	results;
 
 	db.exec("SELECT name,lines_run,code_lines,timestamp FROM header WHERE name LIKE '" + name + "' AND tests LIKE '" + testNames + "' AND options LIKE '"+options+"' ORDER BY timestamp DESC;", &results);
@@ -397,7 +396,7 @@ void runTest(const String &name, const io::Path &openssl, const String &compiler
 }
 
 
-void loadExpectations(Dictionary &testMetrics, StringList &testOrder) {
+void loadExpectations(Dictionary &testMetrics) {
 	const char * const	processor= "x64";
 	io::File			expectations(String("tests/test_")+processor+".txt",
 										io::File::Text, io::File::ReadOnly);
@@ -405,7 +404,8 @@ void loadExpectations(Dictionary &testMetrics, StringList &testOrder) {
 	Dictionary			*current= NULL;
 	bool				eof;
 	Dictionary			headerCoverage;
-
+	StringList			testOrder;
+	
 	do	{
 		expectations.readline(line);
 		eof= (line.size() == 0);
@@ -508,9 +508,19 @@ int main(int argc, const char * const argv[]) {
 	io::Path				openssl;
 	String					testNames;
 	String					testNamePrefix;
+	const String			testSuffix= "_test.cpp";
 
+	io::Path("tests").list(io::Path::NameOnly, testsToRun);
+	for (StringList::iterator i= testsToRun.begin(); i != testsToRun.end();) {
+		if ( (i->length() <= testSuffix.length()) || (i->find(testSuffix) != i->length() - testSuffix.length()) ) {
+			i= testsToRun.erase(i);
+		} else {
+			i->erase(i->length() - testSuffix.length());
+			++i;
+		}
+	}
 	try {
-		loadExpectations(testMetrics, testsToRun);
+		loadExpectations(testMetrics);
 	} catch(const std::exception &exception) {
 		printf("ERROR: Unable to load expectations %s\n", exception.what());
 	}
@@ -518,10 +528,10 @@ int main(int argc, const char * const argv[]) {
 		if(String("debug") == argv[arg]) {
 			gDebugging= true;
 		} else if(String("list") == argv[arg]) {
-			testsToRun.clear();
 			for(StringList::iterator test= testsToRun.begin(); test != testsToRun.end(); ++test) {
 				printf("%s\n", test->c_str());
 			}
+			testsToRun.clear();
 		} else if(String("verbose") == argv[arg]) {
 			gVerbose= true;
 		} else if(String(argv[arg]).find("openssl=") == 0) {
@@ -550,7 +560,7 @@ int main(int argc, const char * const argv[]) {
 		StringList	headers;
 		String		parentDirectory= io::Path(argv[0]).canonical().parent().parent().name();
 		Sqlite3::DB	db(env::get("HOME") + "/Library/Caches/" + parentDirectory + "_tests.sqlite3");
-
+		
 		db.exec("CREATE TABLE IF NOT EXISTS `run` ("
 					"`name` VARCHAR(256), "
 					"`header_hash` VARCHAR(32), "
@@ -610,7 +620,7 @@ int main(int argc, const char * const argv[]) {
 				const int	coverageRate= hasCoverage ? 100 * coverage / (coverage + uncovered) : 0;
 
 				if ( coverageRate < bestCoverage ) {
-					printf("%s coverage is lowest than best %d/%d (%d%%) < %d%%\n",
+					printf("%s coverage is lower than best %d/%d (%d%%) < %d%%\n",
 						header->c_str(),
 						coverage,
 						coverage + uncovered,

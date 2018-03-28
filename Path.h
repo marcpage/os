@@ -6,12 +6,13 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <dirent.h>
+#include <vector>
 #include "os/POSIXErrno.h"
 
 /**
 	@todo Document
 	@todo mkdirs
-	@todo list
 	@todo remove recursive
 	@todo chmod
 */
@@ -23,7 +24,13 @@ namespace io {
 				WorkOnLink,
 				WorkOnLinkTarget
 			};
-			Path(const std::string &path="");
+			enum HavePath {
+				NameOnly,
+				PathAndName
+			};
+			typedef std::string String;
+			typedef std::vector<String> StringList;
+			Path(const String &path="");
 			Path(const Path &other);
 			~Path() {}
 			bool exists(LinkHandling action=WorkOnLinkTarget) const;
@@ -41,19 +48,21 @@ namespace io {
 			Path readLink() const;
 			void symlink(const Path &contents) const;
 			Path parent() const;
-			std::string name() const;
+			String name() const;
 			Path canonical() const;
+			StringList list(HavePath havePath) const;
+			StringList &list(HavePath havePath, StringList &directoryListing) const;
 			Path operator+(const Path &name) const;
-			Path operator+(const std::string &name) const;
+			Path operator+(const String &name) const;
 			Path &operator=(const Path &other);
-			operator std::string() const;
+			operator String() const;
 		private:
-			std::string _path;
+			String _path;
 			bool _exists(struct stat &info, LinkHandling action) const;
 			void _stat(struct stat &info, LinkHandling action) const;
 	};
 
-	inline Path::Path(const std::string &path):_path(path) {
+	inline Path::Path(const String &path):_path(path) {
 		while ( (_path.length() > 1) && (_path[_path.length() - 1] == '/') ) {
 			_path.erase(_path.length() - 1);
 		}
@@ -112,7 +121,7 @@ namespace io {
 	}
 	inline Path Path::readLink() const {
 		ssize_t length;
-		std::string	linkPath(PATH_MAX, '\0');
+		String	linkPath(PATH_MAX, '\0');
 
 		ErrnoOnNegative(length = ::readlink(_path.c_str(), const_cast<char*>(linkPath.data()), linkPath.length()));
 		linkPath.erase(length);
@@ -122,9 +131,9 @@ namespace io {
 		ErrnoOnNegative(::symlink(contents._path.c_str(), _path.c_str()));
 	}
 	inline Path Path::parent() const {
-		std::string::size_type sepPos = _path.rfind('/');
+		String::size_type sepPos = _path.rfind('/');
 
-		if (sepPos == std::string::npos) {
+		if (sepPos == String::npos) {
 			return Path("");
 		}
 		if (sepPos == 0) {
@@ -132,32 +141,61 @@ namespace io {
 		}
 		return _path.substr(0, sepPos);
 	}
-	inline std::string Path::name() const {
-		std::string::size_type sepPos = _path.rfind('/');
+	inline Path::String Path::name() const {
+		String::size_type sepPos = _path.rfind('/');
 
-		if (sepPos == std::string::npos) {
+		if (sepPos == String::npos) {
 			return _path;
 		}
 		return _path.substr(sepPos + 1);
 	}
 	inline Path Path::canonical() const {
-		std::string	buffer(PATH_MAX, '\0');
+		String	buffer(PATH_MAX, '\0');
 
-		ErrnoOnNULL(::realpath(std::string(*this).c_str(), const_cast<char*>(buffer.data())));
+		ErrnoOnNULL(::realpath(String(*this).c_str(), const_cast<char*>(buffer.data())));
 		buffer.erase(::strlen(buffer.c_str()));
 		return buffer;
+	}
+	inline Path::StringList Path::list(HavePath havePath) const {
+		StringList directoryListing;
+		
+		return list(havePath, directoryListing);
+	}
+	inline Path::StringList &Path::list(HavePath havePath, StringList &directoryListing) const {
+		DIR 			*dp;
+		struct dirent	*ep;     
+
+		directoryListing.clear();
+  		ErrnoOnNULL(dp= ::opendir(String(*this).c_str()));
+  		try {
+			do {
+				ErrnoOnNULL(ep= ::readdir(dp));
+				if (NULL != ep) {
+					String name= String(ep->d_name, 0, ep->d_namlen);
+					if ( (name != ".") && (name != "..")) {
+						directoryListing.push_back((havePath == NameOnly ? String() : (String(*this)+"/")) + name);
+					}
+				}
+			} while (NULL != ep);
+		} catch(const posix::err::ENOENT_Errno &) {
+		} catch(const std::exception &) {
+			ErrnoOnNegative(::closedir(dp));
+			throw;
+		}
+		ErrnoOnNegative(::closedir(dp));
+		return directoryListing;
 	}
 	inline Path Path::operator+(const Path &name) const {
 		return Path(_path + "/" + name._path);
 	}
-	inline Path Path::operator+(const std::string &name) const {
+	inline Path Path::operator+(const String &name) const {
 		return Path(_path + "/" + name);
 	}
 	inline Path &Path::operator=(const Path &other) {
 		_path = other._path;
 		return *this;
 	}
-	inline Path::operator std::string() const {
+	inline Path::operator Path::String() const {
 		return _path;
 	}
 	inline bool Path::_exists(struct stat &info, LinkHandling action) const {
