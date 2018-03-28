@@ -125,7 +125,7 @@ void getHeaderStats(Sqlite3::DB &db, const String &name, int &linesRun, int &lin
 	db.exec("SELECT name,lines_run,code_lines,timestamp FROM header WHERE name LIKE '" + name + "' AND tests LIKE '" + testNames + "' ORDER BY timestamp DESC;", &results);
 	if (results.size() > 0) {
 		linesRun= std::stoi(results[0]["lines_run"]);
-		linesNotRun= std::stoi(results[0]["lines_run"]) - linesRun;
+		linesNotRun= std::stoi(results[0]["code_lines"]) - linesRun;
 	} else {
 		linesRun= 0;
 		linesNotRun= 0;
