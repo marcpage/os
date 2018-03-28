@@ -119,10 +119,10 @@ String &hashFile(const String &path, String &buffer) {
 	return hash::sha256(fileContents(path)).hex(buffer);
 }
 
-void getHeaderStats(Sqlite3::DB &db, const String &name, int &linesRun, int &linesNotRun, const std::string &testNames) {
+void getHeaderStats(Sqlite3::DB &db, const String &options, const String &name, int &linesRun, int &linesNotRun, const std::string &testNames, int &bestPercent) {
 	Sqlite3::DB::Results	results;
 
-	db.exec("SELECT name,lines_run,code_lines,timestamp FROM header WHERE name LIKE '" + name + "' AND tests LIKE '" + testNames + "' ORDER BY timestamp DESC;", &results);
+	db.exec("SELECT name,lines_run,code_lines,timestamp FROM header WHERE name LIKE '" + name + "' AND tests LIKE '" + testNames + "' AND options LIKE '"+options+"' ORDER BY timestamp DESC;", &results);
 	if (results.size() > 0) {
 		linesRun= std::stoi(results[0]["lines_run"]);
 		linesNotRun= std::stoi(results[0]["code_lines"]) - linesRun;
@@ -130,13 +130,20 @@ void getHeaderStats(Sqlite3::DB &db, const String &name, int &linesRun, int &lin
 		linesRun= 0;
 		linesNotRun= 0;
 	}
+	db.exec("SELECT MAX(100 * lines_run / code_lines) AS coverage FROM header WHERE name LIKE '"+name+"' AND tests like '"+testNames+"';", &results);
+	if ( (results.size() > 0) && (results[0]["coverage"].length() > 0) ) {
+		bestPercent= std::stoi(results[0]["coverage"]);
+	} else {
+		bestPercent= 0;
+	}
 }
 
-void updateHeaderStats(Sqlite3::DB &db, const String &name, int linesRun, int linesNotRun, const std::string &testNames) {
+void updateHeaderStats(Sqlite3::DB &db, const String &name, const String &options, int linesRun, int linesNotRun, const std::string &testNames) {
 	Sqlite3::DB::Row	row;
 	String				buffer;
 
 	row["name"]= name;
+	row["options"]= options;
 	row["hash"]= hashFile(name, buffer);
 	row["lines_run"]= Sqlite3::toString(linesRun, buffer);
 	row["code_lines"]= Sqlite3::toString(linesRun + linesNotRun, buffer);
@@ -440,7 +447,7 @@ void loadExpectations(Dictionary &testMetrics, StringList &testOrder) {
 	} while(!eof);
 }
 
-void findFileCoverage(const String &file, uint32_t &covered, uint32_t &uncovered, StringList &uncoveredLines, const std::string &testNames, Sqlite3::DB &db) {
+void findFileCoverage(const String &file, const String &options, uint32_t &covered, uint32_t &uncovered, StringList &uncoveredLines, const std::string &testNames, Sqlite3::DB &db) {
 	String		results;
 	StringList		lines;
 	StringList		parts;
@@ -488,7 +495,7 @@ void findFileCoverage(const String &file, uint32_t &covered, uint32_t &uncovered
 				coveredLines[lineNumber] = true;
 			}
 		}
-		updateHeaderStats(db, file, covered, uncovered, testNames);
+		updateHeaderStats(db, file, options, covered, uncovered, testNames);
 	}
 }
 
@@ -562,6 +569,7 @@ int main(int argc, const char * const argv[]) {
 		db.exec("CREATE TABLE IF NOT EXISTS `header` ("
 					"`name` VARCHAR(256), "
 					"`tests` TEXT, "
+					"`options` TEXT, "
 					"`hash` VARCHAR(32), "
 					"`lines_run` INT, "
 					"`code_lines` INT, "
@@ -590,20 +598,35 @@ int main(int argc, const char * const argv[]) {
 				uint32_t	coverage;
 				uint32_t	uncovered;
 				StringList	uncoveredLines;
-				int			expectedLinesRun= 0, expectedLinesNotRun= 0;
+				int			expectedLinesRun= 0, expectedLinesNotRun= 0, bestCoverage;
 
-				getHeaderStats(db, *header, expectedLinesRun, expectedLinesNotRun, testNames);
-				findFileCoverage(*header, coverage, uncovered, uncoveredLines, testNames, db);
-				if ( ( (coverage > 0) && (uncovered > 0) )
-						&& ((coverage != uint32_t(expectedLinesRun)) || (uncovered != uint32_t(expectedLinesNotRun))) ) {
+				getHeaderStats(db, *header, openssl.isEmpty() ? "" : "openssl", expectedLinesRun, expectedLinesNotRun, testNames, bestCoverage);
+				findFileCoverage(*header, openssl.isEmpty() ? "" : "openssl", coverage, uncovered, uncoveredLines, testNames, db);
+
+				const bool hasExpectations= (expectedLinesRun > 0) || (expectedLinesNotRun > 0);
+				const bool	hasCoverage= (coverage > 0) || (uncovered > 0);
+				const bool	unexpectedCoverage= (coverage != uint32_t(expectedLinesRun));
+				const bool	unexpectedLines= (uncovered != uint32_t(expectedLinesNotRun));
+				const int	coverageRate= hasCoverage ? 100 * coverage / (coverage + uncovered) : 0;
+
+				if ( coverageRate < bestCoverage ) {
+					printf("%s coverage is lowest than best %d/%d (%d%%) < %d%%\n",
+						header->c_str(),
+						coverage,
+						coverage + uncovered,
+						coverageRate,
+						bestCoverage
+					);
+				}
+				if ( (hasExpectations || hasCoverage) && (unexpectedCoverage || unexpectedLines) ) {
 					printf("%s coverage changed %d/%d -> %d/%d (%d%% -> %d%%)\n",
 						header->c_str(),
 						expectedLinesRun,
 							expectedLinesRun + expectedLinesNotRun,
 						coverage,
 							coverage + uncovered,
-						100 * expectedLinesRun / (expectedLinesRun + expectedLinesNotRun),
-						100 * coverage / (coverage + uncovered)
+						hasExpectations ? 100 * expectedLinesRun / (expectedLinesRun + expectedLinesNotRun) : 0,
+						coverageRate
 					);
 				}
 			}
