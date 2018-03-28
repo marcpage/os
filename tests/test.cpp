@@ -390,13 +390,14 @@ void runTest(const String &name, const io::Path &openssl, const String &compiler
 }
 
 
-void loadExpectations(Dictionary &headerCoverage, Dictionary &testMetrics, StringList &testOrder) {
+void loadExpectations(Dictionary &testMetrics, StringList &testOrder) {
 	const char * const	processor= "x64";
 	io::File			expectations(String("tests/test_")+processor+".txt",
 										io::File::Text, io::File::ReadOnly);
-	String			line;
+	String				line;
 	Dictionary			*current= NULL;
 	bool				eof;
+	Dictionary			headerCoverage;
 
 	do	{
 		expectations.readline(line);
@@ -496,13 +497,13 @@ void findFileCoverage(const String &file, uint32_t &covered, uint32_t &uncovered
 */
 int main(int argc, const char * const argv[]) {
 	StringList				testsToRun;
-	Dictionary				headerCoverage, testMetrics;
+	Dictionary				testMetrics;
 	io::Path				openssl;
 	String					testNames;
 	String					testNamePrefix;
 
 	try {
-		loadExpectations(headerCoverage, testMetrics, testsToRun);
+		loadExpectations(testMetrics, testsToRun);
 	} catch(const std::exception &exception) {
 		printf("ERROR: Unable to load expectations %s\n", exception.what());
 	}
@@ -588,8 +589,6 @@ int main(int argc, const char * const argv[]) {
 			for(StringList::iterator header= headers.begin(); header != headers.end(); ++header) {
 				uint32_t	coverage;
 				uint32_t	uncovered;
-				bool		found= headerCoverage.count(*header) > 0;
-				int			value= found ? strtol(strip(headerCoverage[*header])) : 0;
 				StringList	uncoveredLines;
 				int			expectedLinesRun= 0, expectedLinesNotRun= 0;
 
@@ -606,22 +605,6 @@ int main(int argc, const char * const argv[]) {
 						100 * expectedLinesRun / (expectedLinesRun + expectedLinesNotRun),
 						100 * coverage / (coverage + uncovered)
 					);
-				}
-				if ( ((value >= 0)
-							&& (coverage + uncovered > 0)
-							&& (100 * coverage / (coverage + uncovered) < gMinimumPercentCodeCoverage))
-						|| (gVerbose && (uncovered > 0))) {
-					printf("%s coverage low %d%%\n", header->c_str(), 100 * coverage / (coverage + uncovered));
-					for (StringList::iterator i = uncoveredLines.begin(); i != uncoveredLines.end(); ++i) {
-						printf("%s\n", i->c_str());
-					}
-				}
-				if(found) {
-					if(abs(value) != static_cast<int>(coverage)) {
-						printf("%20s\tCoverage: %4d Expected: %4d\n", header->c_str(), coverage, value);
-					}
-				} else {
-					printf("WARNING: No data for header %s with coverage %d\n", header->c_str(), coverage);
 				}
 			}
 		}
