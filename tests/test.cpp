@@ -102,7 +102,37 @@ double runNoResultsExpected(const String &command, const char * const action) {
 	return duration;
 }
 
-void updateStats(Sqlite3::DB &db, const String &name, const String &headerHash, const String &testHash, const String &compiler, int linesRun, int linesNotRun, double traceBuildTime, double traceRunTime, double buildTime, double runTime, const String &options, const String &sourceIdentifier) {
+String fileContents(const String &path) {
+	try {
+		io::File	source(path, io::File::Text, io::File::ReadOnly);
+		String		contents;
+
+		source.read(contents);
+		return contents;
+	} catch(const posix::err::Errno &) {
+		fprintf(stderr, "Error: Unable to read '%s'\n", path.c_str());
+		throw;
+	}
+}
+
+String &hashFile(const String &path, String &buffer) {
+	return hash::sha256(fileContents(path)).hex(buffer);
+}
+
+void updateHeaderStats(Sqlite3::DB &db, const String &name, int linesRun, int linesNotRun, const std::string &testNames) {
+	Sqlite3::DB::Row	row;
+	String				buffer;
+
+	row["name"]= name;
+	row["hash"]= hashFile(name, buffer);
+	row["lines_run"]= Sqlite3::toString(linesRun, buffer);
+	row["code_lines"]= Sqlite3::toString(linesRun + linesNotRun, buffer);
+	row["tests"]= testNames;
+	row["timestamp"]= dt::DateTime().format("%Y/%m/%d %H:%M:%S", buffer);
+	db.addRow("header", row);
+}
+
+void updateRunStats(Sqlite3::DB &db, const String &name, const String &headerHash, const String &testHash, const String &compiler, int linesRun, int linesNotRun, double traceBuildTime, double traceRunTime, double buildTime, double runTime, const String &options, const String &sourceIdentifier) {
 	Sqlite3::DB::Row	row;
 	String				buffer;
 
@@ -120,23 +150,6 @@ void updateStats(Sqlite3::DB &db, const String &name, const String &headerHash, 
 	row["source_identifier"]= sourceIdentifier;
 	row["timestamp"]= dt::DateTime().format("%Y/%m/%d %H:%M:%S", buffer);
 	db.addRow("run", row);
-}
-
-String fileContents(const String &path) {
-	try {
-		io::File	source(path, io::File::Text, io::File::ReadOnly);
-		String		contents;
-
-		source.read(contents);
-		return contents;
-	} catch(const posix::err::Errno &) {
-		fprintf(stderr, "Error: Unable to read '%s'\n", path.c_str());
-		throw;
-	}
-}
-
-String &hashFile(const String &path, String &buffer) {
-	return hash::sha256(fileContents(path)).hex(buffer);
 }
 
 String::size_type skip(const String &text, String::size_type &index, bool whitespace) {
@@ -339,7 +352,7 @@ void runTest(const String &name, const String &compiler, const io::Path &openssl
 		gCompilerTimes[name][compiler].traceRun= runCoverageTime;
 		gCompilerTimes[name][compiler].testedLines= coverage;
 		gCompilerTimes[name][compiler].warnings= warnings;
-		updateStats(db, name, headerHash, testHash, compiler, coverage, uncovered, compileCoverageTime, runCoverageTime, compilePerfTime, runPerfTime, openssl.isEmpty() ? "" : "openssl", sourceIdentifier(executablePath+".d"));
+		updateRunStats(db, name, headerHash, testHash, compiler, coverage, uncovered, compileCoverageTime, runCoverageTime, compilePerfTime, runPerfTime, openssl.isEmpty() ? "" : "openssl", sourceIdentifier(executablePath+".d"));
 	}
 }
 
@@ -413,7 +426,7 @@ void loadExpectations(Dictionary &headerCoverage, Dictionary &testMetrics, Strin
 	} while(!eof);
 }
 
-void findFileCoverage(const String &file, uint32_t &covered, uint32_t &uncovered, StringList &uncoveredLines) {
+void findFileCoverage(const String &file, uint32_t &covered, uint32_t &uncovered, StringList &uncoveredLines, const std::string &testNames, Sqlite3::DB &db) {
 	String		results;
 	StringList		lines;
 	StringList		parts;
@@ -461,6 +474,7 @@ void findFileCoverage(const String &file, uint32_t &covered, uint32_t &uncovered
 				coveredLines[lineNumber] = true;
 			}
 		}
+		updateHeaderStats(db, file, covered, uncovered, testNames);
 	}
 }
 
@@ -470,7 +484,9 @@ void findFileCoverage(const String &file, uint32_t &covered, uint32_t &uncovered
 int main(int argc, const char * const argv[]) {
 	StringList				testsToRun;
 	Dictionary				headerCoverage, testMetrics;
-	io::Path					openssl;
+	io::Path				openssl;
+	String					testNames;
+	String					testNamePrefix;
 
 	try {
 		loadExpectations(headerCoverage, testMetrics, testsToRun);
@@ -529,6 +545,14 @@ int main(int argc, const char * const argv[]) {
 					"`options` TEXT, "
 					"`timestamp` VARCHAR(20));"
 		);
+		db.exec("CREATE TABLE IF NOT EXISTS `header` ("
+					"`name` VARCHAR(256), "
+					"`tests` TEXT, "
+					"`hash` VARCHAR(32), "
+					"`lines_run` INT, "
+					"`code_lines` INT, "
+					"`timestamp` VARCHAR(20));"
+		);
 		exec::execute("mkdir -p bin/tests bin/logs", results);
 		if(results != "") {
 			printf("WARNING: mkdir '%s'\n", results.c_str());
@@ -539,6 +563,10 @@ int main(int argc, const char * const argv[]) {
 		}
 		for(StringList::iterator test= testsToRun.begin(); test != testsToRun.end(); ++test) {
 			runTest(*test, openssl, testMetrics[*test], db);
+			testNames= testNames + testNamePrefix + *test;
+			if (testNamePrefix.length() == 0) {
+				testNamePrefix= ",";
+			}
 		}
 		if(testsToRun.size() > 0) {
 			printf("Examining overall coverage ...\n");
@@ -551,8 +579,11 @@ int main(int argc, const char * const argv[]) {
 				int			value= found ? strtol(strip(headerCoverage[*header])) : 0;
 				StringList	uncoveredLines;
 
-				findFileCoverage(*header, coverage, uncovered, uncoveredLines);
-				if ( ((value >= 0) && (coverage + uncovered > 0) && (100 * coverage / (coverage + uncovered) < gMinimumPercentCodeCoverage)) || (gVerbose && (uncovered > 0))) {
+				findFileCoverage(*header, coverage, uncovered, uncoveredLines, testNames, db);
+				if ( ((value >= 0)
+							&& (coverage + uncovered > 0)
+							&& (100 * coverage / (coverage + uncovered) < gMinimumPercentCodeCoverage))
+						|| (gVerbose && (uncovered > 0))) {
 					printf("%s coverage low %d%%\n", header->c_str(), 100 * coverage / (coverage + uncovered));
 					for (StringList::iterator i = uncoveredLines.begin(); i != uncoveredLines.end(); ++i) {
 						printf("%s\n", i->c_str());
