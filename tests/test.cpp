@@ -22,16 +22,12 @@ struct Times {
 typedef std::string							String;
 typedef std::vector<String>					StringList;
 typedef std::map<String,String>				Dictionary;
-typedef std::map<String,Times>				CompilerTimes;
-typedef std::map<String,CompilerTimes>		TestCompilerTimes;
-typedef std::map<uint32_t,bool>				LinesCovered;
 
 const double		gTestTimeAllowancePercent= 5;
 const double		gTestMinimumTimeInSeconds= 1;
 const char * const	gCompilerFlags= "-I.. -I. -MMD -lcrypto -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -lz -lsqlite3 -framework Carbon";
 const uint32_t		gMinimumPercentCodeCoverage= 75;
-
-TestCompilerTimes	gCompilerTimes;
+const String		gCompilerList= "clang++,g++,llvm-g++";
 Dictionary			gCompilerLocations;
 bool				gDebugging= false;
 bool				gVerbose= false;
@@ -218,14 +214,40 @@ String sourceIdentifier(const String &dependenciesPath) {
 	return identifier;
 }
 
-void runTest(const String &name, const String &compiler, const io::Path &openssl, uint32_t testedLines, double durationInSeconds, double totalTimeInSeconds, Sqlite3::DB &db) {
+void getTestStats(const String &name, const String &options, const String &headerHash, const String &testHash, uint32_t &testedLines, double &durationInSeconds, double &totalTimeInSeconds, double &slowTimeInSeconds, Sqlite3::DB &db) {
+	Sqlite3::DB::Results results;
+
+	db.exec("SELECT "
+				"MAX(lines_run) AS testedLines,"
+				"MAX(run_time) AS durationInSeconds,"
+				"MAX(trace_build_time + trace_run_time + build_time + run_time) AS totalTimeInSeconds, "
+				"AVG(run_time) AS averageTime "
+			"FROM run WHERE "
+				"name LIKE '" + name + "' "
+				"AND options LIKE '"+options+"' "
+				"AND header_hash LIKE '"+headerHash+"' "
+				"AND test_hash LIKE '"+testHash+"';", &results);
+	if (results.size() > 0) {
+		testedLines= std::stoi(results[0]["testedLines"]);
+		durationInSeconds= std::stod(results[0]["durationInSeconds"]);
+		totalTimeInSeconds= std::stod(results[0]["totalTimeInSeconds"]);
+		slowTimeInSeconds= durationInSeconds > 0.0 ? (std::stod(results[0]["averageTime"]) + durationInSeconds) / 2.0 : 0.0;
+	} else {
+		testedLines= 0;
+		durationInSeconds= 0;
+		totalTimeInSeconds= 0;
+		slowTimeInSeconds= 0;
+	}
+}
+
+void runTest(const String &name, const String &compiler, const io::Path &openssl, Sqlite3::DB &db) {
 	String		results;
 	String		command;
 	String		executableName;
 	String		logName;
 	String		runLogName;
 	String		gcovLogName;
-	double		compilePerfTime, compileCoverageTime, runPerfTime, runCoverageTime, totalTime;
+	double		compilePerfTime, compileCoverageTime, runPerfTime, runCoverageTime, totalTime, slowTime;
 	uint32_t	coverage;
 	uint32_t	uncovered;
 	uint32_t	percent_coverage;
@@ -237,9 +259,14 @@ void runTest(const String &name, const String &compiler, const io::Path &openssl
 	String		executablePath;
 	const String		testSourcePath = "tests/"+name+"_test.cpp";
 	const String		headerPath = name+".h";
+	const String		options= openssl.isEmpty() ? "" : "openssl";
+	uint32_t testedLines;
+	double durationInSeconds;
+	double totalTimeInSeconds;
 
 	hashFile(testSourcePath, testHash);
 	hashFile(headerPath, headerHash);
+	getTestStats(name, options, headerHash, testHash, testedLines, durationInSeconds, totalTimeInSeconds, slowTime, db);
 	if (!openssl.isEmpty()) {
 		otherFlags = String(" -DOpenSSLAvailable=1 -lcrypto -I") + String(openssl);
 	}
@@ -344,20 +371,16 @@ void runTest(const String &name, const String &compiler, const io::Path &openssl
 			displayNewLine= true;
 		}
 		if( (runPerfTime > durationInSeconds * (1 + gTestTimeAllowancePercent/100) ) ) {
-			printf("\tTest took %0.3fs seconds, expected %0.3fs seconds\n", runPerfTime+0.000999, durationInSeconds);
+			printf("\tTest took %0.3fs, expected less than %0.3fs\n", runPerfTime+0.000999, durationInSeconds);
+			displayNewLine= true;
+		} else if( (runPerfTime > slowTime * (1 + gTestTimeAllowancePercent/100) ) ) {
+			printf("\tTest was a little slow at %0.3fs, expected less than %0.3fs but definitely less than %0.3fs\n", runPerfTime+0.000999, slowTime, durationInSeconds);
 			displayNewLine= true;
 		}
 		totalTime= compilePerfTime + compileCoverageTime + runPerfTime + runCoverageTime;
 		if( (totalTime > totalTimeInSeconds) ) {
-			printf("\tBuild/Test took %0.3fs seconds, expected %0.3fs seconds\n", totalTime+0.000999, totalTimeInSeconds);
+			printf("\tBuild/Test took %0.3fs, expected %0.3fs\n", totalTime+0.000999, totalTimeInSeconds);
 			displayNewLine= true;
-		}
-		if(displayNewLine) {
-			printf("\t%s:%d:%0.3f:%0.3f\n",
-				compiler.c_str(), coverage,
-				runPerfTime > durationInSeconds ? runPerfTime+0.000999 : durationInSeconds,
-				totalTime > totalTimeInSeconds ? totalTime+0.000999 : totalTimeInSeconds
-			);
 		}
 		if(gVerbose) {
 			printf("Coverage %d (expected %d) Compile: %0.3fs Run: %0.3fs (expected %0.3fs) Trace Compile: %0.3fs Trace Run: %0.3fs\n",
@@ -365,93 +388,24 @@ void runTest(const String &name, const String &compiler, const io::Path &openssl
 				compilePerfTime, runPerfTime, durationInSeconds, compileCoverageTime, runCoverageTime
 			);
 		}
-		gCompilerTimes[name][compiler].perfCompile= compilePerfTime;
-		gCompilerTimes[name][compiler].perfRun= runPerfTime;
-		gCompilerTimes[name][compiler].traceCompile= compileCoverageTime;
-		gCompilerTimes[name][compiler].traceRun= runCoverageTime;
-		gCompilerTimes[name][compiler].testedLines= coverage;
-		gCompilerTimes[name][compiler].warnings= warnings;
-		updateRunStats(db, name, headerHash, testHash, compiler, coverage, uncovered, compileCoverageTime, runCoverageTime, compilePerfTime, runPerfTime, openssl.isEmpty() ? "" : "openssl", sourceIdentifier(executablePath+".d"));
+		updateRunStats(db, name, headerHash, testHash, compiler, coverage, uncovered, compileCoverageTime, runCoverageTime, compilePerfTime, runPerfTime, options, sourceIdentifier(executablePath+".d"));
 	}
 }
 
-void runTest(const String &name, const io::Path &openssl, const String &compilerResults, Sqlite3::DB &db) {
+void runTest(const String &name, const io::Path &openssl, Sqlite3::DB &db) {
 	StringList	compilers;
-	StringList	values;
 
-	split(compilerResults, ';', compilers);
-	for(StringList::iterator compilerInfo= compilers.begin(); compilerInfo != compilers.end(); ++compilerInfo) {
-		String	compiler;
-		uint32_t	testedLines;
-		double		durationInSeconds;
-		double		totalTimeInSeconds;
-
-		split(*compilerInfo, ':', values);
-		compiler= values[0];
-		testedLines= strtol(strip(values[1]));
-		durationInSeconds= atof(values[2].c_str());
-		totalTimeInSeconds= atof(values[3].c_str());
-		runTest(name, compiler, openssl, testedLines, durationInSeconds, totalTimeInSeconds, db);
+	split(gCompilerList, ',', compilers);
+	for(StringList::iterator compiler= compilers.begin(); compiler != compilers.end(); ++compiler) {
+		runTest(name, *compiler, openssl, db);
 	}
-}
-
-
-void loadExpectations(Dictionary &testMetrics) {
-	const char * const	processor= "x64";
-	io::File			expectations(String("tests/test_")+processor+".txt",
-										io::File::Text, io::File::ReadOnly);
-	String				line;
-	Dictionary			*current= NULL;
-	bool				eof;
-	Dictionary			headerCoverage;
-	StringList			testOrder;
-	
-	do	{
-		expectations.readline(line);
-		eof= (line.size() == 0);
-		if(strip(line).size() == 0) {
-			// ignore blank lines
-		} else if(line[0] == '-') {
-			if(line == "-header") {
-				current= &headerCoverage;
-			} else if(line == "-test") {
-				current= &testMetrics;
-			} else {
-				current= NULL;
-			}
-		} else if(NULL != current) {
-			StringList	parts;
-			String		key, value;
-			String		separator= "";
-
-			for(String::size_type c= 0; c < line.size(); ++c) {
-				if(line[c] == ' ') {
-					line[c]= '\t';
-				}
-			}
-			split(line, '\t', parts);
-			key= parts[0];
-			if(current == &testMetrics) {
-				testOrder.push_back(key);
-			}
-			parts.erase(parts.begin());
-			while(parts.size() > 0) {
-				if(parts[0].size() > 0) {
-					value+= separator + parts[0];
-					separator= ';';
-				}
-				parts.erase(parts.begin());
-			}
-			(*current)[key]= value;
-		}
-	} while(!eof);
 }
 
 void findFileCoverage(const String &file, const String &options, uint32_t &covered, uint32_t &uncovered, StringList &uncoveredLines, const std::string &testNames, Sqlite3::DB &db) {
 	String		results;
 	StringList		lines;
 	StringList		parts;
-	LinesCovered	coveredLines;
+	std::map<uint32_t,bool>	coveredLines;
 
 	covered = 0;
 	uncovered = 0;
@@ -474,7 +428,7 @@ void findFileCoverage(const String &file, const String &options, uint32_t &cover
 				coveredLines[lineNumber] = true;
 			}
 		}
-		for (LinesCovered::iterator i = coveredLines.begin(); i != coveredLines.end(); ++i) {
+		for (std::map<uint32_t,bool>::iterator i = coveredLines.begin(); i != coveredLines.end(); ++i) {
 			if (i->second) {
 				covered += 1;
 			} else {
@@ -504,12 +458,12 @@ void findFileCoverage(const String &file, const String &options, uint32_t &cover
 */
 int main(int argc, const char * const argv[]) {
 	StringList				testsToRun;
-	Dictionary				testMetrics;
 	io::Path				openssl;
 	String					testNames;
 	String					testNamePrefix;
 	const String			testSuffix= "_test.cpp";
-
+	bool					testsPassed= false;
+	
 	io::Path("tests").list(io::Path::NameOnly, testsToRun);
 	for (StringList::iterator i= testsToRun.begin(); i != testsToRun.end();) {
 		if ( (i->length() <= testSuffix.length()) || (i->find(testSuffix) != i->length() - testSuffix.length()) ) {
@@ -518,11 +472,6 @@ int main(int argc, const char * const argv[]) {
 			i->erase(i->length() - testSuffix.length());
 			++i;
 		}
-	}
-	try {
-		loadExpectations(testMetrics);
-	} catch(const std::exception &exception) {
-		printf("ERROR: Unable to load expectations %s\n", exception.what());
 	}
 	for(int arg= 1; arg < argc; ++arg) {
 		if(String("debug") == argv[arg]) {
@@ -543,10 +492,11 @@ int main(int argc, const char * const argv[]) {
 				printf("Enabling openssl with headers at: %s\n", String(openssl).c_str());
 			}
 		} else {
-			bool	found= testMetrics.count(argv[arg]) > 0;
-
-			if(found) {
-				if(testsToRun.size() > static_cast<unsigned int>(arg)) {
+			const bool	found= (io::Path("tests") + (String(argv[arg])+"_test.cpp")).isFile();
+			
+			if (found) {
+				if (!testsPassed) {
+					testsPassed= true;
 					testsToRun.clear();
 				}
 				testsToRun.push_back(argv[arg]);
@@ -594,7 +544,7 @@ int main(int argc, const char * const argv[]) {
 			printf("WARNING: rm '%s'\n", results.c_str());
 		}
 		for(StringList::iterator test= testsToRun.begin(); test != testsToRun.end(); ++test) {
-			runTest(*test, openssl, testMetrics[*test], db);
+			runTest(*test, openssl, db);
 			testNames= testNames + testNamePrefix + *test;
 			if (testNamePrefix.length() == 0) {
 				testNamePrefix= ",";
