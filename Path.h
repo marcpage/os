@@ -9,12 +9,13 @@
 #include <dirent.h>
 #include <vector>
 #include "os/POSIXErrno.h"
+#include "os/File.h"
 
 /**
 	@todo Document
 	@todo test mkdirs
 	@todo test list
-	@todo delete tree
+	@todo test delete tree
 	@todo chmod
 */
 namespace io {
@@ -52,6 +53,8 @@ namespace io {
 			Path parent() const;
 			String name() const;
 			Path canonical() const;
+			String contents(io::File::Method method=io::File::Text) const {String buffer; return contents(buffer, method);}
+			String &contents(String &buffer, io::File::Method method=io::File::Text) const;
 			StringList list(HavePath havePath) const;
 			StringList &list(HavePath havePath, StringList &directoryListing) const;
 			Path operator+(const Path &name) const;
@@ -171,6 +174,10 @@ namespace io {
 
 		ErrnoOnNULL(::realpath(String(*this).c_str(), const_cast<char*>(buffer.data())));
 		buffer.erase(::strlen(buffer.c_str()));
+		return buffer;
+	}
+	inline Path::String &Path::contents(String &buffer, io::File::Method method) const {
+		io::File(_path, method, io::File::ReadOnly).read(buffer);
 		return buffer;
 	}
 	inline Path::StringList Path::list(HavePath havePath) const {

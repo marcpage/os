@@ -112,11 +112,7 @@ double runNoResultsExpected(const String &command, const char * const action) {
 
 String fileContents(const String &path) {
 	try {
-		io::File	source(path, io::File::Text, io::File::ReadOnly);
-		String		contents;
-
-		source.read(contents);
-		return contents;
+		return io::Path(path).contents();
 	} catch(const posix::err::Errno &) {
 		fprintf(stderr, "Error: Unable to read '%s'\n", path.c_str());
 		throw;
