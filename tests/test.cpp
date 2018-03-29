@@ -34,6 +34,30 @@ Dictionary			gCompilerLocations;
 bool				gDebugging= false;
 bool				gVerbose= false;
 
+/*
+         foreground background
+black        30         40
+red          31         41
+green        32         42
+yellow       33         43
+blue         34         44
+magenta      35         45
+cyan         36         46
+white        37         47
+
+reset             0  (everything back to normal)
+bold/bright       1  (often a brighter shade of the same colour)
+underline         4
+inverse           7  (swap foreground and background colours)
+bold/bright off  21
+underline off    24
+inverse off      27
+*/
+#define ErrorTextFormatStart "\033[41;1m"
+#define WarningTextFormatStart "\033[43;37;1m"
+#define BoldTextFormatStart "\033[1m"
+#define ClearTextFormat "\033[0m"
+
 String &stripEOL(String &s) {
 	while( (s.size() > 0) && ((s[s.size()-1] == '\n') || (s[s.size()-1] == '\r')) ) {
 		s.erase(s.size()-1);
@@ -66,23 +90,10 @@ StringList &split(const String &string, const char character, StringList &parts)
 	return parts;
 }
 
-long strtol(const String &s, int base=10) {
-	char	*endptr = NULL;
-	long	value = strtol(s.c_str(), &endptr, base);
-
-	try {
-		AssertMessageException( (NULL != endptr) && ('\0' == *endptr) );
-	} catch(const std::exception &) {
-		printf("strtol('%s', %d) -> endptr = %d value=%ld\n", s.c_str(), base, *endptr, value);
-		throw;
-	}
-	return value;
-}
-
 int runIntegerExpected(const String &command) {
 	String	results;
 
-	return strtol(strip(exec::execute(command, results)));
+	return std::stoi(strip(exec::execute(command, results)));
 }
 
 double runNoResultsExpected(const String &command, const char * const action) {
@@ -290,7 +301,7 @@ void runTest(const String &name, const String &compiler, const io::Path &openssl
 		exec::execute("which "+compiler, results);
 		if(stripEOL(results).size() == 0) {
 			results= "-";
-			printf("WARNING: Unable to find compiler %s\n", compiler.c_str());
+			printf(WarningTextFormatStart"WARNING: Unable to find compiler %s"ClearTextFormat"\n", compiler.c_str());
 		}
 		gCompilerLocations[compiler]= results;
 		//printf("COMPILER='%s'\n", results.c_str());
@@ -341,15 +352,15 @@ void runTest(const String &name, const String &compiler, const io::Path &openssl
 
 		exec::execute("mkdir -p bin/coverage/"+executableName+" 2>&1", results);
 		if(results != "") {
-			printf("WARNING: mkdir '%s'\n", results.c_str());
+			printf(WarningTextFormatStart"WARNING: mkdir '%s'"ClearTextFormat"\n", results.c_str());
 		}
 		exec::execute("gcov "+name+"_test.cpp"+" &> bin/logs/"+gcovLogName, results);
 		if(results != "") {
-			printf("WARNING: gcov '%s'\n", results.c_str());
+			printf(WarningTextFormatStart"WARNING: gcov '%s'"ClearTextFormat"\n", results.c_str());
 		}
 		exec::execute("mv *.gcov *.gcno *.gcda bin/coverage/"+executableName+"/ 2>&1", results);
 		if(results != "") {
-			printf("WARNING: mv '%s'\n", results.c_str());
+			printf(WarningTextFormatStart"WARNING: mv '%s'"ClearTextFormat"\n", results.c_str());
 		}
 
 		coverage= runIntegerExpected("cat bin/coverage/"+executableName+"/"+name+".h.gcov 2> /dev/null | grep -E '[0-9]+:\\s+[0-9]+:' | wc -l");
@@ -387,15 +398,15 @@ void runTest(const String &name, const String &compiler, const io::Path &openssl
 			displayNewLine= true;
 		}
 		if( (runPerfTime > durationInSeconds * (1 + gTestTimeAllowancePercent/100) ) ) {
-			printf("\tTest took %0.3fs, expected less than %0.3fs\n", runPerfTime+0.000999, durationInSeconds);
+			printf("\t"ErrorTextFormatStart"Test took %0.3fs, expected less than %0.3fs"ClearTextFormat"\n", runPerfTime+0.000999, durationInSeconds);
 			displayNewLine= true;
 		} else if( (runPerfTime > slowTime * (1 + gTestTimeAllowancePercent/100) ) ) {
-			printf("\tTest was a little slow at %0.3fs, expected less than %0.3fs but definitely less than %0.3fs\n", runPerfTime+0.000999, slowTime, durationInSeconds);
+			printf("\t"WarningTextFormatStart"Test was a little slow at %0.3fs, expected less than %0.3fs but definitely less than %0.3fs"ClearTextFormat"\n", runPerfTime+0.000999, slowTime, durationInSeconds);
 			displayNewLine= true;
 		}
 		totalTime= compilePerfTime + compileCoverageTime + runPerfTime + runCoverageTime;
 		if( (totalTime > totalTimeInSeconds) ) {
-			printf("\tBuild/Test took %0.3fs, expected %0.3fs\n", totalTime+0.000999, totalTimeInSeconds);
+			printf("\t"ErrorTextFormatStart"Build/Test took %0.3fs, expected %0.3fs"ClearTextFormat"\n", totalTime+0.000999, totalTimeInSeconds);
 			displayNewLine= true;
 		}
 		if(gVerbose) {
@@ -438,7 +449,7 @@ void findFileCoverage(const String &file, const String &options, uint32_t &cover
 			}
 
 			const bool lineRun = strip(parts[0]).substr(0,1) != "#";
-			int lineNumber = strtol(strip(parts[1]));
+			int lineNumber = std::stoi(strip(parts[1]));
 
 			if (!coveredLines[lineNumber] && lineRun) {
 				coveredLines[lineNumber] = true;
@@ -458,7 +469,7 @@ void findFileCoverage(const String &file, const String &options, uint32_t &cover
 				continue;
 			}
 
-			int lineNumber = strtol(strip(parts[1]));
+			int lineNumber = std::stoi(strip(parts[1]));
 
 			if (!coveredLines[lineNumber]) {
 				uncoveredLines.push_back(*line);
@@ -479,6 +490,10 @@ int main(int argc, const char * const argv[]) {
 	String					testNamePrefix;
 	const String			testSuffix= "_test.cpp";
 	bool					testsPassed= false;
+	
+	printf(ErrorTextFormatStart"Error"ClearTextFormat"\n");
+	printf(WarningTextFormatStart"Warning"ClearTextFormat"\n");
+	printf(BoldTextFormatStart"Bold"ClearTextFormat"\n");
 
 	io::Path("tests").list(io::Path::NameOnly, testsToRun);
 	for (StringList::iterator i= testsToRun.begin(); i != testsToRun.end();) {
@@ -489,6 +504,7 @@ int main(int argc, const char * const argv[]) {
 			++i;
 		}
 	}
+	std::sort(testsToRun.begin(), testsToRun.end());
 	for(int arg= 1; arg < argc; ++arg) {
 		if(String("debug") == argv[arg]) {
 			gDebugging= true;
@@ -502,10 +518,10 @@ int main(int argc, const char * const argv[]) {
 		} else if(String(argv[arg]).find("openssl=") == 0) {
 			openssl = io::Path(String(argv[arg]).substr(8));
 			if (!openssl.isDirectory()) {
-				printf("WARNING: %s is not a directory, disabling openssl\n", String(openssl).c_str());
+				printf(WarningTextFormatStart"WARNING: %s is not a directory, disabling openssl"ClearTextFormat"\n", String(openssl).c_str());
 				openssl = io::Path();
 			} else {
-				printf("Enabling openssl with headers at: %s\n", String(openssl).c_str());
+				printf(BoldTextFormatStart"Enabling openssl with headers at: %s"ClearTextFormat"\n", String(openssl).c_str());
 			}
 		} else {
 			const bool	found= (io::Path("tests") + (String(argv[arg])+"_test.cpp")).isFile();
@@ -553,11 +569,11 @@ int main(int argc, const char * const argv[]) {
 		);
 		exec::execute("mkdir -p bin/tests bin/logs", results);
 		if(results != "") {
-			printf("WARNING: mkdir '%s'\n", results.c_str());
+			printf(WarningTextFormatStart"WARNING: mkdir '%s'"ClearTextFormat"\n", results.c_str());
 		}
 		exec::execute("rm -Rf *.gcov *.gcno *.gcda bin/coverage/* bin/logs/* bin/tests/*", results);
 		if(results != "") {
-			printf("WARNING: rm '%s'\n", results.c_str());
+			printf(WarningTextFormatStart"WARNING: rm '%s'"ClearTextFormat"\n", results.c_str());
 		}
 		for(StringList::iterator test= testsToRun.begin(); test != testsToRun.end(); ++test) {
 			runTest(*test, openssl, db);
@@ -585,17 +601,8 @@ int main(int argc, const char * const argv[]) {
 				const bool	unexpectedLines= (uncovered != uint32_t(expectedLinesNotRun));
 				const int	coverageRate= hasCoverage ? 100 * coverage / (coverage + uncovered) : 0;
 
-				if ( coverageRate < bestCoverage ) {
-					printf("%s coverage is lower than best %d/%d (%d%%) < %d%%\n",
-						header->c_str(),
-						coverage,
-						coverage + uncovered,
-						coverageRate,
-						bestCoverage
-					);
-				}
 				if ( (hasExpectations || hasCoverage) && (unexpectedCoverage || unexpectedLines) ) {
-					printf("%s coverage changed %d/%d -> %d/%d (%d%% -> %d%%)\n",
+					printf(WarningTextFormatStart"%s coverage changed %d/%d -> %d/%d (%d%% -> %d%%)"ClearTextFormat"\n",
 						header->c_str(),
 						expectedLinesRun,
 							expectedLinesRun + expectedLinesNotRun,
@@ -604,7 +611,23 @@ int main(int argc, const char * const argv[]) {
 						hasExpectations ? 100 * expectedLinesRun / (expectedLinesRun + expectedLinesNotRun) : 0,
 						coverageRate
 					);
+					for (StringList::iterator i= uncoveredLines.begin(); i != uncoveredLines.end(); ++i) {
+						printf("%s\n", i->c_str());
+					}
+				} if ( coverageRate < bestCoverage ) {
+					printf(ErrorTextFormatStart"%s coverage is lower than best %d/%d (%d%%) < %d%%"ClearTextFormat"\n",
+						header->c_str(),
+						coverage,
+						coverage + uncovered,
+						coverageRate,
+						bestCoverage
+					);
+					for (StringList::iterator i= uncoveredLines.begin(); i != uncoveredLines.end(); ++i) {
+						printf("%s\n", i->c_str());
+					}
 				}
+
+				
 			}
 		}
 	} catch(const std::exception &exception) {
