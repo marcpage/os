@@ -1,4 +1,3 @@
-#define USE_DEPRECATED_ERRNO_EXCEPTIONS
 #include "os/Exception.h"
 #include "os/POSIXErrno.h"
 
@@ -107,25 +106,25 @@ int main(const int /*argc*/, const char * const /*argv*/[]) {
 			fail
 		}
 		try	{
-			errnoThrowMessageException(error, "error");
+			ErrnoCodeThrow(error, "error");
 			fail
 		} catch(const std::exception &exception) {
 			printf("exception='%s'\n",exception.what());
 		}
 		try	{
-			errnoThrowMessageException(noerror, "no error");
+			ErrnoCodeThrow(noerror, "no error");
+		} catch(const std::exception &exception) {
+			fail
+			printf("exception='%s'\n",exception.what());
+		}
+		try	{
+			ErrnoCodeThrow(error, "error");
 			fail
 		} catch(const std::exception &exception) {
 			printf("exception='%s'\n",exception.what());
 		}
 		try	{
-			errnoCodeThrowMessageException(error, "error");
-			fail
-		} catch(const std::exception &exception) {
-			printf("exception='%s'\n",exception.what());
-		}
-		try	{
-			errnoCodeThrowMessageException(noerror, "no error");
+			ErrnoCodeThrow(noerror, "no error");
 		} catch(const std::exception &exception) {
 			printf("exception='%s'\n",exception.what());
 			fail

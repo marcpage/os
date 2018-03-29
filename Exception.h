@@ -7,10 +7,7 @@
 */
 #include <string>
 #include <exception>
-#include <sstream>
-#ifdef USE_DEPRECATED_ERRNO_EXCEPTIONS
-	#include <errno.h>
-#endif
+#include "os/Backtrace.h"
 
 namespace msg {
 	inline void noop() {} ///< Used for if() else corrrectness with macros
@@ -24,20 +21,6 @@ namespace msg {
 #define AssertMessageException(condition) if(!(condition)) {ThrowMessageException(#condition);} else msg::noop()
 /// Intended for use in wrapping a function that returns an int, of which zero means no error, and any other value is an error. Only throws on error.
 #define AssertCodeMessageException(call) {int x= (call); if(x != 0) {ThrowMessageException(std::string(#call).append(": ").append(strerror(x)));}}
-#ifdef USE_DEPRECATED_ERRNO_EXCEPTIONS
-	/// Inteded for use by other macros, throws an msg::ErrNoException with the given errno code.
-	#define errnoThrowMessageExceptionCore(errnoCode, message, File, Line) throw msg::ErrNoException(errnoCode, message, File, Line)
-	/// Throws a msg::ErrNoException with the given errno code.
-	#define errnoThrowMessageException(errnoCode, message) errnoThrowMessageExceptionCore(errnoCode, message, __FILE__, __LINE__)
-	/// Throws a msg::ErrNoException if the errnoCode is not 0 (ie there was an error).
-	#define errnoCodeThrowMessageException(errnoCode, message) if(0 != errnoCode) {errnoThrowMessageExceptionCore(errnoCode, message, __FILE__, __LINE__);} else msg::noop()
-	/// Throws a msg::ErrNoException with errno as the errnoCode if the assertion fails (ie the condition is false)
-	#define errnoAssertMessageException(condition) if(!(condition)) {errnoCodeThrowMessageException(errno, #condition);} else msg::noop()
-	/// Throws a msg::ErrNoException with errno as the errnoCode if the result of a call is less than zero (UNIX calls usually return -1 on error and set errno)
-	#define errnoAssertPositiveMessageException(call) if( (call) < 0) {errnoCodeThrowMessageException(errno, #call);} else msg::noop()
-	/// Throws a msg::ErrNoException with errno as the errnoCode if the result of a call is NULL
-	#define errnoNULLAssertMessageException(call) if( NULL == (call) ) {errnoThrowMessageExceptionCore(errno, #call, __FILE__, __LINE__);} else msg::noop()
-#endif
 
 namespace msg {
 	/// Helper function to break at compile time on an assertion failure.
@@ -78,23 +61,6 @@ namespace msg {
 		std::string *_init(S message, const char *file, int line);
 	};
 
-#ifdef USE_DEPRECATED_ERRNO_EXCEPTIONS
-	/** Handles errno specific details for UNIX functions that set errno.
-	*/
-	class ErrNoException : public Exception {
-	public:
-		/// errnoCode and message
-		ErrNoException(int errnoCode, const char *message, const char *file= NULL, int line= 0) throw();
-		/// Just a message, errno will be read for the code
-		ErrNoException(const char *message, const char *file= NULL, int line= 0) throw();
-		/// nothing special here
-		virtual ~ErrNoException() throw();
-		/// again, nothing special
-		virtual const char* what() const throw();
-	private:
-		int	_errno; ///< the errono code
-	};
-#endif
 
 	/**
 		@param message	The reason for the exception
@@ -172,52 +138,22 @@ namespace msg {
 	template<class S>
 	inline std::string *Exception::_init(S message, const char *file, int line) {
 		std::string	*messagePtr= NULL;
+
 		try {
+			trace::StringList stack;
+
+			trace::stack(stack);
 			messagePtr = new std::string(message);
 			if(NULL != file) {
-				messagePtr->append(" File: ").append(file);
-				if(0 != line) {
-					std::ostringstream	stream;
-
-					stream << line;
-					messagePtr->append(" Line: ").append(stream.str());
+				messagePtr->append(" File: ").append(file).append(" Line: ").append(std::to_string(line));
+				for (trace::StringList::iterator i= stack.begin(); i != stack.end(); ++i) {
+					messagePtr->append("\n" + *i);
 				}
 			}
 		} catch (const std::exception &) {
 		}
 		return messagePtr;
 	}
-#ifdef USE_DEPRECATED_ERRNO_EXCEPTIONS
-	/** Used if you already have the errno code for some reason, errno will not be called.
-		Also calls strerror to get the system string for the errono code.
-		@param errnoCode	from calling errno
-		@param message		The reason for the exception
-		@param file			Set to __FILE__
-		@param line			Set to __LINE__
-	*/
-	inline ErrNoException::ErrNoException(int errnoCode, const char *message, const char *file, int line) throw()
-		:Exception(std::string(message).append(": ").append(strerror(errnoCode)), file, line), _errno(errnoCode) {
-	}
-	/** Used if you do not have the errno code, errno will be called.
-		Also calls strerror to get the system string for the errono code.
-		@param message		The reason for the exception
-		@param file			Set to __FILE__
-		@param line			Set to __LINE__
-	*/
-	inline ErrNoException::ErrNoException(const char *message, const char *file, int line) throw()
-		:Exception(std::string(message).append(strerror(errno)), file, line), _errno(errno) {
-	}
-	/** Cleans up _errno.
-	*/
-	inline ErrNoException::~ErrNoException() throw() {
-		_errno= 0;
-	}
-	/** Just call Exception's what().
-	*/
-	inline const char* ErrNoException::what() const throw() {
-		return Exception::what();
-	}
-#endif
 };
 
 #endif // __MessageException_h__

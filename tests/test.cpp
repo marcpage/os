@@ -11,6 +11,7 @@
 #include "os/Sqlite3Plus.h"
 #include "os/Hash.h"
 #include "os/Environment.h"
+#include "os/Backtrace.h"
 
 // select name, compiler, options, count(*) as count, avg(run_time) as average_run_time, min(run_time) as min_run_time, max(run_time) as max_run_time, avg(100*lines_run/code_lines) as average_coverage, min(100*lines_run/code_lines) as min_coverage, max(100*lines_run/code_lines) as max_coverage from run group by name, test_hash, header_hash, compiler, options;
 // select name, compiler, options, count(*) as count, avg(run_time) as average_run_time, min(run_time) as min_run_time, max(run_time) as max_run_time, avg(100*lines_run/code_lines) as average_coverage, min(100*lines_run/code_lines) as min_coverage, max(100*lines_run/code_lines) as max_coverage from run group by name, source_identifier, compiler, options;
@@ -26,7 +27,7 @@ typedef std::map<String,String>				Dictionary;
 const double		gTestTimeAllowancePercent= 5;
 const double		gTestMinimumTimeInSeconds= 1;
 const char * const	gCompilerFlags= "-I.. -I. -MMD -lcrypto -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -lz -lsqlite3 -framework Carbon";
-const uint32_t		gMinimumPercentCodeCoverage= 75;
+const uint32_t		gMinimumPercentCodeCoverage= 70;
 const String		gCompilerList= "clang++,g++,llvm-g++";
 Dictionary			gCompilerLocations;
 bool				gDebugging= false;
@@ -71,6 +72,7 @@ long strtol(const String &s, int base=10) {
 	try {
 		AssertMessageException( (NULL != endptr) && ('\0' == *endptr) );
 	} catch(const std::exception &) {
+		trace::print();
 		printf("strtol('%s', %d) -> endptr = %d value=%ld\n", s.c_str(), base, *endptr, value);
 		throw;
 	}
@@ -105,6 +107,7 @@ String fileContents(const String &path) {
 		source.read(contents);
 		return contents;
 	} catch(const posix::err::Errno &) {
+		trace::print();
 		fprintf(stderr, "Error: Unable to read '%s'\n", path.c_str());
 		throw;
 	}
@@ -114,20 +117,34 @@ String &hashFile(const String &path, String &buffer) {
 	return hash::sha256(fileContents(path)).hex(buffer);
 }
 
+int mystoi(const std::string &number) {
+	try {
+		return std::stoi(number);
+	} catch(const std::exception&) {}
+	return 0;
+}
+
+double mystod(const std::string &number) {
+	try {
+		return std::stod(number);
+	} catch(const std::exception&) {}
+	return 0.0;
+}
+
 void getHeaderStats(Sqlite3::DB &db, const String &name, const String &options, int &linesRun, int &linesNotRun, const std::string &testNames, int &bestPercent) {
 	Sqlite3::DB::Results	results;
 
 	db.exec("SELECT name,lines_run,code_lines,timestamp FROM header WHERE name LIKE '" + name + "' AND tests LIKE '" + testNames + "' AND options LIKE '"+options+"' ORDER BY timestamp DESC;", &results);
 	if (results.size() > 0) {
-		linesRun= std::stoi(results[0]["lines_run"]);
-		linesNotRun= std::stoi(results[0]["code_lines"]) - linesRun;
+		linesRun= mystoi(results[0]["lines_run"]);
+		linesNotRun= mystoi(results[0]["code_lines"]) - linesRun;
 	} else {
 		linesRun= 0;
 		linesNotRun= 0;
 	}
 	db.exec("SELECT MAX(100 * lines_run / code_lines) AS coverage FROM header WHERE name LIKE '"+name+"' AND tests like '"+testNames+"';", &results);
 	if ( (results.size() > 0) && (results[0]["coverage"].length() > 0) ) {
-		bestPercent= std::stoi(results[0]["coverage"]);
+		bestPercent= mystoi(results[0]["coverage"]);
 	} else {
 		bestPercent= 0;
 	}
@@ -218,8 +235,8 @@ void getTestStats(const String &name, const String &options, const String &heade
 	Sqlite3::DB::Results results;
 
 	db.exec("SELECT "
-				"MAX(lines_run) AS testedLines,"
-				"MAX(run_time) AS durationInSeconds,"
+				"MAX(lines_run) AS testedLines, "
+				"MAX(run_time) AS durationInSeconds, "
 				"MAX(trace_build_time + trace_run_time + build_time + run_time) AS totalTimeInSeconds, "
 				"AVG(run_time) AS averageTime "
 			"FROM run WHERE "
@@ -228,10 +245,10 @@ void getTestStats(const String &name, const String &options, const String &heade
 				"AND header_hash LIKE '"+headerHash+"' "
 				"AND test_hash LIKE '"+testHash+"';", &results);
 	if (results.size() > 0) {
-		testedLines= std::stoi(results[0]["testedLines"]);
-		durationInSeconds= std::stod(results[0]["durationInSeconds"]);
-		totalTimeInSeconds= std::stod(results[0]["totalTimeInSeconds"]);
-		slowTimeInSeconds= durationInSeconds > 0.0 ? (std::stod(results[0]["averageTime"]) + durationInSeconds) / 2.0 : 0.0;
+		testedLines= mystoi(results[0]["testedLines"]);
+		durationInSeconds= mystod(results[0]["durationInSeconds"]);
+		totalTimeInSeconds= mystod(results[0]["totalTimeInSeconds"]);
+		slowTimeInSeconds= durationInSeconds > 0.0 ? (mystod(results[0]["averageTime"]) + durationInSeconds) / 2.0 : 0.0;
 	} else {
 		testedLines= 0;
 		durationInSeconds= 0;
@@ -463,7 +480,7 @@ int main(int argc, const char * const argv[]) {
 	String					testNamePrefix;
 	const String			testSuffix= "_test.cpp";
 	bool					testsPassed= false;
-	
+
 	io::Path("tests").list(io::Path::NameOnly, testsToRun);
 	for (StringList::iterator i= testsToRun.begin(); i != testsToRun.end();) {
 		if ( (i->length() <= testSuffix.length()) || (i->find(testSuffix) != i->length() - testSuffix.length()) ) {
@@ -493,7 +510,7 @@ int main(int argc, const char * const argv[]) {
 			}
 		} else {
 			const bool	found= (io::Path("tests") + (String(argv[arg])+"_test.cpp")).isFile();
-			
+
 			if (found) {
 				if (!testsPassed) {
 					testsPassed= true;
@@ -510,7 +527,7 @@ int main(int argc, const char * const argv[]) {
 		StringList	headers;
 		String		parentDirectory= io::Path(argv[0]).canonical().parent().parent().name();
 		Sqlite3::DB	db(env::get("HOME") + "/Library/Caches/" + parentDirectory + "_tests.sqlite3");
-		
+
 		db.exec("CREATE TABLE IF NOT EXISTS `run` ("
 					"`name` VARCHAR(256), "
 					"`header_hash` VARCHAR(32), "
