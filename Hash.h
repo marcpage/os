@@ -31,12 +31,18 @@ namespace hash {
 			Hash();
 			/// Nothing to do in destructor.
 			virtual ~Hash();
+			/// Returns the hex value of the hash.
+			virtual std::string hex() const {std::string buffer; return hex(buffer);}
 			/// Fills <code>value</code> with the hex value of the hash.
 			virtual std::string &hex(std::string &value) const= 0;
 			/// Returns the number of bytes in the hash.
 			virtual uint32_t size() const= 0;
 			/// Returns the pointer to the internal hash buffer.
 			virtual const uint8_t *buffer() const= 0;
+			/// Returns the contents of the binary hash
+			std::string data() {return std::string(reinterpret_cast<const char*>(buffer()), size());}
+			/// Returns the contents of the binary hash in raw
+			std::string &data(std::string &raw) {raw.assign(reinterpret_cast<const char*>(buffer()), size());return raw;}
 			/// Resets the hash and starts hashing a new string.
 			virtual void reset(const char *hash)= 0;
 			/// Resets the hash and starts hashing new data.
@@ -80,6 +86,7 @@ namespace hash {
 			uint8_t *buffer();
 			virtual const uint8_t *buffer() const;
 			virtual uint32_t size() const;
+			virtual std::string hex() const {return Hash::hex();}
 			virtual std::string &hex(std::string &value) const;
 			virtual void reset(const char *hash);
 			virtual void reset(const void *data, size_t count);

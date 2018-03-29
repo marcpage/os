@@ -81,6 +81,12 @@ namespace z {
 		return destination;
 	}
 
+	inline std::string compress(const std::string &source, int level=6) {
+		std::string buffer;
+
+		return compress(source, buffer, level);
+	}
+
 	inline size_t uncompress(const void *source, size_t sourceSize, void *destination, size_t destinationSize) {
 		zlib_handle_error(::uncompress(reinterpret_cast<Bytef*>(destination), static_cast<uLong*>(&destinationSize),
 										const_cast<Bytef*>(reinterpret_cast<const Bytef*>(source)), static_cast<uLong>(sourceSize)));
