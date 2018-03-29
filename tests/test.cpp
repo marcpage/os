@@ -491,11 +491,15 @@ int main(int argc, const char * const argv[]) {
 	const String			testSuffix= "_test.cpp";
 	bool					testsPassed= false;
 	
-	printf(ErrorTextFormatStart"Error"ClearTextFormat"\n");
-	printf(WarningTextFormatStart"Warning"ClearTextFormat"\n");
-	printf(BoldTextFormatStart"Bold"ClearTextFormat"\n");
-
-	io::Path("tests").list(io::Path::NameOnly, testsToRun);
+	//printf(ErrorTextFormatStart"Error"ClearTextFormat"\n");
+	//printf(WarningTextFormatStart"Warning"ClearTextFormat"\n");
+	//printf(BoldTextFormatStart"Bold"ClearTextFormat"\n");
+	
+	try {
+		io::Path("tests").list(io::Path::NameOnly, testsToRun);
+	} catch(const posix::err::ENOENT_Errno &) {
+		printf(ErrorTextFormatStart"ERROR: Unable to find tests"ClearTextFormat"\n");
+	}
 	for (StringList::iterator i= testsToRun.begin(); i != testsToRun.end();) {
 		if ( (i->length() <= testSuffix.length()) || (i->find(testSuffix) != i->length() - testSuffix.length()) ) {
 			i= testsToRun.erase(i);
