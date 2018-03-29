@@ -4,6 +4,7 @@
 /** @file Hash.h
 	@todo evaluate the ability to do partial hashes so not all the data needs to be in memory.
 	@todo document
+	@todo test helper functions (hex)
 */
 
 #include <string>
