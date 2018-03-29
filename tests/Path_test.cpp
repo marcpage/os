@@ -13,7 +13,7 @@ int main(int ,const char * const []) {
 			io::Path working("bin/logs//");
 			io::Path test(working + "Path_test_file.txt");
 			io::Path::StringList listing;
-			
+
 			if (!test.parent().isDirectory()) {
 				printf("FAILED: Parent directory does not exist: %s\n", std::string(test).c_str());
 			}
@@ -94,6 +94,8 @@ int main(int ,const char * const []) {
 				printf("FAILED: we cannot list '%s'\n", std::string(test).c_str());
 			} catch(const posix::err::ENOENT_Errno &) {
 			}
+			(working+"dir1"+"dir2"+"dir3").mkdirs();
+			(working+"dir1").remove();
 		} catch(const std::exception &exception) {
 			printf("FAILED: Exception: %s\n", exception.what());
 		}

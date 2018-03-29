@@ -369,7 +369,7 @@ void runTest(const String &name, const String &compiler, const io::Path &openssl
 		printf("\t%3d%% coverage\n", percent_coverage);
 
 		if(runPerfTime < gTestMinimumTimeInSeconds * (1.0 + gTestTimeAllowancePercent/100.0) ) {
-			printf("\tTest is too short (%0.5fs), run it %0.1f times\n", runPerfTime, runPerfTime > 0.0 ? 1.0 / runPerfTime : 10.0);
+			printf("\t"WarningTextFormatStart"Test is too short (%0.5fs), run it %0.1f times"ClearTextFormat"\n", runPerfTime, runPerfTime > 0.0 ? 1.0 / runPerfTime : 10.0);
 		}
 		if(failures > 0) {
 			printf("\t%d Test Failures\n", failures);
@@ -377,24 +377,24 @@ void runTest(const String &name, const String &compiler, const io::Path &openssl
 			printf("%s\n", results.c_str());
 		}
 		if(errors > 0) {
-			printf("\t%d Compile Errors\n", errors);
+			printf("\t"ErrorTextFormatStart"%d Compile Errors"ClearTextFormat"\n", errors);
 			exec::execute("cat bin/logs/"+logName+" | grep error:", results);
 			printf("%s\n", results.c_str());
 			exec::execute("cat bin/logs/"+logName+" | grep ld:", results);
 			printf("%s\n", results.c_str());
 		}
 		if(warnings > 0) {
-			printf("\t%d Compile Warnings\n", warnings);
+			printf("\t"WarningTextFormatStart"%d Compile Warnings"ClearTextFormat"\n", warnings);
 			exec::execute("cat bin/logs/"+logName+" | grep warning:", results);
 			printf("%s\n", results.c_str());
 		}
 		if ((gVerbose && (uncovered > 0)) || (percent_coverage < gMinimumPercentCodeCoverage)) {
-			printf("\twarning: %d lines untested (%d tested) %d%%\n", uncovered, coverage, percent_coverage);
+			printf("\t"WarningTextFormatStart"warning: %d lines untested (%d tested) %d%%"ClearTextFormat"\n", uncovered, coverage, percent_coverage);
 			exec::execute("cat bin/coverage/"+executableName+"/"+name+".h.gcov 2> /dev/null | grep -E '#+:\\s+[0-9]+:'", results);
 			printf("%s\n", results.c_str());
 		}
 		if( (coverage != testedLines) ) {
-			printf("\tTested Lines: %d Expected %d\n", coverage, testedLines);
+			printf("\t"WarningTextFormatStart"Tested Lines: %d Expected %d"ClearTextFormat"\n", coverage, testedLines);
 			displayNewLine= true;
 		}
 		if( (runPerfTime > durationInSeconds * (1 + gTestTimeAllowancePercent/100) ) ) {
@@ -490,11 +490,11 @@ int main(int argc, const char * const argv[]) {
 	String					testNamePrefix;
 	const String			testSuffix= "_test.cpp";
 	bool					testsPassed= false;
-	
+
 	//printf(ErrorTextFormatStart"Error"ClearTextFormat"\n");
 	//printf(WarningTextFormatStart"Warning"ClearTextFormat"\n");
 	//printf(BoldTextFormatStart"Bold"ClearTextFormat"\n");
-	
+
 	try {
 		io::Path("tests").list(io::Path::NameOnly, testsToRun);
 	} catch(const posix::err::ENOENT_Errno &) {
@@ -631,7 +631,7 @@ int main(int argc, const char * const argv[]) {
 					}
 				}
 
-				
+
 			}
 		}
 	} catch(const std::exception &exception) {

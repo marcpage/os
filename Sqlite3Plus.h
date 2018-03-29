@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "os/Exception.h"
 
 // http://www.iphonesdkarticles.com/2009/02/sqlite-tutorial-saving-images-in.html
 // http://shellbt.wordpress.com/2009/07/14/sqlite3-blob-cecia-ucaauua/
@@ -48,10 +49,8 @@ namespace Sqlite3 {
 	Number fromString(const std::string &asString);
 
 	/// exceptions in Sqlite3
-	class Exception : public std::exception {
+	class Exception : public msg::Exception {
 	public:
-		/// default constructor
-		Exception() throw();
 		/// copy constructor
 		Exception(const Exception &exception) throw();
 		/** @brief construct an exception for the given file and line number
@@ -73,17 +72,8 @@ namespace Sqlite3 {
 		Exception(const char *file, int line, const std::string &errorString);
 		/// destructor
 		virtual ~Exception() throw();
-		/** @brief get the error message
-		 @return A description of the exception
-		 */
-		virtual const char* what() const throw();
 		/// assignment operator
 		Exception &operator=(const Exception &exception);
-		/// determine if this exception was a valid exception
-		bool isException() const;
-	private:
-		std::string	_message; ///< Holds the message
-		bool		_exception; ///< true if this is a real exception?
 	};
 
 	/// An Sqlite3 database
@@ -153,39 +143,21 @@ namespace Sqlite3 {
 
 	// ****** Exception implementation ******
 
-	inline Exception::Exception() throw()
-		:std::exception(), _message(NULL), _exception(false) {}
 	inline Exception::Exception(const Exception &exceptionToCopy) throw()
-		:std::exception(exceptionToCopy), _message(exceptionToCopy._message), _exception(exceptionToCopy._exception) {}
+		:msg::Exception(exceptionToCopy) {}
 	inline Exception::Exception(const char *file, int line)
-		:std::exception(), _message(), _exception(true) {
-		std::string	number;
-
-		_message= std::string(file)+":"+toString(line, number)+": Error";
+		:msg::Exception("Error", file, line) {
 	}
 	inline Exception::Exception(const char *file, int line, int errorCode)
-		:std::exception(), _message(), _exception(true) {
-		std::string	number;
-
-		_message= std::string(file)+":"+toString(line, number)+": Error #"+toString(errorCode, number);
+		:msg::Exception("Error #"+std::to_string(errorCode), file, line) {
 	}
 	inline Exception::Exception(const char *file, int line, const std::string &errorString)
-		:std::exception(), _message(), _exception(true) {
-		std::string	number;
-
-		_message= std::string(file)+":"+toString(line, number)+": Error "+errorString;
+		:msg::Exception("Error "+errorString, file, line) {
 	}
 	inline Exception::~Exception() throw() {}
-	inline const char* Exception::what() const throw() {
-		return _message.c_str();
-	}
 	inline Exception &Exception::operator=(const Exception &exceptionToCopy) {
-		_message= exceptionToCopy._message;
-		_exception= exceptionToCopy._exception;
+		*reinterpret_cast<msg::Exception*>(this)= exceptionToCopy;
 		return *this;
-	}
-	inline bool Exception::isException() const {
-		return (_exception);
 	}
 
 	// ****** DB implementation ******

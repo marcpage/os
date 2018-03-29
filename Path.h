@@ -12,8 +12,9 @@
 
 /**
 	@todo Document
-	@todo mkdirs
-	@todo remove recursive
+	@todo test mkdirs
+	@todo test list
+	@todo delete tree
 	@todo chmod
 */
 namespace io {
@@ -42,8 +43,9 @@ namespace io {
 			bool isEmpty() const;
 			void unlink() const;
 			void rmdir() const;
-			void mkdir(unsigned int mode=0777) const;
 			void remove() const;
+			void mkdir(unsigned int mode=0777) const;
+			const Path &mkdirs(unsigned int mode=0777) const;
 			void rename(const Path &other) const;
 			Path readLink() const;
 			void symlink(const Path &contents) const;
@@ -106,15 +108,30 @@ namespace io {
 	inline void Path::rmdir() const {
 		ErrnoOnNegative(::rmdir(_path.c_str()));
 	}
-	inline void Path::mkdir(unsigned int mode) const {
-		ErrnoOnNegative(::mkdir(_path.c_str(), mode));
-	}
 	inline void Path::remove() const {
-		if (isDirectory()) {
+		if (isDirectory(WorkOnLink)) {
+			StringList contents;
+
+			list(PathAndName, contents);
+			for (StringList::iterator i= contents.begin(); i != contents.end(); ++i) {
+				Path(*i).remove();
+			}
 			rmdir();
 		} else {
 			unlink();
 		}
+	}
+	inline void Path::mkdir(unsigned int mode) const {
+		ErrnoOnNegative(::mkdir(_path.c_str(), mode));
+	}
+	inline const Path &Path::mkdirs(unsigned int mode) const {
+		if (!isEmpty()) {
+			if (!isDirectory()) {
+				parent().mkdirs(mode);
+				mkdir(mode);
+			}
+		}
+		return *this;
 	}
 	inline void Path::rename(const Path &other) const {
 		ErrnoOnNegative(::rename(_path.c_str(), other._path.c_str()));
@@ -158,12 +175,12 @@ namespace io {
 	}
 	inline Path::StringList Path::list(HavePath havePath) const {
 		StringList directoryListing;
-		
+
 		return list(havePath, directoryListing);
 	}
 	inline Path::StringList &Path::list(HavePath havePath, StringList &directoryListing) const {
 		DIR 			*dp;
-		struct dirent	*ep;     
+		struct dirent	*ep;
 
 		directoryListing.clear();
   		ErrnoOnNULL(dp= ::opendir(String(*this).c_str()));
