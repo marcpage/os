@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <sstream>
 #include <string.h>
+#include "os/Exception.h"
 
 /// Throw by errno error code name
 #define ErrnoThrowAssert(condition, name) throw posix::err::name##_Errno(#condition, __FILE__, __LINE__)
@@ -27,7 +28,7 @@
 */
 namespace posix { namespace err {
 
-	class Errno : public std::exception {
+	class Errno : public msg::Exception {
 		public:
 			/// tell us what the error is
 			Errno(int value, const char *errnoName, const char *file= NULL, int line= 0) throw();
@@ -41,18 +42,15 @@ namespace posix { namespace err {
 			virtual ~Errno() throw();
 			/// Gets the name of the errno
 			virtual const char *name();
-			/// gets the message
-			virtual const char* what() const throw();
 			/// throws if errno is not 0
 			int code() const throw();
 			static void _throw(int errnoCode, const std::string &message, const char *file, int line);
 			static void _noop();
 		private:
-			std::string	*_message;	///< The message about why the exception was thrown.
 			int			_errno;		///< The error code
 
 			/// Helper function to initialize from the various constructors.
-			template<class S> std::string *_init(S message, const char *errnoName, const char *file, int line, int value);
+			template<class S> std::string _init(S message, const char *errnoName, int value);
 	};
 
 /// Temporary define for declaring classes for each errno value
@@ -106,50 +104,19 @@ namespace posix { namespace err {
 #undef ErrnoException
 
 	inline Errno::Errno(int value, const char *errnoName, const char *file, int line) throw()
-		:_message(_init("", errnoName, file, line, value)), _errno(value) {}
+		:msg::Exception(_init("", errnoName, value), file, line), _errno(value) {}
 	inline Errno::Errno(const std::string &message, int value, const char *errnoName, const char *file, int line) throw()
-		:_message(_init(message, errnoName, file, line, value)), _errno(value) {}
+		:msg::Exception(_init(message, errnoName, value), file, line), _errno(value) {}
 	inline Errno::Errno(const Errno &other)
-		:std::exception(), _message(other._message), _errno(other._errno) {
-		if(NULL != _message) {
-			try {
-				_message= new std::string(*_message);
-			} catch(const std::exception&) {
-				_message= NULL;
-			}
-		}
-	}
+		:msg::Exception(other), _errno(other._errno) {}
 	inline Errno &Errno::operator=(const Errno &other) {
-		if(this != &other) {
-			if(NULL != other._message) {
-				try {
-					if(NULL != _message) {
-						_message->assign(*other._message);
-					} else {
-						_message= new std::string(*other._message);
-					}
-				} catch(const std::exception&) {
-				}
-			} else {
-				delete _message;
-				_message= NULL;
-			}
-		}
+		*reinterpret_cast<msg::Exception*>(this)= other;
+		_errno= other._errno;
 		return *this;
 	}
-	inline Errno::~Errno() throw() {
-		delete _message;
-		_message= NULL;
-	}
+	inline Errno::~Errno() throw() {}
 	inline const char *Errno::name() {
 		return "[Unknown]";
-	}
-	inline const char* Errno::what() const throw() {
-		if(NULL != _message) {
-			return _message->c_str();
-		} else {
-			return "Unable to allocate message string at exception throw!";
-		}
 	}
 	inline int Errno::code() const throw() {
 		return _errno;
@@ -204,30 +171,8 @@ namespace posix { namespace err {
 		}
 	}
 	inline void Errno::_noop() {}
-	template<class S> inline std::string *Errno::_init(S message, const char *errnoName, const char *file, int line, int value) {
-		std::string	*messagePtr= NULL;
-		try {
-			messagePtr = new std::string(message);
-			if(NULL != file) {
-				messagePtr->append(" File: ").append(file);
-				if(0 != line) {
-					std::ostringstream	stream;
-
-					stream << line;
-					messagePtr->append(" Line: ").append(stream.str());
-				}
-				if(0 != value) {
-					std::ostringstream	stream;
-
-					stream << value;
-					stream << " [" << errnoName << "] : ";
-					stream << strerror(value);
-					messagePtr->append(" Errno: ").append(stream.str());
-				}
-			}
-		} catch (const std::exception&) {
-		}
-		return messagePtr;
+	template<class S> inline std::string Errno::_init(S message, const char *errnoName, int value) {
+		return std::string("[") + errnoName + "] (" + std::to_string(value) + "): " + std::string(message);
 	}
 
 }}

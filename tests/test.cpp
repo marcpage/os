@@ -11,7 +11,6 @@
 #include "os/Sqlite3Plus.h"
 #include "os/Hash.h"
 #include "os/Environment.h"
-#include "os/Backtrace.h"
 
 // select name, compiler, options, count(*) as count, avg(run_time) as average_run_time, min(run_time) as min_run_time, max(run_time) as max_run_time, avg(100*lines_run/code_lines) as average_coverage, min(100*lines_run/code_lines) as min_coverage, max(100*lines_run/code_lines) as max_coverage from run group by name, test_hash, header_hash, compiler, options;
 // select name, compiler, options, count(*) as count, avg(run_time) as average_run_time, min(run_time) as min_run_time, max(run_time) as max_run_time, avg(100*lines_run/code_lines) as average_coverage, min(100*lines_run/code_lines) as min_coverage, max(100*lines_run/code_lines) as max_coverage from run group by name, source_identifier, compiler, options;
@@ -26,7 +25,9 @@ typedef std::map<String,String>				Dictionary;
 
 const double		gTestTimeAllowancePercent= 5;
 const double		gTestMinimumTimeInSeconds= 1;
-const char * const	gCompilerFlags= "-I.. -I. -MMD -lcrypto -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -lz -lsqlite3 -framework Carbon";
+const char * const	gCompilerFlags= "-I.. -MMD"
+										" -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings"
+										" -lcrypto -lz -lsqlite3 -framework Carbon";
 const uint32_t		gMinimumPercentCodeCoverage= 70;
 const String		gCompilerList= "clang++,g++,llvm-g++";
 Dictionary			gCompilerLocations;
@@ -72,7 +73,6 @@ long strtol(const String &s, int base=10) {
 	try {
 		AssertMessageException( (NULL != endptr) && ('\0' == *endptr) );
 	} catch(const std::exception &) {
-		trace::print();
 		printf("strtol('%s', %d) -> endptr = %d value=%ld\n", s.c_str(), base, *endptr, value);
 		throw;
 	}
@@ -107,7 +107,6 @@ String fileContents(const String &path) {
 		source.read(contents);
 		return contents;
 	} catch(const posix::err::Errno &) {
-		trace::print();
 		fprintf(stderr, "Error: Unable to read '%s'\n", path.c_str());
 		throw;
 	}
