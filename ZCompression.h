@@ -101,6 +101,14 @@ namespace z {
 		destination.resize(static_cast<std::string::size_type>(actualDestination));
 		return destination;
 	}
+
+	inline std::string uncompress(const std::string &source, std::string::size_type maxDestination= 512 * 1024) {
+		std::string results;
+
+		uncompress(source, results, maxDestination);
+		return results;
+	}
+
 };
 
 #endif // __ZCompression_h__

@@ -53,6 +53,7 @@ namespace io {
 			Path parent() const;
 			String name() const;
 			Path canonical() const;
+			void write(const std::string &contents, io::File::Method method=io::File::Text) const;
 			String contents(io::File::Method method=io::File::Text) const {String buffer; return contents(buffer, method);}
 			String &contents(String &buffer, io::File::Method method=io::File::Text) const;
 			StringList list(HavePath havePath) const;
@@ -179,6 +180,9 @@ namespace io {
 	inline Path::String &Path::contents(String &buffer, io::File::Method method) const {
 		io::File(_path, method, io::File::ReadOnly).read(buffer);
 		return buffer;
+	}
+	inline void Path::write(const std::string &contents, io::File::Method method) const {
+		io::File(_path, method, io::File::ReadWrite).write(contents);
 	}
 	inline Path::StringList Path::list(HavePath havePath) const {
 		StringList directoryListing;

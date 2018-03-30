@@ -63,6 +63,10 @@ namespace hash {
 			enum {
 				Size = Hasher::Size ///< The number of bytes in the hash.
 			};
+			/// Create a hash object from raw hash data
+			static SpecificHash<Hasher> fromData(const void *buffer, uint32_t size);
+			/// Create a hash object from raw hash data
+			static SpecificHash<Hasher> fromHex(const std::string &hex);
 			/// The default constructor.
 			SpecificHash();
 			/// Construct and initialize with hash of a string.
@@ -175,6 +179,22 @@ namespace hash {
 	inline Hash::~Hash() {
 	}
 
+	/**
+	*/
+	template<class Hasher> inline SpecificHash<Hasher> SpecificHash<Hasher>::fromData(const void *buffer, uint32_t size) {
+		SpecificHash<Hasher> result;
+
+		AssertMessageException(size == Size);
+		memcpy(result._hash, buffer, Size);
+		return result;
+	}
+	/// Create a hash object from raw hash data
+	template<class Hasher> inline SpecificHash<Hasher> SpecificHash<Hasher>::fromHex(const std::string &hex) {
+		SpecificHash<Hasher> result;
+
+		result.reset(hex.c_str());
+		return result;
+	}
 	/**
 		@todo TEST!
 	*/
