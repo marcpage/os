@@ -13,9 +13,7 @@
 
 /**
 	@todo Document
-	@todo test mkdirs
 	@todo test list
-	@todo test delete tree
 	@todo chmod
 */
 namespace io {

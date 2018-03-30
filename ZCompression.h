@@ -104,7 +104,10 @@ namespace z {
 
 	inline std::string uncompress(const std::string &source, std::string::size_type maxDestination= 512 * 1024) {
 		std::string results;
-
+		
+		if (source.size() > maxDestination) {
+			maxDestination= 2 * source.size();
+		}
 		uncompress(source, results, maxDestination);
 		return results;
 	}

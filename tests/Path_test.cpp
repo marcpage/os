@@ -96,6 +96,9 @@ int main(int ,const char * const []) {
 			}
 			(working+"dir1"+"dir2"+"dir3").mkdirs();
 			(working+"dir1").remove();
+			if ((working+"dir1").isDirectory()) {
+				printf("FAILED: We tried to delete %s, but its still there.\n", std::string(working+"dir1").c_str());
+			}
 		} catch(const std::exception &exception) {
 			printf("FAILED: Exception: %s\n", exception.what());
 		}
