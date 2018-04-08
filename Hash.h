@@ -292,7 +292,7 @@ namespace hash {
 	template<class Hasher> inline void SpecificHash<Hasher>::reset(const char *hash) {
 		std::string	hexDigits("0123456789abcdef");
 		bool		eosFound= false;
-		AssertMessageException(strlen(hash) <= Size * 2);
+		AssertMessageException(strlen(hash) == Size * 2);
 		for(int byte= 0; (byte < static_cast<int>(sizeof(_hash))); ++byte) {
 			const int	nibble1= byte * 2 + 1;
 			eosFound= ((eosFound) || (hash[nibble1] == '\0'));
