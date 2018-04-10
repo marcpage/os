@@ -19,6 +19,8 @@ namespace net {
 			int descriptor();
 			/// @brief Closes the socket.
 			void close();
+			/// @brief Sets an option
+			void setOption(int name, bool value=true, int level=SOL_SOCKET);
 		protected:
 			/// @brief The socket descriptor.
 			int	_socket;
@@ -44,6 +46,11 @@ namespace net {
 			ErrnoOnNegative(::close(_socket));
 		}
 		_socket= -1;
+	}
+	inline void SocketGeneric::setOption(int name, bool value, int level) {
+		int	enable = value ? 1 : 0;
+
+		ErrnoOnNegative(::setsockopt(_socket, level, name, &enable, sizeof(int)));
 	}
 	inline SocketGeneric::SocketGeneric()
 		:_socket(-1) {

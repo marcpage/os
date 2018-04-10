@@ -9,6 +9,16 @@ namespace net {
 	/** A standard socket that you expect to read/write. */
 	class Socket : public SocketGeneric {
 		public:
+			/** @todo Document */
+			enum RoutingOptions {
+				Route,
+				BypassRouting
+			};
+			/** @todo Document */
+			enum OutOfBandDataOptions {
+				IgnoreOutOfBand,
+				ProcessOutOfBand
+			};
 			/** Invalid socket. */
 			Socket();
 			/** Creates a new socket */
@@ -17,10 +27,14 @@ namespace net {
 			virtual ~Socket();
 			/** Connect to a given address. */
 			void connect(Address &address);
+			/** enables permission to transmit broadcast messages */
+			void broadcast(bool cast=true);
 			/** Read bytes into a buffer from the socket. */
 			size_t read(Buffer &buffer, size_t bytes= static_cast<size_t>(-1));
 			/** Write bytes from a buffer to the socket. */
 			size_t write(const Buffer &buffer, size_t bytes= static_cast<size_t>(-1));
+			/** @todo Document */
+			size_t sendto(const Address &address, const Buffer &buffer, size_t bytes=static_cast<size_t>(-1), RoutingOptions route=Route, OutOfBandDataOptions outOfBand=IgnoreOutOfBand);
 	};
 
 	inline Socket::Socket()
@@ -36,6 +50,10 @@ namespace net {
 	/** @param address	The address to connect to. */
 	inline void Socket::connect(Address &address) {
 		ErrnoOnNegative(::connect(_socket, address, address.size()));
+	}
+	/** @todo Document*/
+	inline void Socket::broadcast(bool cast) {
+		setOption(SO_BROADCAST, cast);
 	}
 	/**
 		@param buffer	The buffer to fill
@@ -62,7 +80,7 @@ namespace net {
 	*/
 	inline size_t Socket::write(const Buffer &buffer, size_t bytes) {
 		ssize_t	amount;
-		size_t	toWrite= bytes == static_cast<size_t>(-1) ? buffer.size() : bytes;
+		const size_t	toWrite= bytes == static_cast<size_t>(-1) ? buffer.size() : bytes;
 
 		if(bytes > buffer.size()) {
 			bytes= buffer.size();
@@ -70,6 +88,18 @@ namespace net {
 		ErrnoOnNegative(amount= ::write(_socket, buffer.start(), toWrite));
 		return amount;
 	}
+	/**
+		@todo Document
+	*/
+	inline size_t Socket::sendto(const Address &address, const Buffer &buffer, size_t bytes, RoutingOptions route, OutOfBandDataOptions outOfBand) {
+		ssize_t			amount;
+		const size_t	toSend= bytes == static_cast<size_t>(-1) ? buffer.size() : bytes;
+		const int		flags= (BypassRouting == route ? MSG_DONTROUTE : 0) | (IgnoreOutOfBand == outOfBand ? MSG_OOB : 0);
+
+		ErrnoOnNegative(amount= ::sendto(_socket, buffer.start(), toSend, flags, address.get(), address.size()));
+		return amount;
+	}
+
 }
 
 #endif // __Socket_h__

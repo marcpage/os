@@ -48,17 +48,13 @@ namespace net {
 		@todo Document
 	*/
 	inline void SocketServer::reuseAddress(bool reuse) {
-		int	enable = reuse ? 1 : 0;
-
-		ErrnoOnNegative(::setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)));
+		setOption(SO_REUSEADDR, reuse);
 	}
 	/**
 		@todo Document
 	*/
 	inline void SocketServer::reusePort(bool reuse) {
-		int	enable = reuse ? 1 : 0;
-
-		ErrnoOnNegative(::setsockopt(_socket, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)));
+		setOption(SO_REUSEPORT, reuse);
 	}
 	/**
 		@param backlog	The number of connects that can be waiting between calls to <code>accept</code>.
