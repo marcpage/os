@@ -198,7 +198,78 @@ int main(const int argc, const char * const argv[]) {
 				printf("N %s\n", net::AddressIPv4("localhost", 80).name(net::Address::UnqualifiedLocal, net::Address::Numeric, net::Address::NameIfAvailable).c_str());
 				printf("O %s\n", net::AddressIPv4("localhost", 80).name(net::Address::FullyQualified, net::Address::Name, net::Address::NameIfAvailable).c_str());
 				printf("P %s\n", net::AddressIPv4("localhost", 80).name(net::Address::UnqualifiedLocal, net::Address::Name, net::Address::NameIfAvailable).c_str());
-
+				
+				try {
+					GAIMessageThrow(EAI_AGAIN);
+					printf("FAILED: Should have thrown EAI_AGAIN\n");
+				} catch(const net::EAI_AGAIN_GAI&) {
+				}
+				try {
+					GAIMessageThrow(EAI_FAIL);
+					printf("FAILED: Should have thrown EAI_FAIL\n");
+				} catch(const net::EAI_FAIL_GAI&) {
+				}
+				try {
+					GAIMessageThrow(EAI_SERVICE);
+					printf("FAILED: Should have thrown EAI_SERVICE\n");
+				} catch(const net::EAI_SERVICE_GAI&) {
+				}
+				try {
+					GAIMessageThrow(EAI_BADFLAGS);
+					printf("FAILED: Should have thrown EAI_BADFLAGS\n");
+				} catch(const net::EAI_BADFLAGS_GAI&) {
+				}
+				try {
+					GAIMessageThrow(EAI_FAMILY);
+					printf("FAILED: Should have thrown EAI_FAMILY\n");
+				} catch(const net::EAI_FAMILY_GAI&) {
+				}
+				try {
+					GAIMessageThrow(EAI_SOCKTYPE);
+					printf("FAILED: Should have thrown EAI_SOCKTYPE\n");
+				} catch(const net::EAI_SOCKTYPE_GAI&) {
+				}
+				try {
+					GAIMessageThrow(EAI_BADHINTS);
+					printf("FAILED: Should have thrown EAI_BADHINTS\n");
+				} catch(const net::EAI_BADHINTS_GAI&) {
+				}
+				try {
+					GAIMessageThrow(EAI_MEMORY);
+					printf("FAILED: Should have thrown EAI_MEMORY\n");
+				} catch(const net::EAI_MEMORY_GAI&) {
+				}
+				try {
+					GAIMessageThrow(EAI_SYSTEM);
+					printf("FAILED: Should have thrown EAI_SYSTEM\n");
+				} catch(const net::EAI_SYSTEM_GAI&) {
+				}
+				try {
+					GAIMessageThrow(8086);
+					printf("FAILED: Should have thrown GetAddressInfoException\n");
+				} catch(const net::EAI_NONAME_GAI &) {
+					printf("FAILED: EAI_NONAME_GAI, but should have thrown GetAddressInfoException\n");
+				} catch(const net::EAI_AGAIN_GAI&) {
+					printf("FAILED: EAI_AGAIN_GAI, but should have thrown GetAddressInfoException\n");
+				} catch(const net::EAI_FAIL_GAI&) {
+					printf("FAILED: EAI_FAIL_GAI, but should have thrown GetAddressInfoException\n");
+				} catch(const net::EAI_SERVICE_GAI&) {
+					printf("FAILED: EAI_SERVICE_GAI, but should have thrown GetAddressInfoException\n");
+				} catch(const net::EAI_BADFLAGS_GAI&) {
+					printf("FAILED: EAI_BADFLAGS_GAI, but should have thrown GetAddressInfoException\n");
+				} catch(const net::EAI_FAMILY_GAI&) {
+					printf("FAILED: EAI_FAMILY_GAI, but should have thrown GetAddressInfoException\n");
+				} catch(const net::EAI_SOCKTYPE_GAI&) {
+					printf("FAILED: EAI_SOCKTYPE_GAI, but should have thrown GetAddressInfoException\n");
+				} catch(const net::EAI_BADHINTS_GAI&) {
+					printf("FAILED: EAI_BADHINTS_GAI, but should have thrown GetAddressInfoException\n");
+				} catch(const net::EAI_MEMORY_GAI&) {
+					printf("FAILED: EAI_MEMORY_GAI, but should have thrown GetAddressInfoException\n");
+				} catch(const net::EAI_SYSTEM_GAI&) {
+					printf("FAILED: EAI_SYSTEM_GAI, but should have thrown GetAddressInfoException\n");
+				} catch(const net::GetAddressInfoException &exception) {
+					printf("We got unknown exception %s\n", exception.name());
+				}
 			} catch(const std::exception &exception) {
 				printf("THREAD: %p: FAILED: exception thrown on main thread, iteration %d: %s\n", exec::ThreadId::current().thread(), i, exception.what());
 			}

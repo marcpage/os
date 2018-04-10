@@ -20,7 +20,7 @@ namespace net {
 			GetAddressInfoException(const GetAddressInfoException &other);
 			GetAddressInfoException &operator=(const GetAddressInfoException &other);
 			virtual ~GetAddressInfoException() throw();
-			virtual const char *name();
+			virtual const char *name() const;
 			int code() const throw();
 			static void _throw(int value, const std::string &message, const char *file, int line);
 			static void _noop();
@@ -33,7 +33,7 @@ namespace net {
 #define GAIException(GAI_name) \
 	class GAI_name##_GAI : public GetAddressInfoException { \
 		public: \
-		virtual const char *name() {return #GAI_name;} \
+		virtual const char *name() const {return #GAI_name;} \
 		GAI_name##_GAI(const char *file= NULL, int line= 0) throw():GetAddressInfoException(GAI_name, #GAI_name, file, line) {} \
 		GAI_name##_GAI(const std::string &message, const char *file= NULL, int line= 0) throw():GetAddressInfoException(message, GAI_name, #GAI_name, file, line) {} \
 	}
@@ -92,7 +92,7 @@ GAIException(EAI_SERVICE);	GAIException(EAI_SOCKTYPE);	GAIException(EAI_SYSTEM);
 		return *this;
 	}
 	inline GetAddressInfoException::~GetAddressInfoException() throw() {}
-	inline const char *GetAddressInfoException::name() {
+	inline const char *GetAddressInfoException::name() const {
 		return "[Unknown]";
 	}
 	inline int GetAddressInfoException::code() const throw() {
