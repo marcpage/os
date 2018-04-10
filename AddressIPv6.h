@@ -25,6 +25,7 @@ namespace net {
 			enum IPv6Family {
 				Family= AF_INET6
 			};
+			AddressIPv6(const void *address, socklen_t size);
 			/// @brief Initializes the address with the port and address
 			AddressIPv6(in_port_t port= 0, const struct in6_addr &address= in6addr_any);
 			/// @brief Initializes the address with the port and named address
@@ -41,6 +42,12 @@ namespace net {
 			struct sockaddr_in6	_address;
 	};
 
+	inline AddressIPv6::AddressIPv6(const void *address, socklen_t size):Address(), _address() {
+		AssertMessageException(NULL != address);
+		AssertMessageException(Size == size);
+		AssertMessageException(Family == reinterpret_cast<const struct sockaddr*>(address)->sa_family);
+		::memcpy(&_address, address, Size);
+	}
 	/**
 		@param port		The port to listen on or connect to.
 		@param address	The address to listen on or connect to. Defaults to listen on all.

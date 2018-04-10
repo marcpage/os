@@ -132,7 +132,7 @@ class Server : public exec::Thread {
 };
 
 int main(const int argc, const char * const argv[]) {
-	int	iterations= 5300;
+	int	iterations= 400;
 #ifdef __Tracer_h__
 	iterations= 3;
 #endif
@@ -164,6 +164,41 @@ int main(const int argc, const char * const argv[]) {
 				}
 				printf("THREAD: %p: Closing\n", exec::ThreadId::current().thread());
 				connection.close();
+
+				try {
+					printf("A %s\n", net::AddressIPv4("127.0.0.1", 80).name(net::Address::FullyQualified, net::Address::Numeric, net::Address::NameRequired).c_str());
+					printf("FAILED: (A) We should have gotten EAI_NONAME\n");
+				} catch(const net::EAI_NONAME_GAI &) {
+				}
+				try {
+					printf("B %s\n", net::AddressIPv4("127.0.0.1", 80).name(net::Address::UnqualifiedLocal, net::Address::Numeric, net::Address::NameRequired).c_str());
+					printf("FAILED: (B) We should have gotten EAI_NONAME\n");
+				} catch(const net::EAI_NONAME_GAI &) {
+				}
+				printf("C %s\n", net::AddressIPv4("127.0.0.1", 80).name(net::Address::FullyQualified, net::Address::Name, net::Address::NameRequired).c_str());
+				printf("D %s\n", net::AddressIPv4("127.0.0.1", 80).name(net::Address::UnqualifiedLocal, net::Address::Name, net::Address::NameRequired).c_str());
+				printf("E %s\n", net::AddressIPv4("127.0.0.1", 80).name(net::Address::FullyQualified, net::Address::Numeric, net::Address::NameIfAvailable).c_str());
+				printf("F %s\n", net::AddressIPv4("127.0.0.1", 80).name(net::Address::UnqualifiedLocal, net::Address::Numeric, net::Address::NameIfAvailable).c_str());
+				printf("G %s\n", net::AddressIPv4("127.0.0.1", 80).name(net::Address::FullyQualified, net::Address::Name, net::Address::NameIfAvailable).c_str());
+				printf("H %s\n", net::AddressIPv4("127.0.0.1", 80).name(net::Address::UnqualifiedLocal, net::Address::Name, net::Address::NameIfAvailable).c_str());
+
+				try {
+					printf("I %s\n", net::AddressIPv4("localhost", 80).name(net::Address::FullyQualified, net::Address::Numeric, net::Address::NameRequired).c_str());
+					printf("FAILED: (I) We should have gotten EAI_NONAME\n");
+				} catch(const net::EAI_NONAME_GAI &) {
+				}
+				try {
+					printf("J %s\n", net::AddressIPv4("localhost", 80).name(net::Address::UnqualifiedLocal, net::Address::Numeric, net::Address::NameRequired).c_str());
+					printf("FAILED: (J) We should have gotten EAI_NONAME\n");
+				} catch(const net::EAI_NONAME_GAI &) {
+				}
+				printf("K %s\n", net::AddressIPv4("localhost", 80).name(net::Address::FullyQualified, net::Address::Name, net::Address::NameRequired).c_str());
+				printf("L %s\n", net::AddressIPv4("localhost", 80).name(net::Address::UnqualifiedLocal, net::Address::Name, net::Address::NameRequired).c_str());
+				printf("M %s\n", net::AddressIPv4("localhost", 80).name(net::Address::FullyQualified, net::Address::Numeric, net::Address::NameIfAvailable).c_str());
+				printf("N %s\n", net::AddressIPv4("localhost", 80).name(net::Address::UnqualifiedLocal, net::Address::Numeric, net::Address::NameIfAvailable).c_str());
+				printf("O %s\n", net::AddressIPv4("localhost", 80).name(net::Address::FullyQualified, net::Address::Name, net::Address::NameIfAvailable).c_str());
+				printf("P %s\n", net::AddressIPv4("localhost", 80).name(net::Address::UnqualifiedLocal, net::Address::Name, net::Address::NameIfAvailable).c_str());
+
 			} catch(const std::exception &exception) {
 				printf("THREAD: %p: FAILED: exception thrown on main thread, iteration %d: %s\n", exec::ThreadId::current().thread(), i, exception.what());
 			}

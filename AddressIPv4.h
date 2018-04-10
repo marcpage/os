@@ -6,8 +6,8 @@
 #include <netdb.h>
 #include <string>
 #include <string.h>
-#include "Address.h"
-#include "Exception.h"
+#include "os/Address.h"
+#include "os/Exception.h"
 
 /**
 	@todo Test!
@@ -26,6 +26,7 @@ namespace net {
 			enum IPv4Family {
 				Family= AF_INET
 			};
+			AddressIPv4(const struct sockaddr *address, socklen_t size);
 			/// @brief Initializes the address with the port and address
 			AddressIPv4(in_port_t port= 0, u_int32_t address= INADDR_ANY);
 			/// @brief Initializes the address with the port and named address
@@ -42,6 +43,14 @@ namespace net {
 			struct sockaddr_in	_address;
 	};
 
+	inline AddressIPv4::AddressIPv4(const struct sockaddr *address, socklen_t size):Address(), _address() {
+		AssertMessageException(NULL != address);
+		printf("size=%d Size=%d\n", size, Size);
+		printf("family=%d Family=%d\n", reinterpret_cast<const struct sockaddr*>(address)->sa_family, Family);
+		AssertMessageException(Size == size);
+		AssertMessageException(Family == reinterpret_cast<const struct sockaddr*>(address)->sa_family);
+		::memcpy(&_address, address, Size);
+	}
 	/**
 		@param port		The port to listen on or connect to.
 		@param address	The address to listen on or connect to. Defaults to listen on all.

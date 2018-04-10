@@ -99,7 +99,7 @@ namespace net {
 		remote.assign(socketDescriptor);
 	}
 	/**
-		@todo ipv4 and ipv6 should be able to take struct sockaddr* (assert family is correct)
+		@todo Document
 	*/
 	inline std::string SocketServer::receiveFrom(size_t maximumSize, AddressPtr &sender, PartialBehavior partial, MessageBehavior behavior, OutOfBandDataOptions outOfBand) {
 		ssize_t 			actualSize;
@@ -107,17 +107,16 @@ namespace net {
 		std::string 		address(std::max(size_t(AddressIPv6::Size), size_t(AddressIPv4::Size)), '\0');
 		socklen_t			addressSize= address.size();
 		struct sockaddr		*genericAddress= reinterpret_cast<struct sockaddr*>(const_cast<char*>(address.data()));
-		struct sockaddr_in	*ipv4= reinterpret_cast<sockaddr_in*>(genericAddress);
-		struct sockaddr_in6	*ipv6= reinterpret_cast<sockaddr_in6*>(genericAddress);
 		const int			flags= (AcceptFull == partial ? MSG_WAITALL : 0) | (PeekAtMessage == behavior ? MSG_PEEK : 0) | (ProcessOutOfBand == outOfBand ? MSG_OOB : 0);
 
 		AssertMessageException(NULL == sender);
 		ErrnoOnNegative(actualSize= ::recvfrom(_socket, const_cast<char*>(data.data()), data.size(), flags, genericAddress, &addressSize));
 		AssertMessageException( (net::AddressIPv4::Family == genericAddress->sa_family) || (net::AddressIPv6::Family == genericAddress->sa_family) );
+		printf("genericAddress->sa_family=%d net::AddressIPv4::Family=%d\n", genericAddress->sa_family, net::AddressIPv4::Family);
 		if (net::AddressIPv4::Family == genericAddress->sa_family) {
-			sender= new net::AddressIPv4(ntohs(ipv4->sin_port), ipv4->sin_addr.s_addr);
+			sender= new net::AddressIPv4(genericAddress, addressSize);
 		} else {
-			sender= new net::AddressIPv6(ntohs(ipv6->sin6_port), ipv6->sin6_addr);
+			sender= new net::AddressIPv6(genericAddress, addressSize);
 		}
 		data.erase(actualSize);
 		return data;
