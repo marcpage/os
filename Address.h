@@ -115,7 +115,7 @@ GAIException(EAI_SERVICE);	GAIException(EAI_SOCKTYPE);	GAIException(EAI_SYSTEM);
 	inline void GetAddressInfoException::_noop() {}
 	template<class S>
 	inline std::string GetAddressInfoException::_init(S message, const char *name, int value) {
-		return std::string("[") + name + "] (" + std::to_string(value) + "): " + std::string(message);
+		return std::string("[") + name + "] (" + std::to_string(value) + "): " + gai_strerror(value) + ": " + std::string(message);
 	}
 
 	inline std::string Address::name(Qualified qualified, Format format, Required required) const {
