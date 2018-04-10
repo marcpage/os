@@ -9,6 +9,8 @@
 
 /**
 	@todo Test!
+	@todo Test udp server and client
+	@todo Test getting dns name
 */
 namespace net {
 
