@@ -20,6 +20,12 @@ namespace net {
 	*/
 	class AddressIPv4 : public Address {
 		public:
+			enum IPv4Size {
+				Size= sizeof(sockaddr_in)
+			};
+			enum IPv4Family {
+				Family= AF_INET
+			};
 			/// @brief Initializes the address with the port and address
 			AddressIPv4(in_port_t port= 0, u_int32_t address= INADDR_ANY);
 			/// @brief Initializes the address with the port and named address

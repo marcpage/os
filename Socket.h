@@ -34,7 +34,7 @@ namespace net {
 			/** Write bytes from a buffer to the socket. */
 			size_t write(const Buffer &buffer, size_t bytes= static_cast<size_t>(-1));
 			/** @todo Document */
-			size_t sendto(const Address &address, const Buffer &buffer, size_t bytes=static_cast<size_t>(-1), RoutingOptions route=Route, OutOfBandDataOptions outOfBand=IgnoreOutOfBand);
+			size_t sendTo(const Address &address, const Buffer &buffer, size_t bytes=static_cast<size_t>(-1), RoutingOptions route=Route, OutOfBandDataOptions outOfBand=IgnoreOutOfBand);
 	};
 
 	inline Socket::Socket()
@@ -91,7 +91,7 @@ namespace net {
 	/**
 		@todo Document
 	*/
-	inline size_t Socket::sendto(const Address &address, const Buffer &buffer, size_t bytes, RoutingOptions route, OutOfBandDataOptions outOfBand) {
+	inline size_t Socket::sendTo(const Address &address, const Buffer &buffer, size_t bytes, RoutingOptions route, OutOfBandDataOptions outOfBand) {
 		ssize_t			amount;
 		const size_t	toSend= bytes == static_cast<size_t>(-1) ? buffer.size() : bytes;
 		const int		flags= (BypassRouting == route ? MSG_DONTROUTE : 0) | (IgnoreOutOfBand == outOfBand ? MSG_OOB : 0);

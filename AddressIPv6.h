@@ -19,6 +19,12 @@ namespace net {
 	*/
 	class AddressIPv6 : public Address {
 		public:
+			enum IPv6Size {
+				Size= sizeof(sockaddr_in6)
+			};
+			enum IPv6Family {
+				Family= AF_INET6
+			};
 			/// @brief Initializes the address with the port and address
 			AddressIPv6(in_port_t port= 0, const struct in6_addr &address= in6addr_any);
 			/// @brief Initializes the address with the port and named address
