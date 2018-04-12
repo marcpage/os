@@ -27,8 +27,6 @@ namespace net {
 			virtual ~Socket();
 			/** Connect to a given address. */
 			void connect(Address &address);
-			/** enables permission to transmit broadcast messages */
-			void broadcast(bool cast=true);
 			/** Read bytes into a buffer from the socket. */
 			size_t read(Buffer &buffer, size_t bytes= static_cast<size_t>(-1));
 			/** Write bytes from a buffer to the socket. */
@@ -50,10 +48,6 @@ namespace net {
 	/** @param address	The address to connect to. */
 	inline void Socket::connect(Address &address) {
 		ErrnoOnNegative(::connect(_socket, address, address.size()));
-	}
-	/** @todo Document*/
-	inline void Socket::broadcast(bool cast) {
-		setOption(SO_BROADCAST, cast);
 	}
 	/**
 		@param buffer	The buffer to fill

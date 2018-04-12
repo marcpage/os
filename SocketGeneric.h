@@ -21,6 +21,10 @@ namespace net {
 			void close();
 			/// @brief Sets an option
 			void setOption(int name, bool value=true, int level=SOL_SOCKET);
+			/** enables permission to transmit broadcast messages */
+			void broadcast(bool cast=true);
+			/// @brief Bind to an address to listen to
+			void bind(Address &address);
 		protected:
 			/// @brief The socket descriptor.
 			int	_socket;
@@ -77,6 +81,17 @@ namespace net {
 	/** @param socketDescriptor	The new socket descriptor for this Socket to use. */
 	inline void SocketGeneric::assign(int socketDescriptor) {
 		_socket= socketDescriptor;
+	}
+	/** @todo Document*/
+	inline void SocketGeneric::broadcast(bool cast) {
+		setOption(SO_BROADCAST, cast);
+	}
+	/**
+		@param address	The address to listen for connections
+		@todo Test bind fails
+	*/
+	inline void SocketGeneric::bind(Address &address) {
+		ErrnoOnNegative(::bind(_socket, address, address.size()));
 	}
 
 }

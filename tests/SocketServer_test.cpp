@@ -131,6 +131,59 @@ class Server : public exec::Thread {
 		Server &operator=(const Server&); ///< Prevent Usage
 };
 
+class UDPServer : public exec::Thread {
+	public:
+		UDPServer(in_port_t serverPort)
+				:exec::Thread(KeepAroundAfterFinish),
+				_serverAddress(serverPort, INADDR_ANY),
+				_server(_serverAddress.family(), SOCK_DGRAM) {
+			_server.broadcast();
+			_server.bind(_serverAddress);
+		}
+		virtual ~UDPServer() {}
+		void close() {_server.close();}
+	protected:
+		virtual void *run() {
+			try {
+				while(true) {
+					net::SocketServer::AddressPtr	from= NULL;
+					std::string 					input= _server.receiveFrom(4096, from);
+
+					if (input.length() == 0) {
+						break;
+					}
+					printf("Received: '%s'\n", input.c_str());
+				}
+			} catch(const std::exception &exception) {
+				printf("Exception: %s\n", exception.what());
+			}
+			return NULL;
+		}
+	private:
+		net::AddressIPv4	_serverAddress;
+		net::SocketServer	_server;
+		UDPServer(const UDPServer&); ///< Prevent Usage
+		UDPServer &operator=(const UDPServer&); ///< Prevent Usage
+};
+
+void testUDP() {
+	const in_port_t		port= 1500;
+	UDPServer			serverThread(port);
+	net::AddressIPv4	server("localhost", port);
+	net::AddressIPv4	localAddress(in_port_t(0), INADDR_ANY);
+	net::Socket			connection(server.family(), SOCK_DGRAM);
+	std::string			message;
+	BufferString		writeBuffer(message);
+
+	connection.broadcast();
+	connection.bind(localAddress);
+	message= "Testing UDP";
+	connection.sendTo(server, writeBuffer);
+	message= "Testing UDP Again";
+	connection.sendTo(server, writeBuffer);
+	serverThread.close();
+}
+
 int main(const int argc, const char * const argv[]) {
 	int	iterations= 400;
 #ifdef __Tracer_h__
@@ -198,7 +251,7 @@ int main(const int argc, const char * const argv[]) {
 				printf("N %s\n", net::AddressIPv4("localhost", 80).name(net::Address::UnqualifiedLocal, net::Address::Numeric, net::Address::NameIfAvailable).c_str());
 				printf("O %s\n", net::AddressIPv4("localhost", 80).name(net::Address::FullyQualified, net::Address::Name, net::Address::NameIfAvailable).c_str());
 				printf("P %s\n", net::AddressIPv4("localhost", 80).name(net::Address::UnqualifiedLocal, net::Address::Name, net::Address::NameIfAvailable).c_str());
-				
+
 				try {
 					GAIMessageThrow(EAI_AGAIN);
 					printf("FAILED: Should have thrown EAI_AGAIN\n");
@@ -270,6 +323,8 @@ int main(const int argc, const char * const argv[]) {
 				} catch(const net::GetAddressInfoException &exception) {
 					printf("We got unknown exception %s\n", exception.name());
 				}
+
+				testUDP();
 			} catch(const std::exception &exception) {
 				printf("THREAD: %p: FAILED: exception thrown on main thread, iteration %d: %s\n", exec::ThreadId::current().thread(), i, exception.what());
 			}

@@ -37,8 +37,6 @@ namespace net {
 			SocketServer(int domain, int type= SOCK_STREAM, int protocol= 0);
 			/// @brief super class behavior
 			virtual ~SocketServer();
-			/// @brief Bind to an address to listen to
-			void bind(Address &address);
 			/// @todo Document
 			void reuseAddress(bool resuse=true);
 			/// @todo Document
@@ -60,13 +58,6 @@ namespace net {
 		:SocketGeneric(domain, type, protocol) {
 	}
 	inline SocketServer::~SocketServer() {}
-	/**
-		@param address	The address to listen for connections
-		@todo Test bind fails
-	*/
-	inline void SocketServer::bind(Address &address) {
-		ErrnoOnNegative(::bind(_socket, address, address.size()));
-	}
 	/**
 		@todo Document
 	*/
