@@ -79,6 +79,7 @@ namespace dt {
 			timeval &value(timeval &tv) const;
 			timespec &value(timespec &ts) const;
 			String &format(const String &format, String &buffer) const;
+			String format(const String &format) const;
 		private:
 			timespec	_time;
 			void _init(tm &time, double fractionalSeconds= 0.0);
@@ -268,6 +269,11 @@ namespace dt {
 		size = ::strftime(const_cast<char*>(buffer.data()), buffer.length(), format.c_str(), &time);
 		buffer.erase(size);
 		return buffer;
+	}
+	inline DateTime::String DateTime::format(const String &fmt) const {
+		String buffer;
+
+		return format(fmt, buffer);
 	}
 }
 
