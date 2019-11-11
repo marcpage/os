@@ -2,12 +2,12 @@
 #include "os/POSIXErrno.h"
 
 int main(const int , const char * const []) {
-	int	iterations= 300;
+	int	iterations= 350;
 #ifdef __Tracer_h__
 	iterations= 1;
 #endif
 	int errors[] = {
-		E2BIG, EACCES, EADDRINUSE, EADDRNOTAVAIL, EAFNOSUPPORT, EAGAIN, EALREADY, EAUTH,
+		0, E2BIG, EACCES, EADDRINUSE, EADDRNOTAVAIL, EAFNOSUPPORT, EAGAIN, EALREADY, EAUTH,
 		EBADARCH, EBADEXEC, EBADF, EBADMACHO, EBADMSG, EBADRPC, EBUSY, ECANCELED, ECHILD,
 		ECONNABORTED, ECONNREFUSED, ECONNRESET, EDEADLK, EDESTADDRREQ, EDEVERR, EDOM,
 		EDQUOT, EEXIST, EFAULT, EFBIG, EFTYPE, EHOSTDOWN, EHOSTUNREACH, EIDRM, EILSEQ,
@@ -26,8 +26,15 @@ int main(const int , const char * const []) {
 		for (unsigned int code = 0; code < sizeof(errors)/sizeof(errors[0]); ++code) {
 			try {
 				ErrnoCodeThrow(errors[code], "test");
+				if (0 != errors[code]) {
+					fprintf(stderr, "FAIL(%s:%d): Expected to throw an exception, but didn't (code=%d, value=%d)\n",__FILE__, __LINE__, code, errors[code]);
+				}
 			} catch(const posix::err::Errno &exception) {
-				printf("Exception caught: %s: %s\n", exception.name(), exception.what());
+				if (0 == errors[code]) {
+					fprintf(stderr, "FAIL(%s:%d): Zero Exception caught: %s\n",__FILE__, __LINE__, exception.what());
+				} else {
+					printf("Caught Exception: %s\n", exception.name());
+				}
 			} catch(const std::exception &exception) {
 				fprintf(stderr, "FAIL(%s:%d): Generic Exception caught: %s\n",__FILE__, __LINE__, exception.what());
 			}
