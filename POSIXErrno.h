@@ -17,9 +17,9 @@
 /// Throw if errno is not 0
 #define ErrnoMessageThrow(message) posix::err::Errno::_throw(errno, message, __FILE__, __LINE__)
 /// Wrap around a call that sets errno on negative return value
-#define ErrnoOnNegative(call) if( (call) < 0) {ErrnoCodeThrow(errno, #call);} else posix::err::Errno::_noop()
+#define ErrnoOnNegative(call) posix::err::Errno::_throwOnNegative(call, #call, __FILE__, __LINE__)
 /// Wrap around a call that sets errno on NULL return value
-#define ErrnoOnNULL(call) if( NULL == (call) ) {ErrnoCodeThrow(errno, #call);} else posix::err::Errno::_noop()
+#define ErrnoOnNULL(call) posix::err::Errno::_throwOnNull(call, #call, __FILE__, __LINE__)
 /// Throw errno value if condition is not met
 #define ErrnoAssert(condition) if(!(condition)) {ErrnoCodeThrow(errno, #condition);} else posix::err::Errno::_noop()
 
@@ -41,10 +41,12 @@ namespace posix { namespace err {
 			/// destructs _message
 			virtual ~Errno() throw();
 			/// Gets the name of the errno
-			virtual const char *name();
+			virtual const char *name() const;
 			/// throws if errno is not 0
 			int code() const throw();
 			static void _throw(int errnoCode, const std::string &message, const char *file, int line);
+			static int _throwOnNegative(const int returnCode, const char *call, const char *file, const int line);
+			static void *_throwOnNull(void *returnAddress, const char *call, const char *file, const int line);
 			static void _noop();
 		private:
 			int			_errno;		///< The error code
@@ -57,7 +59,7 @@ namespace posix { namespace err {
 #define ErrnoException(errno_name) \
 	class errno_name##_Errno : public Errno { \
 		public: \
-		virtual const char *name() {return #errno_name;} \
+		virtual const char *name() const {return #errno_name;} \
 		errno_name##_Errno(const char *file= NULL, int line= 0) throw():Errno(errno_name, #errno_name, file, line) {} \
 		errno_name##_Errno(const std::string &message, const char *file= NULL, int line= 0) throw():Errno(message, errno_name, #errno_name, file, line) {} \
 	}
@@ -115,7 +117,7 @@ namespace posix { namespace err {
 		return *this;
 	}
 	inline Errno::~Errno() throw() {}
-	inline const char *Errno::name() {
+	inline const char *Errno::name() const {
 		return "[Unknown]";
 	}
 	inline int Errno::code() const throw() {
@@ -170,9 +172,21 @@ namespace posix { namespace err {
 			}
 		}
 	}
+	inline int Errno::_throwOnNegative(const int returnCode, const char *call, const char *file, const int line) {
+		if(returnCode < 0) {
+			_throw(errno, call, file, line);
+		}
+		return returnCode;
+	}
+	inline void *Errno::_throwOnNull(void *returnAddress, const char *call, const char *file, const int line) {
+		if(nullptr == returnAddress) {
+			_throw(errno, call, file, line);
+		}
+		return returnAddress;
+	}
 	inline void Errno::_noop() {}
 	template<class S> inline std::string Errno::_init(S message, const char *errnoName, int value) {
-		return std::string("[") + errnoName + "] (" + std::to_string(value) + "): " + std::string(message);
+		return std::string("[") + errnoName + " (" + std::to_string(value) + "): " + strerror(value) + "]: " + std::string(message);
 	}
 
 }}

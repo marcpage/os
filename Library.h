@@ -11,6 +11,7 @@
 
 // --- C++ Headers ---
 
+#include "os/Exception.h"
 #include <exception>
 #include <string>
 
@@ -64,7 +65,7 @@ namespace sys {
 
 			/** Exceptions thrown from this library
 			*/
-			class Exception : public std::exception {
+			class Exception : public msg::Exception {
 				public:
 					/// Exception to throw if compiler does not support function
 					Exception(const std::string &message, const char *file, int line) throw();
@@ -72,10 +73,7 @@ namespace sys {
 					Exception(const std::string &message, const char *file, int line, const char *function) throw();
 					/// cleanup std::string
 					virtual ~Exception() throw();
-					/// get the file, line (maybe function) and message of the exception
-					virtual const char* what() const throw();
 				private:
-					std::string	_message;	///< The fully constructed message
 					/// common code for constructors
 					static std::string _buildMessage(const std::string &message, const char *file, int line, const char *function= NULL);
 			};
@@ -206,7 +204,11 @@ namespace sys {
 		#endif
 		#if __use_dlopen__
 			if(NULL != _dl) {
-				sysLibraryAssert(0 == dlclose(_dl), "Unable to close library");
+				try {
+					sysLibraryAssert(0 == dlclose(_dl), "Unable to close library");
+				} catch(const std::exception &exception) {
+					// ignore
+				}
 				_dl= NULL;
 			}
 		#endif
@@ -341,7 +343,7 @@ namespace sys {
 		@param line		pass __LINE__
 	*/
 	inline Library::Exception::Exception(const std::string &message, const char *file, int line) throw()
-		:_message(_buildMessage(message, file, line)) {}
+		:msg::Exception(message, file, line) {}
 	/** Creates a new library exception for when you know what function you are in.
 		@param message	The message about what was going on when the exception was thrown.
 		@param file		pass __FILE__
@@ -349,15 +351,10 @@ namespace sys {
 		@param function	pass __FUNCTION__
 	*/
 	inline Library::Exception::Exception(const std::string &message, const char *file, int line, const char *function) throw()
-		:_message(_buildMessage(message, file, line, function)) {}
-	/** Cleans up the _message string.
+		:msg::Exception(std::string(function) + ":" + message, file, line) {}
+	/** cleanup.
 	*/
 	inline Library::Exception::~Exception() throw() {}
-	/** Gets the _message string.
-	*/
-	inline const char *Library::Exception::what() const throw() {
-		return _message.c_str();
-	}
 	/** Builds up a message about the exception.
 		Message will be of the format:
 			(file):(line):[function:][dlerror:](message)
