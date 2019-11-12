@@ -49,19 +49,19 @@ void Server(net::SocketServer *server) {
 }
 
 int main(const int argc, const char * const argv[]) {
-	int	iterations= 5800;
+	int	iterations= 5000; // 5800 caused EADDRNOTAVAIL on the 3rd version about the last 3,000 connects
 #ifdef __Tracer_h__
 	iterations= 3;
 #endif
 	try	{
-		in_port_t			port= (argc == 2) ? atoi(argv[1]) : 8083;
+		in_port_t			port= (argc == 2) ? atoi(argv[1]) : 8081;
 		net::AddressIPv4	serverAddress(port);
 		net::SocketServer	serverSocket(serverAddress.family());
 
 		serverSocket.reuseAddress();
 		serverSocket.reusePort();
 		serverSocket.bind(serverAddress);
-		serverSocket.listen(10);
+		serverSocket.listen(100);
 
 		std::thread			server(Server, &serverSocket);
 		BufferManaged		readBuffer(4096);
@@ -69,7 +69,6 @@ int main(const int argc, const char * const argv[]) {
 		BufferString		writeBuffer(writeString);
 		size_t				amount;
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		for(int i= 0; i < iterations; ++i) {
 			try {
 				net::AddressIPv4	local(port);
@@ -91,7 +90,7 @@ int main(const int argc, const char * const argv[]) {
 				printf("THREAD: Closing\n");
 				connection.close();
 			} catch(const posix::err::EADDRNOTAVAIL_Errno &exception) {
-				printf("THREAD: FAILED: appears address is not available: %s\n", exception.what());
+				printf("THREAD: FAILED: appears address is not available (connect?): %s\n", exception.what());
 			} catch(const std::exception &exception) {
 				printf("THREAD: FAILED: exception thrown on main thread, iteration %d: %s\n", i, exception.what());
 			}
@@ -99,8 +98,6 @@ int main(const int argc, const char * const argv[]) {
 		serverSocket.close();
 		running = false;
 		server.join();
-	} catch(const posix::err::EADDRNOTAVAIL_Errno &exception) {
-		printf("THREAD: FAILED: appears address is not available: %s\n", exception.what());
 	} catch(const std::exception &exception) {
 		printf("THREAD: FAILED: exception thrown on main thread: %s\n", exception.what());
 	}
