@@ -3,9 +3,9 @@
 
 #include <vector>
 #include <limits>
+#include <mutex>
+#include <condition_variable>
 #include "Exception.h"
-#include "Mutex.h"
-#include "Signal.h"
 
 #define AssertQueueNotClosed	if(-1 == _max) {throw Closed("Queue Already Closed", __FILE__, __LINE__);} else msg::noop()
 
@@ -41,11 +41,11 @@ namespace exec {
 		void close();
 	private:
 		typedef std::vector<T>	List;
-		Mutex	_lock;
-		Signal	_full;
-		Signal	_empty;
-		List	_queue;
-		int		_max;
+		std::mutex	_lock;
+		std::condition_variable		_full;
+		std::condition_variable		_empty;
+		List		_queue;
+		int			_max;
 		Queue(const Queue&); ///< prevent usage
 		Queue &operator=(const Queue&); ///< prevent usage
 	};
@@ -75,14 +75,14 @@ namespace exec {
 	}
 	template<class T>
 	inline bool Queue<T>::empty() {
-		Mutex::Locker	lock(_lock);
+		std::lock_guard<std::mutex>	lock(_lock);
 
 		AssertQueueNotClosed;
 		return _queue.size() <= 0;
 	}
 	template<class T>
 	inline bool Queue<T>::full() {
-		Mutex::Locker	lock(_lock);
+		std::lock_guard<std::mutex>	lock(_lock);
 
 		AssertQueueNotClosed;
 		AssertMessageException(_max > 0);
@@ -90,31 +90,29 @@ namespace exec {
 	}
 	template<class T>
 	inline int Queue<T>::size() {
-		Mutex::Locker	lock(_lock);
+		std::lock_guard<std::mutex>	lock(_lock);
 
 		AssertQueueNotClosed;
 		return _queue.size();
 	}
 	template<class T>
 	inline Queue<T> &Queue<T>::enqueue(const T &value) {
-		Mutex::Locker	lock(_lock);
+		std::unique_lock<std::mutex>	lock(_lock);
 
 		while( (static_cast<int>(_queue.size()) >= _max) && (-1 != _max) ) {
-			_full.wait(_lock);
+			_full.wait(lock);
 		}
 		AssertQueueNotClosed;
 		_queue.insert(_queue.begin(), value);
-		_empty.broadcast();
+		_empty.notify_all();
 		return *this;
 	}
 	template<class T>
 	inline bool Queue<T>::enqueue(const T &value, double timeoutInSeconds) {
-		dt::DateTime	now;
-		dt::DateTime	timeoutAt= now + timeoutInSeconds;
-		Mutex::Locker	lock(_lock);
+		std::unique_lock<std::mutex>	lock(_lock);
 
 		while( (static_cast<int>(_queue.size()) >= _max) && (-1 != _max) ) {
-			if(!_full.wait(_lock, timeoutAt)) {
+			if(!_full.wait_for(lock, std::chrono::seconds(uint64_t(timeoutInSeconds) * 1000 * 1000 * 1000))) {
 				return false;
 			} else {
 				AssertQueueNotClosed;
@@ -122,32 +120,30 @@ namespace exec {
 		}
 		AssertQueueNotClosed;
 		_queue.insert(_queue.begin(), value);
-		_empty.broadcast();
+		_empty.notify_all();
 		return true;
 	}
 	template<class T>
 	inline T Queue<T>::dequeue() {
-		Mutex::Locker	lock(_lock);
+		std::unique_lock<std::mutex>	lock(_lock);
 
 		while( (_queue.size() == 0) && (-1 != _max) ) {
-			_empty.wait(_lock);
+			_empty.wait(lock);
 		}
 		AssertQueueNotClosed;
 
 		T	value= _queue.back();
 
 		_queue.pop_back();
-		_full.broadcast();
+		_full.notify_all();
 		return value;
 	}
 	template<class T>
 	inline bool Queue<T>::dequeue(T &value, double timeoutInSeconds) {
-		dt::DateTime	now;
-		dt::DateTime	timeoutAt= now + timeoutInSeconds;
-		Mutex::Locker	lock(_lock);
+		std::unique_lock<std::mutex>	lock(_lock);
 
 		while( (_queue.size() == 0) && (-1 != _max) ) {
-			if(!_empty.wait(_lock, timeoutAt)) {
+			if(!_empty.wait_for(lock, std::chrono::nanoseconds(uint64_t(timeoutInSeconds) * 1000 * 1000 * 1000))) {
 				return false;
 			} else {
 				AssertQueueNotClosed;
@@ -156,14 +152,14 @@ namespace exec {
 		AssertQueueNotClosed;
 		value= _queue.back();
 		_queue.pop_back();
-		_full.broadcast();
+		_full.notify_all();
 		return true;
 	}
 	template<class T>
 	inline void Queue<T>::close() {
 		_max= -1;
-		_empty.broadcast();
-		_full.broadcast();
+		_empty.notify_all();
+		_full.notify_all();
 
 	}
 

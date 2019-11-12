@@ -1,7 +1,6 @@
-#include "os/Signal.h"
-#include "os/Thread.h"
 #include "os/Queue.h"
 #include <stdio.h>
+#include <thread>
 
 #define dotest(condition) \
 	if(!(condition)) { \
@@ -9,49 +8,48 @@
 	}
 
 #ifdef __Tracer_h__
-	#define TestIterations	30
+	#define TestIterations	40
 #else
-	#define TestIterations	4000
+	#define TestIterations	3500
 #endif
-class PassTheBuck : public exec::Thread {
-	public:
-		typedef exec::Queue<int>	IntQueue;
-		PassTheBuck(IntQueue &in, IntQueue &out)
-				:Thread(KeepAroundAfterFinish), _running(true), _in(in), _out(out) {
-			start();
+
+void PassTheBuck(exec::Queue<int> &in, exec::Queue<int> &out) {
+	try	{
+		while(true) {
+			out.enqueue(in.dequeue());
+			std::this_thread::sleep_for(std::chrono::milliseconds(5));
 		}
-		void done() {_running= false;}
-		virtual ~PassTheBuck() {}
-	protected:
-		virtual void *run() {
-			try	{
-				while(_running || !_in.empty()) {
-					_out.enqueue(_in.dequeue());
-					exec::Thread::sleep(5, Milliseconds);
-				}
-			} catch(const std::exception &exception) {
-				fprintf(stderr, "EXCEPTION: %s id=%p\n", exception.what(),this);
-			}
-			return NULL;
-		}
-	private:
-		bool		_running;
-		IntQueue	&_in;
-		IntQueue	&_out;
-		PassTheBuck(const PassTheBuck&); ///< Prevent Usage
-		PassTheBuck &operator=(const PassTheBuck&); ///< Prevent Usage
-};
+	} catch(const exec::Queue<int>::Closed &exception) {
+		// expected when no more items
+	} catch(const std::exception &exception) {
+		fprintf(stderr, "EXCEPTION: %s\n", exception.what());
+	}
+}
 
 int main(const int /*argc*/, const char * const /*argv*/[]) {
-	PassTheBuck::IntQueue	in(3), out(0, 300);
-	PassTheBuck		p1(in, out), p2(in, out), p3(in, out), p4(in, out), p5(in, out);
-	PassTheBuck		p6(in, out), p7(in, out), p8(in, out), p9(in, out), p10(in, out);
-	PassTheBuck		p11(in, out), p12(in, out), p13(in, out), p14(in, out), p15(in, out);
-	PassTheBuck		p16(in, out), p17(in, out), p18(in, out), p19(in, out), p20(in, out);
-	PassTheBuck		*threads[]= {
-						&p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10,
-						&p11, &p12, &p13, &p14, &p15, &p16, &p17, &p18, &p19, &p20
-					};
+	exec::Queue<int>	in(3), out(0, 300);
+	std::thread threads[] = {
+		std::thread(PassTheBuck, std::ref(in), std::ref(out)),
+		std::thread(PassTheBuck, std::ref(in), std::ref(out)),
+		std::thread(PassTheBuck, std::ref(in), std::ref(out)),
+		std::thread(PassTheBuck, std::ref(in), std::ref(out)),
+		std::thread(PassTheBuck, std::ref(in), std::ref(out)),
+		std::thread(PassTheBuck, std::ref(in), std::ref(out)),
+		std::thread(PassTheBuck, std::ref(in), std::ref(out)),
+		std::thread(PassTheBuck, std::ref(in), std::ref(out)),
+		std::thread(PassTheBuck, std::ref(in), std::ref(out)),
+		std::thread(PassTheBuck, std::ref(in), std::ref(out)),
+		std::thread(PassTheBuck, std::ref(in), std::ref(out)),
+		std::thread(PassTheBuck, std::ref(in), std::ref(out)),
+		std::thread(PassTheBuck, std::ref(in), std::ref(out)),
+		std::thread(PassTheBuck, std::ref(in), std::ref(out)),
+		std::thread(PassTheBuck, std::ref(in), std::ref(out)),
+		std::thread(PassTheBuck, std::ref(in), std::ref(out)),
+		std::thread(PassTheBuck, std::ref(in), std::ref(out)),
+		std::thread(PassTheBuck, std::ref(in), std::ref(out)),
+		std::thread(PassTheBuck, std::ref(in), std::ref(out)),
+		std::thread(PassTheBuck, std::ref(in), std::ref(out))
+	};
 	int				fullCount= 0, emptyCount= 0;
 
 	for(int value= 0; value < TestIterations; ++value) {
@@ -64,20 +62,17 @@ int main(const int /*argc*/, const char * const /*argv*/[]) {
 		in.enqueue(value);
 		printf("in.size()=%d full=%s\n", in.size(), in.full() ? "true" : "false");
 	}
-	for(unsigned int thread= 0; thread < sizeof(threads)/sizeof(threads[0]); ++thread) {
-		threads[thread]->done();
-	}
 	printf("in queue empty %d times and full %d times\n", emptyCount, fullCount);
 	while(in.size() > 0) {
 		printf("Queue not empty\n");
-		exec::Thread::sleep(5, exec::Thread::Milliseconds);
+		std::this_thread::sleep_for(std::chrono::milliseconds(5));
 	}
 	dotest( in.empty() );
 	dotest( !in.full() );
 	dotest( in.size() == 0 );
 	in.close();
 	for(unsigned int thread= 0; thread < sizeof(threads)/sizeof(threads[0]); ++thread) {
-		threads[thread]->join();
+		threads[thread].join();
 	}
 	return 0;
 }
