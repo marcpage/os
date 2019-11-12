@@ -9,7 +9,7 @@
 #include <map>
 #include "POSIXErrno.h"
 
-extern char *environ[];
+extern const char **environ;
 
 namespace env {
 
@@ -19,7 +19,7 @@ namespace env {
 	};
 	typedef std::string 				String;
 	typedef std::map<String, String>	Dictionary;
-	
+
 	bool has(const String &name) {
 		return NULL != ::getenv(name.c_str());
 	}
@@ -38,12 +38,12 @@ namespace env {
 		ErrnoOnNegative(::unsetenv(name.c_str()));
 	}
 	Dictionary &list(Dictionary &env) {
-		
+
 		env.clear();
 		for (int i= 0; NULL != environ[i]; ++i) {
 			String	field= environ[i];
 			String::size_type equalPos= field.find('=');
-			
+
 			if (String::npos == equalPos) {
 				env[field]= "";
 			} else {

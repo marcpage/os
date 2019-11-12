@@ -11,8 +11,6 @@
 #include <execinfo.h>
 #include <stdlib.h>
 
-extern char *environ[];
-
 namespace trace {
 
 	typedef std::string String;
