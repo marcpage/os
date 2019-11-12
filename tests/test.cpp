@@ -292,7 +292,7 @@ void runTest(const String &name, const String &compiler, const io::Path &openssl
 	hashFile(headerPath, headerHash);
 	getTestStats(name, options, headerHash, testHash, testedLines, durationInSeconds, totalTimeInSeconds, slowTime, db);
 	if (!openssl.isEmpty()) {
-		otherFlags = String(" -DOpenSSLAvailable=1 -I") + String(gOpensllFlags) + String(openssl) + String("/include -L") + String(openssl) + String("/lib");
+		otherFlags = String(" -DOpenSSLAvailable=1 -I") + String(openssl) + String("/include -L") + String(openssl) + String("/lib") + " " + String(gOpensllFlags);
 		if (!io::Path(String(openssl) + "/include").isDirectory()) {
 			printf(ErrorTextFormatStart"ERROR: openssl directory does have include directory: %s"ClearTextFormat"\n", String(openssl).c_str());
 		}

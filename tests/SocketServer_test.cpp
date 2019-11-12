@@ -5,21 +5,18 @@
 #include "os/SocketServer.h"
 #include "os/AddressIPv4.h"
 #include "os/AddressIPv6.h"
-#include "os/BufferManaged.h"
-#include "os/BufferString.h"
 
 void Echo(net::Socket *connection) {
-	BufferManaged	buffer(4096);
-	size_t			amountOut, amountIn= connection->read(buffer);
+	std::string		buffer = connection->read(4096);
+	size_t			amountOut;
 
-	while(amountIn > 0) {
-		printf("THREAD: received->sent('%s')\n",
-				std::string(reinterpret_cast<char*>(buffer.start()), amountIn).c_str());
-		amountOut= connection->write(buffer, amountIn);
-		if(amountOut != amountIn) {
-			printf("THREAD: FAILED: we read %ld but we wrote %ld\n", amountIn, amountOut);
+	while(buffer.size() > 0) {
+		printf("THREAD: received->sent('%s')\n", buffer.c_str());
+		amountOut= connection->write(buffer);
+		if(amountOut != buffer.size()) {
+			printf("THREAD: FAILED: we read %ld but we wrote %ld\n", buffer.size(), amountOut);
 		}
-		amountIn= connection->read(buffer);
+		buffer= connection->read(4096);
 	}
 	delete connection;
 }
@@ -54,7 +51,7 @@ int main(const int argc, const char * const argv[]) {
 	iterations= 3;
 #endif
 	try	{
-		in_port_t			port= (argc == 2) ? atoi(argv[1]) : 8081;
+		in_port_t			port= (argc == 2) ? atoi(argv[1]) : 8082;
 		net::AddressIPv4	serverAddress(port);
 		net::SocketServer	serverSocket(serverAddress.family());
 
@@ -64,9 +61,8 @@ int main(const int argc, const char * const argv[]) {
 		serverSocket.listen(100);
 
 		std::thread			server(Server, &serverSocket);
-		BufferManaged		readBuffer(4096);
+		std::string			readString;
 		std::string			writeString;
-		BufferString		writeBuffer(writeString);
 		size_t				amount;
 
 		for(int i= 0; i < iterations; ++i) {
@@ -78,13 +74,13 @@ int main(const int argc, const char * const argv[]) {
 				connection.connect(local);
 				writeString= "Hello";
 				printf("THREAD: Writing %s\n", writeString.c_str());
-				amount= connection.write(writeBuffer);
+				amount= connection.write(writeString, 20);
 				if(amount != writeString.size()) {
 					printf("THREAD: FAIL: Unable to write Hello\n");
 				}
 				printf("THREAD: Reading\n");
-				amount= connection.read(readBuffer, amount);
-				if(amount != writeString.size()) {
+				readString= connection.read(amount);
+				if(readString != writeString) {
 					printf("THREAD: FAIL: Unable to read Hello\n");
 				}
 				printf("THREAD: Closing\n");

@@ -2,7 +2,6 @@
 #define __Socket_h__
 
 #include "SocketGeneric.h"
-#include "Buffer.h"
 
 namespace net {
 
@@ -28,11 +27,11 @@ namespace net {
 			/** Connect to a given address. */
 			void connect(Address &address);
 			/** Read bytes into a buffer from the socket. */
-			size_t read(Buffer &buffer, size_t bytes= static_cast<size_t>(-1));
+			std::string read(size_t bytes);
 			/** Write bytes from a buffer to the socket. */
-			size_t write(const Buffer &buffer, size_t bytes= static_cast<size_t>(-1));
+			size_t write(const std::string &buffer, size_t bytes= static_cast<size_t>(-1), size_t offset= 0);
 			/** @todo Document */
-			size_t sendTo(const Address &address, const Buffer &buffer, size_t bytes=static_cast<size_t>(-1), RoutingOptions route=Route, OutOfBandDataOptions outOfBand=IgnoreOutOfBand);
+			size_t sendTo(const Address &address, const std::string &buffer, size_t bytes=static_cast<size_t>(-1), size_t offset= 0, RoutingOptions route=Route, OutOfBandDataOptions outOfBand=IgnoreOutOfBand);
 	};
 
 	inline Socket::Socket()
@@ -56,15 +55,13 @@ namespace net {
 							buffer max will be used.
 		@todo	Figure out when we are end of stream and return -1
 	*/
-	inline size_t Socket::read(Buffer &buffer, size_t bytes) {
-		ssize_t	amount;
-		size_t	toRead= bytes == static_cast<size_t>(-1) ? buffer.size() : bytes;
+	inline std::string Socket::read(size_t bytes) {
+		std::string buffer(bytes, '\0');
+		ssize_t		amount;
 
-		if(bytes > buffer.size()) {
-			bytes= buffer.size();
-		}
-		ErrnoOnNegative(amount= ::read(_socket, buffer.start(), toRead));
-		return amount;
+		ErrnoOnNegative(amount= ::read(_socket, const_cast<char*>(buffer.data()), bytes));
+		buffer.erase(amount);
+		return buffer;
 	}
 	/**
 		@param buffer	The buffer to send
@@ -72,25 +69,25 @@ namespace net {
 							If <code>bytes</code> is greater than the buffer size, the
 							buffer max will be used.
 	*/
-	inline size_t Socket::write(const Buffer &buffer, size_t bytes) {
+	inline size_t Socket::write(const std::string &buffer, size_t bytes, size_t offset) {
 		ssize_t	amount;
-		const size_t	toWrite= bytes == static_cast<size_t>(-1) ? buffer.size() : bytes;
+		size_t	toWrite= bytes == static_cast<size_t>(-1) ? buffer.size() - offset : bytes;
 
-		if(bytes > buffer.size()) {
-			bytes= buffer.size();
+		if(offset + toWrite > buffer.size()) {
+			toWrite= buffer.size() - offset;
 		}
-		ErrnoOnNegative(amount= ::write(_socket, buffer.start(), toWrite));
+		ErrnoOnNegative(amount= ::write(_socket, buffer.data() + offset, toWrite));
 		return amount;
 	}
 	/**
 		@todo Document
 	*/
-	inline size_t Socket::sendTo(const Address &address, const Buffer &buffer, size_t bytes, RoutingOptions route, OutOfBandDataOptions outOfBand) {
+	inline size_t Socket::sendTo(const Address &address, const std::string &buffer, size_t bytes, size_t offset, RoutingOptions route, OutOfBandDataOptions outOfBand) {
 		ssize_t			amount;
-		const size_t	toSend= bytes == static_cast<size_t>(-1) ? buffer.size() : bytes;
+		const size_t	toSend= bytes == static_cast<size_t>(-1) ? buffer.size() - offset : bytes;
 		const int		flags= (BypassRouting == route ? MSG_DONTROUTE : 0) | (IgnoreOutOfBand == outOfBand ? MSG_OOB : 0);
 
-		ErrnoOnNegative(amount= ::sendto(_socket, buffer.start(), toSend, flags, address.get(), address.size()));
+		ErrnoOnNegative(amount= ::sendto(_socket, buffer.data() + offset, toSend, flags, address.get(), address.size()));
 		return amount;
 	}
 

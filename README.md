@@ -8,4 +8,3 @@ Just run 'make'
 
 # TODO
 Need to add tests for AsymetricEncrypt and MemoryMappedFile
-Need to remove Buffer*.h and update Socket code and tests to just use std::string
