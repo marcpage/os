@@ -25,9 +25,10 @@ typedef std::map<String,String>				Dictionary;
 
 const double		gTestTimeAllowancePercent= 5;
 const double		gTestMinimumTimeInSeconds= 1;
+const char * const	gOpensllFlags= "-lcrypto";
 const char * const	gCompilerFlags= "-I.. -MMD -std=c++11"
 										" -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings"
-										" -lcrypto -lz -lsqlite3 -framework Carbon";
+										" -lz -lsqlite3 -framework Carbon";
 const uint32_t		gMinimumPercentCodeCoverage= 70;
 const String		gCompilerList= "clang++,g++,llvm-g++";
 Dictionary			gCompilerLocations;
@@ -291,7 +292,7 @@ void runTest(const String &name, const String &compiler, const io::Path &openssl
 	hashFile(headerPath, headerHash);
 	getTestStats(name, options, headerHash, testHash, testedLines, durationInSeconds, totalTimeInSeconds, slowTime, db);
 	if (!openssl.isEmpty()) {
-		otherFlags = String(" -DOpenSSLAvailable=1 -lcrypto -I") + String(openssl) + String("/include -L") + String(openssl) + String("/lib");
+		otherFlags = String(" -DOpenSSLAvailable=1 -I") + String(gOpensllFlags) + String(openssl) + String("/include -L") + String(openssl) + String("/lib");
 		if (!io::Path(String(openssl) + "/include").isDirectory()) {
 			printf(ErrorTextFormatStart"ERROR: openssl directory does have include directory: %s"ClearTextFormat"\n", String(openssl).c_str());
 		}
