@@ -21,19 +21,13 @@ void Echo(net::Socket *connection) {
 		}
 		amountIn= connection->read(buffer);
 	}
-	connection->close();
 	delete connection;
 }
 
 bool running = true;
 
-void Server(net::SocketServer *server, net::AddressIPv4 *serverAddress) {
+void Server(net::SocketServer *server) {
 	std::vector<std::thread>	threads;
-
-	server->reuseAddress();
-	server->reusePort();
-	server->bind(*serverAddress);
-	server->listen(1);
 
 	try {
 		while(running) {
@@ -55,21 +49,27 @@ void Server(net::SocketServer *server, net::AddressIPv4 *serverAddress) {
 }
 
 int main(const int argc, const char * const argv[]) {
-	int	iterations= 5300;
+	int	iterations= 5800;
 #ifdef __Tracer_h__
 	iterations= 3;
 #endif
 	try	{
-		in_port_t			port= (argc == 2) ? atoi(argv[1]) : 8081;
+		in_port_t			port= (argc == 2) ? atoi(argv[1]) : 8083;
 		net::AddressIPv4	serverAddress(port);
 		net::SocketServer	serverSocket(serverAddress.family());
-		std::thread			server(Server, &serverSocket, &serverAddress);
+
+		serverSocket.reuseAddress();
+		serverSocket.reusePort();
+		serverSocket.bind(serverAddress);
+		serverSocket.listen(10);
+
+		std::thread			server(Server, &serverSocket);
 		BufferManaged		readBuffer(4096);
 		std::string			writeString;
 		BufferString		writeBuffer(writeString);
 		size_t				amount;
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(1)); // wait for server thread to come up
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		for(int i= 0; i < iterations; ++i) {
 			try {
 				net::AddressIPv4	local(port);
@@ -90,6 +90,8 @@ int main(const int argc, const char * const argv[]) {
 				}
 				printf("THREAD: Closing\n");
 				connection.close();
+			} catch(const posix::err::EADDRNOTAVAIL_Errno &exception) {
+				printf("THREAD: FAILED: appears address is not available: %s\n", exception.what());
 			} catch(const std::exception &exception) {
 				printf("THREAD: FAILED: exception thrown on main thread, iteration %d: %s\n", i, exception.what());
 			}
@@ -97,6 +99,8 @@ int main(const int argc, const char * const argv[]) {
 		serverSocket.close();
 		running = false;
 		server.join();
+	} catch(const posix::err::EADDRNOTAVAIL_Errno &exception) {
+		printf("THREAD: FAILED: appears address is not available: %s\n", exception.what());
 	} catch(const std::exception &exception) {
 		printf("THREAD: FAILED: exception thrown on main thread: %s\n", exception.what());
 	}
