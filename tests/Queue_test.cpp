@@ -10,7 +10,7 @@
 #ifdef __Tracer_h__
 	#define TestIterations	40
 #else
-	#define TestIterations	3500
+	#define TestIterations	4000
 #endif
 
 void PassTheBuck(exec::Queue<int> &in, exec::Queue<int> &out) {
