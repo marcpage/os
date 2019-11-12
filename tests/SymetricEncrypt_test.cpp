@@ -45,8 +45,8 @@ int main(int /*argc*/, char * /*argv*/[]) {
 			} catch(const std::exception &exception) {
 				fprintf(stderr, "FAILED: Exception: %s\n", exception.what());
 			}
-			fprintf(stderr, "apple test\n");
 		#if __APPLE_CC__ || __APPLE__
+			fprintf(stderr, "apple test\n");
 			try {
 				encrypted.assign(2 * source.length() + crypto::CommonCrypto_AES256_CBC_Padded_Cryptor::BlockSize * 2, '\0');
 				size_t encrypted_size = crypto::CommonCrypto_AES256_CBC_Padded_Cryptor::encrypt(key.data(), source.data(), source.length(), const_cast<char*>(encrypted.data()), encrypted.length(), NULL);
