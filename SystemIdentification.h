@@ -6,6 +6,13 @@
 #include "os/POSIXErrno.h"
 
 namespace sys {
+	/*
+	sysname: Darwin
+	nodename: crazyhorse.amer.corp.natinst.com
+	release: 18.7.0
+	version: Darwin Kernel Version 18.7.0: Sat Oct 12 00:02:19 PDT 2019; root:xnu-4903.278.12~1/RELEASE_X86_64
+	machine: x86_64
+	*/
 	inline void info(std::string &sysname, std::string &nodename, std::string &release, std::string &version, std::string &machine) {
 		struct utsname systemInfo;
 
@@ -49,28 +56,3 @@ namespace sys {
 }
 
 #endif // __SystemIdentification_h__
-
-/*
-     int
-     uname(struct utsname *name);
-
-DESCRIPTION
-     The uname() function stores nul-terminated strings of information identifying the current system into
-     the structure referenced by name.
-
-     The utsname structure is defined in the <sys/utsname.h> header file, and contains the following mem-
-     bers:
-
-           sysname       Name of the operating system implementation.
-
-           nodename      Network name of this machine.
-
-           release       Release level of the operating system.
-
-           version       Version level of the operating system.
-
-           machine       Machine hardware platform.
-
-     The uname() function returns the value 0 if successful; otherwise the value -1 is returned and the
-     global variable errno is set to indicate the error.
-*/

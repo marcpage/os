@@ -12,7 +12,7 @@ int main(const int , const char * const[]) {
 	iterations= 1;
 #endif
 	for (int i = 0; i < iterations; ++i) {
-		printf("System Name: %s Node name: %s Release: %s Version: %s machine %s\n",
+		printf("System Name: %s Node name: %s Release: %s Version: %s Machine: %s\n",
 				sys::osName().c_str(), sys::nodeName().c_str(),
 				sys::osRelease().c_str(), sys::systemVersion().c_str(),
 				sys::architecture().c_str());
