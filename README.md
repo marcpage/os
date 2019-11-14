@@ -5,6 +5,3 @@ Running 'make' generates the documentation and runs the test suites. Performance
 
 # testing
 Just run 'make'
-
-# TODO
-Need to add tests for AsymetricEncrypt and MemoryMappedFile
