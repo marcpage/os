@@ -264,7 +264,7 @@ void getTestStats(const String &name, const String &options, const String &heade
 	}
 }
 
-void runTest(const String &name, const String &compiler, const io::Path &openssl, Sqlite3::DB &db) {
+void runTest(const String &name, const std::string::size_type maxNameSize, const String &compiler, const io::Path &openssl, Sqlite3::DB &db) {
 	String		results;
 	String		command;
 	String		executableName;
@@ -308,7 +308,7 @@ void runTest(const String &name, const String &compiler, const io::Path &openssl
 	}
 	command= gCompilerLocations[compiler];
 	if(command != "-") {
-		printf("%-18s %9s about %7.3fs", name.c_str(), compiler.c_str(), totalTimeInSeconds);
+		printf((String("%-") + std::to_string(maxNameSize) + String("s %9s about %7.3fs")).c_str(), name.c_str(), compiler.c_str(), totalTimeInSeconds);
 		fflush(stdout);
 		executableName= name + '_' + compiler + "_performance";
 		logName= executableName + "_compile.log";
@@ -419,12 +419,12 @@ void runTest(const String &name, const String &compiler, const io::Path &openssl
 	}
 }
 
-void runTest(const String &name, const io::Path &openssl, Sqlite3::DB &db) {
+void runTest(const String &name, const std::string::size_type maxNameSize, const io::Path &openssl, Sqlite3::DB &db) {
 	StringList	compilers;
 
 	split(gCompilerList, ',', compilers);
 	for(StringList::iterator compiler= compilers.begin(); compiler != compilers.end(); ++compiler) {
-		runTest(name, *compiler, openssl, db);
+		runTest(name, maxNameSize, *compiler, openssl, db);
 	}
 }
 
@@ -579,8 +579,14 @@ int main(int argc, const char * const argv[]) {
 		if(results != "") {
 			printf(WarningTextFormatStart"WARNING: rm '%s'"ClearTextFormat"\n", results.c_str());
 		}
+		std::string::size_type maxNameSize = 0;
 		for(StringList::iterator test= testsToRun.begin(); test != testsToRun.end(); ++test) {
-			runTest(*test, openssl, db);
+			if (test->size() > maxNameSize) {
+				maxNameSize = test->size();
+			}
+		}
+		for(StringList::iterator test= testsToRun.begin(); test != testsToRun.end(); ++test) {
+			runTest(*test, maxNameSize, openssl, db);
 			testNames= testNames + testNamePrefix + *test;
 			if (testNamePrefix.length() == 0) {
 				testNamePrefix= ",";
