@@ -4,7 +4,7 @@
 #include <os/Path.h>
 
 int main(int ,const char * const []) {
-	int	iterations= 3000;
+	int	iterations= 600;
 #ifdef __Tracer_h__
 	iterations= 1;
 #endif
@@ -14,6 +14,9 @@ int main(int ,const char * const []) {
 			io::Path test(working + "Path_test_file.txt");
 			io::Path::StringList listing;
 
+			if (io::Path("test").name() != "test") {
+				printf("FAILED: 'test' name was %s\n", io::Path("test").name().c_str());
+			}
 			if (!test.parent().isDirectory()) {
 				printf("FAILED: Parent directory does not exist: %s\n", std::string(test).c_str());
 			}
@@ -81,10 +84,20 @@ int main(int ,const char * const []) {
 			if (std::string(io::Path("/test").parent()) != "/") {
 				printf("FAILED: '/test' parent is not '/'\n");
 			}
-			listing= working.parent().list(io::Path::NameOnly);
+			listing= working.parent().list(io::Path::PathAndName);
 			bool found= false;
+			printf("Listing of: %s\n", ((io::Path::String)working.parent()).c_str());
 			for (io::Path::StringList::iterator item= listing.begin(); !found && (item != listing.end()); ++item) {
-				found= found || (*item == "test");
+				io::Path	entry(*item);
+
+				printf("%16s inode=%d:%llu permissions=%o links=%d uid=%d gid=%d size=%llu size on disk=%llu created=%s modified=%s updated=%s accessed=%s\n",
+						entry.name().c_str(), entry.device(), entry.inode(), entry.permissions(), entry.links(), entry.userId(),
+						entry.groupId(), entry.size(), entry.blocks() * entry.blockSize(),
+						entry.created().format("%Y/%m/%d %H:%M:%S").c_str(),
+						entry.lastModification().format("%Y/%m/%d %H:%M:%S").c_str(),
+						entry.lastStatusChange().format("%Y/%m/%d %H:%M:%S").c_str(),
+						entry.lastAccess().format("%Y/%m/%d %H:%M:%S").c_str());
+				found= found || (entry.name() == "test");
 			}
 			if (!found) {
 				printf("FAILED: could not find 'test' in %s\n", std::string(working.parent()).c_str());

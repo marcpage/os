@@ -10,6 +10,7 @@
 #include <vector>
 #include "os/POSIXErrno.h"
 #include "os/File.h"
+#include "os/DateTime.h"
 
 /**
 	@todo Document
@@ -60,14 +61,31 @@ namespace io {
 			Path operator+(const String &name) const;
 			Path &operator=(const Path &other);
 			operator String() const;
+			dev_t device(LinkHandling action=WorkOnLinkTarget) const;
+			ino_t inode(LinkHandling action=WorkOnLinkTarget) const;
+			mode_t permissions(LinkHandling action=WorkOnLinkTarget) const;
+			nlink_t links(LinkHandling action=WorkOnLinkTarget) const;
+			uid_t userId(LinkHandling action=WorkOnLinkTarget) const;
+			gid_t groupId(LinkHandling action=WorkOnLinkTarget) const;
+			dt::DateTime lastAccess(LinkHandling action=WorkOnLinkTarget) const;
+			dt::DateTime lastModification(LinkHandling action=WorkOnLinkTarget) const;
+			dt::DateTime lastStatusChange(LinkHandling action=WorkOnLinkTarget) const;
+			dt::DateTime created(LinkHandling action=WorkOnLinkTarget) const;
+			off_t size(LinkHandling action=WorkOnLinkTarget) const;
+			off_t blocks(LinkHandling action=WorkOnLinkTarget) const;
+			off_t blockSize(LinkHandling action=WorkOnLinkTarget) const;
+
 		private:
 			String _path;
 			bool _exists(struct stat &info, LinkHandling action) const;
-			void _stat(struct stat &info, LinkHandling action) const;
+			struct stat &_stat(struct stat &info, LinkHandling action) const;
+			const char *_separator() const;
 	};
 
 	inline Path::Path(const String &path):_path(path) {
-		while ( (_path.length() > 1) && (_path[_path.length() - 1] == '/') ) {
+		const char separator = _separator()[0];
+
+		while ( (_path.length() > 1) && (_path[_path.length() - 1] == separator) ) {
 			_path.erase(_path.length() - 1);
 		}
 	}
@@ -101,7 +119,7 @@ namespace io {
 		}
 		return false;
 	}
-	inline bool Path::isAbsolute() const {return _path.length() > 0 && _path[0] == '/';}
+	inline bool Path::isAbsolute() const {return _path.length() > 0 && _path[0] == _separator()[0];}
 	inline bool Path::isRelative() const {return !isAbsolute();}
 	inline bool Path::isEmpty() const {return _path.length() == 0;}
 	inline void Path::unlink() const {
@@ -150,18 +168,18 @@ namespace io {
 		ErrnoOnNegative(::symlink(contents._path.c_str(), _path.c_str()));
 	}
 	inline Path Path::parent() const {
-		String::size_type sepPos = _path.rfind('/');
+		String::size_type sepPos = _path.rfind(_separator()[0]);
 
 		if (sepPos == String::npos) {
 			return Path("");
 		}
 		if (sepPos == 0) {
-			return Path("/");
+			return Path(_separator()); // root
 		}
 		return _path.substr(0, sepPos);
 	}
 	inline Path::String Path::name() const {
-		String::size_type sepPos = _path.rfind('/');
+		String::size_type sepPos = _path.rfind(_separator()[0]);
 
 		if (sepPos == String::npos) {
 			return _path;
@@ -199,7 +217,7 @@ namespace io {
 				if (NULL != ep) {
 					String name= String(ep->d_name, 0, ep->d_namlen);
 					if ( (name != ".") && (name != "..")) {
-						directoryListing.push_back((havePath == NameOnly ? String() : (String(*this)+"/")) + name);
+						directoryListing.push_back((havePath == NameOnly ? String() : (String(*this) + _separator())) + name);
 					}
 				}
 			} while (NULL != ep);
@@ -212,10 +230,10 @@ namespace io {
 		return directoryListing;
 	}
 	inline Path Path::operator+(const Path &name) const {
-		return Path(_path + "/" + name._path);
+		return Path(_path + _separator() + name._path);
 	}
 	inline Path Path::operator+(const String &name) const {
-		return Path(_path + "/" + name);
+		return Path(_path + _separator() + name);
 	}
 	inline Path &Path::operator=(const Path &other) {
 		_path = other._path;
@@ -232,14 +250,83 @@ namespace io {
 		}
 		return true;
 	}
-	inline void Path::_stat(struct stat &info, LinkHandling action) const {
+	inline struct stat &Path::_stat(struct stat &info, LinkHandling action) const {
 		if (WorkOnLink == action) {
 			ErrnoOnNegative(::lstat(_path.c_str(), &info));
 		} else {
 			ErrnoOnNegative(::stat(_path.c_str(), &info));
 		}
-
+		return info;
 	}
+	inline const char *Path::_separator() const {
+		return "/";
+	}
+	inline dev_t Path::device(LinkHandling action) const {
+		struct stat info;
+
+		return _stat(info, action).st_dev;
+	}
+	inline ino_t Path::inode(LinkHandling action) const {
+		struct stat info;
+
+		return _stat(info, action).st_ino;
+	}
+	inline mode_t Path::permissions(LinkHandling action) const {
+		struct stat info;
+
+		return _stat(info, action).st_mode;
+	}
+	inline nlink_t Path::links(LinkHandling action) const {
+		struct stat info;
+
+		return _stat(info, action).st_nlink;
+	}
+	inline uid_t Path::userId(LinkHandling action) const {
+		struct stat info;
+
+		return _stat(info, action).st_uid;
+	}
+	inline gid_t Path::groupId(LinkHandling action) const {
+		struct stat info;
+
+		return _stat(info, action).st_gid;
+	}
+	inline dt::DateTime Path::lastAccess(LinkHandling action) const {
+		struct stat info;
+
+		return _stat(info, action).st_atimespec;
+	}
+	inline dt::DateTime Path::lastModification(LinkHandling action) const {
+		struct stat info;
+
+		return _stat(info, action).st_mtimespec;
+	}
+	inline dt::DateTime Path::lastStatusChange(LinkHandling action) const {
+		struct stat info;
+
+		return _stat(info, action).st_ctimespec;
+	}
+	inline dt::DateTime Path::created(LinkHandling action) const {
+		struct stat info;
+
+		return _stat(info, action).st_birthtimespec;
+	}
+	inline off_t Path::size(LinkHandling action) const {
+		struct stat info;
+
+		return _stat(info, action).st_size;
+	}
+	inline off_t Path::blocks(LinkHandling action) const {
+		struct stat info;
+
+		return _stat(info, action).st_blocks;
+	}
+	inline off_t Path::blockSize(LinkHandling action) const {
+		struct stat info;
+
+		return _stat(info, action).st_blksize;
+	}
+
 }
 
 #endif // __Path_h__

@@ -60,6 +60,8 @@ int main(const int argc, const char * const argv[]) {
 		serverSocket.bind(serverAddress);
 		serverSocket.listen(100);
 
+		std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
 		std::thread			server(Server, &serverSocket);
 		std::string			readString;
 		std::string			writeString;
