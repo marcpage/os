@@ -49,7 +49,6 @@ namespace net {
 		ErrnoOnNegative(::connect(_socket, address, address.size()));
 	}
 	/**
-		@param buffer	The buffer to fill
 		@param bytes	The number of bytes to but in the buffer, or -1 for buffer max.
 							If <code>bytes</code> is greater than the buffer size, the
 							buffer max will be used.
@@ -68,6 +67,7 @@ namespace net {
 		@param bytes	The number of bytes in the buffer to send, or -1 for the entire buffer max.
 							If <code>bytes</code> is greater than the buffer size, the
 							buffer max will be used.
+		@param offset	The offset in the buffer to start writing bytes from.
 	*/
 	inline size_t Socket::write(const std::string &buffer, size_t bytes, size_t offset) {
 		ssize_t	amount;

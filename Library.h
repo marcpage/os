@@ -5,7 +5,7 @@
 	Dynamically Loaded Shared Library API.
 	Supports dlopen, CFBundle and HMODULE on the appropriate platforms.
 	@todo Evaluate Windows exception throwing Macros and see if they compile.
-			You can even set it to #if !defined(__FUNCTION__) to see if that works.
+			You can even set it to if !defined(__FUNCTION__) to see if that works.
 	@todo See if __FUNCTION__ or __func__ is the appropriate macro
 */
 
