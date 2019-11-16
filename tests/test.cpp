@@ -526,7 +526,7 @@ int main(int argc, const char * const argv[]) {
 			} else {
 				printf(BoldTextFormatStart"Enabling openssl with headers at: %s"ClearTextFormat"\n", String(openssl).c_str());
 			}
-		} else if(compilers.find(String(",") + String(argv[arg]) + String(",")) >= 0) {
+		} else if(compilers.find(String(",") + String(argv[arg]) + String(",")) != String::npos) {
 			compilersToRun.push_back(argv[arg]);
 		} else {
 			const bool	found= (io::Path("tests") + (String(argv[arg])+"_test.cpp")).isFile();
@@ -538,7 +538,7 @@ int main(int argc, const char * const argv[]) {
 				}
 				testsToRun.push_back(argv[arg]);
 			} else {
-				printf("Test not found: %s\n", argv[arg]);
+				printf("Compiler/Test not found: %s\n", argv[arg]);
 			}
 		}
 	}
