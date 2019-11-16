@@ -10,7 +10,7 @@ documentation/index.html:
 docs:documentation/index.html
 
 test:bin/test
-	@bin/test $(OS_OPTIONS)
+	@bin/test $(OS_OPTIONS) $(COMPILER) $(TEST)
 
 bin/test:tests/test.cpp *.h
 	@mkdir -p bin
