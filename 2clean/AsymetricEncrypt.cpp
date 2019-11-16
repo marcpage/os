@@ -24,7 +24,7 @@ std::string dumpKey(const void *key) {
 int main(int argc, char* argv[]) {
 	SecKeyRef publicKey, privateKey;
 	OSStatus res;
-	int keySize = 4096;
+	int keySize = 1024; // 4096 max
     SecItemImportExportKeyParameters params;
     SecExternalItemType itemType = kSecItemTypeUnknown;
     SecExternalFormat format = kSecFormatUnknown;
@@ -40,16 +40,24 @@ int main(int argc, char* argv[]) {
 
 	const void *elements[] = {publicKey, privateKey};
 	CFArrayRef keys = CFArrayCreate(nullptr, elements, 2, &kCFTypeArrayCallBacks);
-	dumpKey(keys);
-
+	std::string keyText = dumpKey(keys);
 	std::string pub = dumpKey(publicKey);
 	std::string priv = dumpKey(privateKey);
 
-	CFDataRef data = CFDataCreate(nullptr, reinterpret_cast<const UInt8 *>(pub.data()), pub.size());
 	CFArrayRef keyList;
+	CFDataRef data;
 
+	data = CFDataCreate(nullptr, reinterpret_cast<const UInt8 *>(pub.data()), pub.size());
 	res = SecItemImport(data, nullptr, &format, &itemType, 0, &params, nullptr, &keyList);
 	printf("res=%d\n", res);
+	printf("length=%ld\n", (long)CFArrayGetCount(keyList));
+
+	data = CFDataCreate(nullptr, reinterpret_cast<const UInt8 *>(priv.data()), priv.size());
+	res = SecItemImport(data, nullptr, &format, &itemType, 0, &params, nullptr, &keyList);
+	printf("res=%d\n", res);
+	printf("length=%ld\n", (long)CFArrayGetCount(keyList));
+
+
 	return 0;
 }
 
