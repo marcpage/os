@@ -308,7 +308,11 @@ void runTest(const String &name, const std::string::size_type maxNameSize, const
 	}
 	command= gCompilerLocations[compiler];
 	if(command != "-") {
-		printf((String("%-") + std::to_string(maxNameSize) + String("s %9s about %7.3fs")).c_str(), name.c_str(), compiler.c_str(), totalTimeInSeconds);
+		if (totalTimeInSeconds > 0.0) {
+			printf((String("%-") + std::to_string(maxNameSize) + String("s %9s about %7.3fs")).c_str(), name.c_str(), compiler.c_str(), totalTimeInSeconds);
+		} else {
+			printf((String("%-") + std::to_string(maxNameSize) + String("s %9s about   ?????s")).c_str(), name.c_str(), compiler.c_str());
+		}
 		fflush(stdout);
 		executableName= name + '_' + compiler + "_performance";
 		logName= executableName + "_compile.log";
