@@ -419,17 +419,14 @@ void runTest(const String &name, const std::string::size_type maxNameSize, const
 	}
 }
 
-void runTest(const String &name, const std::string::size_type maxNameSize, const io::Path &openssl, Sqlite3::DB &db) {
-	StringList	compilers;
-
-	split(gCompilerList, ',', compilers);
-	for(StringList::iterator compiler= compilers.begin(); compiler != compilers.end(); ++compiler) {
+void runTest(const String &name, const StringList &compilers, const std::string::size_type maxNameSize, const io::Path &openssl, Sqlite3::DB &db) {
+	for(StringList::const_iterator compiler= compilers.begin(); compiler != compilers.end(); ++compiler) {
 		runTest(name, maxNameSize, *compiler, openssl, db);
 	}
 }
 
 void findFileCoverage(const String &file, const String &options, uint32_t &covered, uint32_t &uncovered, StringList &uncoveredLines, const std::string &testNames, Sqlite3::DB &db) {
-	String		results;
+	String			results;
 	StringList		lines;
 	StringList		parts;
 	std::map<uint32_t,bool>	coveredLines;
@@ -485,11 +482,13 @@ void findFileCoverage(const String &file, const String &options, uint32_t &cover
 */
 int main(int argc, const char * const argv[]) {
 	StringList				testsToRun;
+	StringList				compilersToRun;
 	io::Path				openssl;
 	String					testNames;
 	String					testNamePrefix;
 	const String			testSuffix= "_test.cpp";
 	bool					testsPassed= false;
+	const String			compilers = String(",") + gCompilerList + String(",");
 
 	//printf(ErrorTextFormatStart"Error"ClearTextFormat"\n");
 	//printf(WarningTextFormatStart"Warning"ClearTextFormat"\n");
@@ -527,6 +526,8 @@ int main(int argc, const char * const argv[]) {
 			} else {
 				printf(BoldTextFormatStart"Enabling openssl with headers at: %s"ClearTextFormat"\n", String(openssl).c_str());
 			}
+		} else if(compilers.find(String(",") + String(argv[arg]) + String(",")) >= 0) {
+			compilersToRun.push_back(argv[arg]);
 		} else {
 			const bool	found= (io::Path("tests") + (String(argv[arg])+"_test.cpp")).isFile();
 
@@ -585,8 +586,11 @@ int main(int argc, const char * const argv[]) {
 				maxNameSize = test->size();
 			}
 		}
+		if (compilersToRun.size() == 0) {
+			split(gCompilerList, ',', compilersToRun);
+		}
 		for(StringList::iterator test= testsToRun.begin(); test != testsToRun.end(); ++test) {
-			runTest(*test, maxNameSize, openssl, db);
+			runTest(*test, compilersToRun, maxNameSize, openssl, db);
 			testNames= testNames + testNamePrefix + *test;
 			if (testNamePrefix.length() == 0) {
 				testNamePrefix= ",";
