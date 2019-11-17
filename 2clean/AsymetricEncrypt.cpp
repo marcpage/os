@@ -24,7 +24,7 @@ std::string dumpKey(const void *key) {
 int main(int argc, char* argv[]) {
 	SecKeyRef publicKey, privateKey;
 	OSStatus res;
-	int keySize = 1024; // 4096 max
+	int keySize = (argc == 2) ? atoi(argv[1]) : 1024; // 1024 - 4096 increment 8
     SecItemImportExportKeyParameters params;
     SecExternalItemType itemType = kSecItemTypeUnknown;
     SecExternalFormat format = kSecFormatUnknown;
@@ -56,7 +56,8 @@ int main(int argc, char* argv[]) {
 	res = SecItemImport(data, nullptr, &format, &itemType, 0, &params, nullptr, &keyList);
 	printf("res=%d\n", res);
 	printf("length=%ld\n", (long)CFArrayGetCount(keyList));
-
+	printf("Keysize = %d\n", keySize);
+	// SecKeyCreateEncryptedData https://developer.apple.com/documentation/security/1643957-seckeycreateencrypteddata?language=objc
 
 	return 0;
 }
