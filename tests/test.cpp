@@ -241,6 +241,99 @@ String sourceIdentifier(const String &dependenciesPath) {
 	return identifier;
 }
 
+typedef std::pair<math::List, math::List> 		BuildAndRunTimesList;
+typedef std::map<String, BuildAndRunTimesList>	CompilerBuildAndRunTimesList;
+void updateCompilerTimesIfNeeded(CompilerBuildAndRunTimesList &compilerTimes, CompilerBuildAndRunTimesList &compilerDifferences,
+								const String &compiler, const String &source, String &currentCompiler, String &currentSource,
+								double &buildSum, double &runSum, double &count) {
+	const bool sourceChanged = currentSource != source;
+	const bool compilerChanged = currentCompiler != compiler;
+
+	if ( sourceChanged || compilerChanged ) {
+		if (count > 0) {
+			compilerTimes[currentCompiler].first.push_back(buildSum / count);
+			compilerTimes[currentCompiler].second.push_back(runSum / count);
+		}
+
+		if ( sourceChanged && (compilerTimes.size() > 0) ) {
+			std::map<String, double> compilerAverages;
+			double minBuild = std::numeric_limits<double>::max();
+			double minRun = std::numeric_limits<double>::max();
+
+			for (auto compilerAndTimes = compilerTimes.begin(); compilerAndTimes != compilerTimes.end(); ++compilerAndTimes) {
+				double buildTime = math::mean(compilerAndTimes->second.first);
+				double runTime = math::mean(compilerAndTimes->second.second);
+
+				if (buildTime < minBuild) {
+					minBuild = buildTime;
+				}
+				if (runTime < minRun) {
+					minRun = runTime;
+				}
+			}
+			for (auto compilerAndTimes = compilerTimes.begin(); compilerAndTimes != compilerTimes.end(); ++compilerAndTimes) {
+				double buildTime = math::mean(compilerAndTimes->second.first);
+				double runTime = math::mean(compilerAndTimes->second.second);
+
+				printf("%s build %7.10f%% %7.10fs min %7.10fs\n", compilerAndTimes->first.c_str(), 100 * buildTime / minBuild, buildTime, minBuild);
+				printf("%s run   %7.10f%% %7.10fs min %7.10fs\n", compilerAndTimes->first.c_str(), 100 * runTime / minRun, runTime, minRun);
+				compilerDifferences[compilerAndTimes->first].first.push_back(buildTime / minBuild);
+				compilerDifferences[compilerAndTimes->first].second.push_back(runTime / minRun);
+			}
+		}
+
+		currentSource = source;
+		currentCompiler = compiler;
+		runSum = 0;
+		buildSum = 0;
+		count = 0;
+		compilerTimes.clear();
+	}
+}
+
+void dumpCompilerStats(Sqlite3::DB &db) {
+	Sqlite3::DB::Results	results;
+	CompilerBuildAndRunTimesList	compilerTimes, compilerDifferences;
+	String	currentSource, currentCompiler;
+	double	runSum, count = 0, buildSum;
+
+	db.exec("SELECT "
+				"name,run_time,build_time,compiler,source_identifier "
+			"FROM run "
+			"GROUP BY source_identifier,compiler"
+			";", &results);
+
+	for (auto row = results.begin(); row != results.end(); ++row) {
+		updateCompilerTimesIfNeeded(compilerTimes, compilerDifferences,
+									(*row)["compiler"], (*row)["source_identifier"], currentCompiler, currentSource,
+									buildSum, runSum, count);
+		buildSum += mystod((*row)["build_time"]);
+		runSum += mystod((*row)["run_time"]);
+		count += 1;
+	}
+
+	updateCompilerTimesIfNeeded(compilerTimes, compilerDifferences,
+								"", "",
+								currentCompiler, currentSource,
+								buildSum, runSum, count);
+
+	printf("Build Times\n");
+	for (auto compilerAndLists = compilerDifferences.begin(); compilerAndLists != compilerDifferences.end(); ++compilerAndLists) {
+		double mean = math::mean(compilerAndLists->second.first);
+		double stddev = math::stddev(compilerAndLists->second.first);
+
+		printf("\t""%s %7.10fs +/- %7.10fs\n", compilerAndLists->first.c_str(), mean, stddev);
+	}
+
+	printf("Run Times\n");
+	for (auto compilerAndLists = compilerDifferences.begin(); compilerAndLists != compilerDifferences.end(); ++compilerAndLists) {
+		double mean = math::mean(compilerAndLists->second.second);
+		double stddev = math::stddev(compilerAndLists->second.second);
+
+		printf("\t""%s %7.10fs +/- %7.10fs\n", compilerAndLists->first.c_str(), mean, stddev);
+	}
+}
+
 void getTestStats(const String &name, const String &options, const String &headerHash, const String &testHash, uint32_t &testedLines, double &durationInSeconds, double &meanInSeconds, double &timeStddev, double &totalTimeInSeconds, double &slowTimeInSeconds, Sqlite3::DB &db) {
 	Sqlite3::DB::Results	results;
 	math::List				times;
@@ -279,7 +372,7 @@ void getTestStats(const String &name, const String &options, const String &heade
 				"AND test_hash LIKE '"+testHash+"';", &results);
 
 	if (results.size() >= 2) {
-		for (Sqlite3::DB::Results::iterator row = results.begin(); row != results.end(); ++row) {
+		for (auto row = results.begin(); row != results.end(); ++row) {
 			times.push_back(mystod((*row)["run_time"]));
 		}
 		timeStddev = math::stddev(times);
@@ -322,14 +415,14 @@ void runTest(const String &name, const std::string::size_type maxNameSize, const
 	if (!openssl.isEmpty()) {
 		otherFlags = String(" -DOpenSSLAvailable=1 -I") + String(openssl) + String("/include -L") + String(openssl) + String("/lib") + " " + String(gOpensllFlags);
 		if (!io::Path(String(openssl) + "/include").isDirectory()) {
-			printf(ErrorTextFormatStart"ERROR: openssl directory does have include directory: %s"ClearTextFormat"\n", String(openssl).c_str());
+			printf(ErrorTextFormatStart "ERROR: openssl directory does have include directory: %s" ClearTextFormat"\n", String(openssl).c_str());
 		}
 	}
 	if(gCompilerLocations[compiler].size() == 0) {
 		exec::execute("which "+compiler, results);
 		if(stripEOL(results).size() == 0) {
 			results= "-";
-			printf(WarningTextFormatStart"WARNING: Unable to find compiler %s"ClearTextFormat"\n", compiler.c_str());
+			printf(WarningTextFormatStart "WARNING: Unable to find compiler %s" ClearTextFormat"\n", compiler.c_str());
 		}
 		gCompilerLocations[compiler]= results;
 		//printf("COMPILER='%s'\n", results.c_str());
@@ -384,15 +477,15 @@ void runTest(const String &name, const std::string::size_type maxNameSize, const
 
 		exec::execute("mkdir -p bin/coverage/"+executableName+" 2>&1", results);
 		if(results != "") {
-			printf(WarningTextFormatStart"WARNING: mkdir '%s'"ClearTextFormat"\n", results.c_str());
+			printf(WarningTextFormatStart "WARNING: mkdir '%s'" ClearTextFormat"\n", results.c_str());
 		}
 		exec::execute("gcov "+name+"_test.cpp"+" &> bin/logs/"+gcovLogName, results);
 		if(results != "") {
-			printf(WarningTextFormatStart"WARNING: gcov '%s'"ClearTextFormat"\n", results.c_str());
+			printf(WarningTextFormatStart "WARNING: gcov '%s'" ClearTextFormat"\n", results.c_str());
 		}
 		exec::execute("mv *.gcov *.gcno *.gcda bin/coverage/"+executableName+"/ 2>&1", results);
 		if(results != "") {
-			printf(WarningTextFormatStart"WARNING: mv '%s'"ClearTextFormat"\n", results.c_str());
+			printf(WarningTextFormatStart "WARNING: mv '%s'" ClearTextFormat"\n", results.c_str());
 		}
 
 		coverage= runIntegerExpected("cat bin/coverage/"+executableName+"/"+name+".h.gcov 2> /dev/null | grep -E '[0-9]+:\\s+[0-9]+:' | wc -l");
@@ -401,7 +494,7 @@ void runTest(const String &name, const std::string::size_type maxNameSize, const
 		printf("\t%3d%% coverage\n", percent_coverage);
 
 		if(runPerfTime < gTestMinimumTimeInSeconds * (1.0 + gTestTimeAllowancePercent/100.0) ) {
-			printf("\t"WarningTextFormatStart"Test is too short (%0.5fs), run it %0.1f times"ClearTextFormat"\n", runPerfTime, runPerfTime > 0.0 ? 1.0 / runPerfTime : 10.0);
+			printf("\t"  WarningTextFormatStart "Test is too short (%0.5fs), run it %0.1f times" ClearTextFormat"\n", runPerfTime, runPerfTime > 0.0 ? 1.0 / runPerfTime : 10.0);
 		}
 		if(failures > 0) {
 			printf("\t%d Test Failures\n", failures);
@@ -409,54 +502,47 @@ void runTest(const String &name, const std::string::size_type maxNameSize, const
 			printf("%s\n", results.c_str());
 		}
 		if(errors > 0) {
-			printf("\t"ErrorTextFormatStart"%d Compile Errors"ClearTextFormat"\n", errors);
+			printf("\t"  ErrorTextFormatStart "%d Compile Errors" ClearTextFormat"\n", errors);
 			exec::execute("cat bin/logs/"+logName+" | grep error:", results);
 			printf("%s\n", results.c_str());
 			exec::execute("cat bin/logs/"+logName+" | grep ld:", results);
 			printf("%s\n", results.c_str());
 		}
 		if(warnings > 0) {
-			printf("\t"WarningTextFormatStart"%d Compile Warnings"ClearTextFormat"\n", warnings);
+			printf("\t" WarningTextFormatStart "%d Compile Warnings" ClearTextFormat"\n", warnings);
 			exec::execute("cat bin/logs/"+logName+" | grep warning:", results);
 			printf("%s\n", results.c_str());
 		}
 		if ((gVerbose && (uncovered > 0)) || (percent_coverage < gMinimumPercentCodeCoverage)) {
-			printf("\t"WarningTextFormatStart"warning: %d lines untested (%d tested) %d%%"ClearTextFormat"\n", uncovered, coverage, percent_coverage);
+			printf("\t" WarningTextFormatStart "warning: %d lines untested (%d tested) %d%%" ClearTextFormat"\n", uncovered, coverage, percent_coverage);
 			exec::execute("cat bin/coverage/"+executableName+"/"+name+".h.gcov 2> /dev/null | grep -E '#+:\\s+[0-9]+:'", results);
 			printf("%s\n", results.c_str());
 		}
 		if( (coverage != testedLines) ) {
-			printf("\t"WarningTextFormatStart"Tested Lines: %d Expected %d"ClearTextFormat"\n", coverage, testedLines);
+			printf("\t" WarningTextFormatStart "Tested Lines: %d Expected %d" ClearTextFormat"\n", coverage, testedLines);
 			displayNewLine= true;
 		}
 
 		if( runPerfTime > durationInSeconds ) {
-			printf("\t"ErrorTextFormatStart"Test took %0.3fs, expected less than slowest of %0.3fs"ClearTextFormat"\n", runPerfTime+0.000999, durationInSeconds);
+			printf("\t" ErrorTextFormatStart "Test took %0.3fs, expected less than slowest of %0.3fs" ClearTextFormat"\n", runPerfTime+0.000999, durationInSeconds);
 			displayNewLine= true;
 		} else if( runPerfTime > meanInSeconds + 2 * timeStddev ) {
-			printf("\t"ErrorTextFormatStart"Test took %0.3fs, expected less than 2 stddev %0.3fs"ClearTextFormat"\n", runPerfTime+0.000999, meanInSeconds + 2 * timeStddev);
+			printf("\t" ErrorTextFormatStart "Test took %0.3fs, expected less than 2 stddev %0.3fs" ClearTextFormat"\n", runPerfTime+0.000999, meanInSeconds + 2 * timeStddev);
 			displayNewLine= true;
 		} else if( runPerfTime > meanInSeconds + timeStddev ) {
-			printf("\t"WarningTextFormatStart"Test took %0.3fs, expected less than 1 stddev %0.3fs"ClearTextFormat"\n", runPerfTime+0.000999, meanInSeconds + 1 * timeStddev);
+			printf("\t" WarningTextFormatStart "Test took %0.3fs, expected less than 1 stddev %0.3fs" ClearTextFormat"\n", runPerfTime+0.000999, meanInSeconds + 1 * timeStddev);
 			displayNewLine= true;
 		} else if( runPerfTime < meanInSeconds - timeStddev ) {
-			printf("\t"GoodTextFormatStart"Test took %0.3fs, which is less than 1 stddev %0.3fs"ClearTextFormat"\n", runPerfTime+0.000999, meanInSeconds - 1 * timeStddev);
+			printf("\t" GoodTextFormatStart "Test took %0.3fs, which is less than 1 stddev %0.3fs" ClearTextFormat"\n", runPerfTime+0.000999, meanInSeconds - 1 * timeStddev);
 			displayNewLine= true;
 		} else if( runPerfTime < meanInSeconds - 2 * timeStddev ) {
-			printf("\t"GreatTextFormatStart"Test took %0.3fs, which is less than 2 stddev %0.3fs"ClearTextFormat"\n", runPerfTime+0.000999, meanInSeconds - 2 * timeStddev);
+			printf("\t" GreatTextFormatStart "Test took %0.3fs, which is less than 2 stddev %0.3fs" ClearTextFormat"\n", runPerfTime+0.000999, meanInSeconds - 2 * timeStddev);
 			displayNewLine= true;
 		}
 
-		if( (runPerfTime > durationInSeconds * (1 + gTestTimeAllowancePercent/100) ) ) {
-			printf("\t"ErrorTextFormatStart"(obsolete) Test took %0.3fs, expected less than %0.3fs"ClearTextFormat"\n", runPerfTime+0.000999, durationInSeconds);
-			displayNewLine= true;
-		} else if( (runPerfTime > slowTime * (1 + gTestTimeAllowancePercent/100) ) ) {
-			printf("\t"WarningTextFormatStart"(obsolete) Test was a little slow at %0.3fs, expected less than %0.3fs but definitely less than %0.3fs"ClearTextFormat"\n", runPerfTime+0.000999, slowTime, durationInSeconds);
-			displayNewLine= true;
-		}
 		totalTime= compilePerfTime + compileCoverageTime + runPerfTime + runCoverageTime;
 		if( (totalTime > totalTimeInSeconds) ) {
-			printf("\t"ErrorTextFormatStart"Build/Test took %0.3fs, expected %0.3fs"ClearTextFormat"\n", totalTime+0.000999, totalTimeInSeconds);
+			printf("\t" ErrorTextFormatStart "Build/Test took %0.3fs, expected %0.3fs" ClearTextFormat"\n", totalTime+0.000999, totalTimeInSeconds);
 			displayNewLine= true;
 		}
 		if(gVerbose) {
@@ -470,7 +556,7 @@ void runTest(const String &name, const std::string::size_type maxNameSize, const
 }
 
 void runTest(const String &name, const StringList &compilers, const std::string::size_type maxNameSize, const io::Path &openssl, Sqlite3::DB &db) {
-	for(StringList::const_iterator compiler= compilers.begin(); compiler != compilers.end(); ++compiler) {
+	for(auto compiler= compilers.begin(); compiler != compilers.end(); ++compiler) {
 		runTest(name, maxNameSize, *compiler, openssl, db);
 	}
 }
@@ -488,7 +574,7 @@ void findFileCoverage(const String &file, const String &options, uint32_t &cover
 	split(results, '\n', lines);
 
 	if (strip(results).length() > 0) {
-		for (StringList::iterator line = lines.begin(); line != lines.end(); ++line) {
+		for (auto line = lines.begin(); line != lines.end(); ++line) {
 			split(*line, ':', parts);
 
 			if (parts.size() < 2) {
@@ -502,14 +588,14 @@ void findFileCoverage(const String &file, const String &options, uint32_t &cover
 				coveredLines[lineNumber] = true;
 			}
 		}
-		for (std::map<uint32_t,bool>::iterator i = coveredLines.begin(); i != coveredLines.end(); ++i) {
+		for (auto i = coveredLines.begin(); i != coveredLines.end(); ++i) {
 			if (i->second) {
 				covered += 1;
 			} else {
 				uncovered += 1;
 			}
 		}
-		for (StringList::iterator line = lines.begin(); line != lines.end(); ++line) {
+		for (auto line = lines.begin(); line != lines.end(); ++line) {
 			split(*line, ':', parts);
 
 			if (parts.size() < 2) {
@@ -540,18 +626,18 @@ int main(int argc, const char * const argv[]) {
 	bool					testsPassed= false;
 	const String			compilers = String(",") + gCompilerList + String(",");
 
-	//printf(ErrorTextFormatStart"Error"ClearTextFormat"\n");
-	//printf(WarningTextFormatStart"Warning"ClearTextFormat"\n");
-	//printf(BoldTextFormatStart"Bold"ClearTextFormat"\n");
-	//printf(GoodTextFormatStart"Good"ClearTextFormat"\n");
-	//printf(GreatTextFormatStart"Great"ClearTextFormat"\n");
+	//printf(ErrorTextFormatStart "Error" ClearTextFormat"\n");
+	//printf(WarningTextFormatStart "Warning" ClearTextFormat"\n");
+	//printf(BoldTextFormatStart "Bold" ClearTextFormat"\n");
+	//printf(GoodTextFormatStart "Good" ClearTextFormat"\n");
+	//printf(GreatTextFormatStart "Great" ClearTextFormat"\n");
 
 	try {
 		io::Path("tests").list(io::Path::NameOnly, testsToRun);
 	} catch(const posix::err::ENOENT_Errno &) {
-		printf(ErrorTextFormatStart"ERROR: Unable to find tests"ClearTextFormat"\n");
+		printf(ErrorTextFormatStart "ERROR: Unable to find tests" ClearTextFormat"\n");
 	}
-	for (StringList::iterator i= testsToRun.begin(); i != testsToRun.end();) {
+	for (auto i= testsToRun.begin(); i != testsToRun.end();) {
 		if ( (i->length() <= testSuffix.length()) || (i->find(testSuffix) != i->length() - testSuffix.length()) ) {
 			i= testsToRun.erase(i);
 		} else {
@@ -564,7 +650,7 @@ int main(int argc, const char * const argv[]) {
 		if(String("debug") == argv[arg]) {
 			gDebugging= true;
 		} else if(String("list") == argv[arg]) {
-			for(StringList::iterator test= testsToRun.begin(); test != testsToRun.end(); ++test) {
+			for(auto test= testsToRun.begin(); test != testsToRun.end(); ++test) {
 				printf("%s\n", test->c_str());
 			}
 			testsToRun.clear();
@@ -573,10 +659,10 @@ int main(int argc, const char * const argv[]) {
 		} else if(String(argv[arg]).find("openssl=") == 0) {
 			openssl = io::Path(String(argv[arg]).substr(8));
 			if (!openssl.isDirectory()) {
-				printf(WarningTextFormatStart"WARNING: %s is not a directory, disabling openssl"ClearTextFormat"\n", String(openssl).c_str());
+				printf(WarningTextFormatStart "WARNING: %s is not a directory, disabling openssl" ClearTextFormat"\n", String(openssl).c_str());
 				openssl = io::Path();
 			} else {
-				printf(BoldTextFormatStart"Enabling openssl with headers at: %s"ClearTextFormat"\n", String(openssl).c_str());
+				printf(BoldTextFormatStart "Enabling openssl with headers at: %s" ClearTextFormat"\n", String(openssl).c_str());
 			}
 		} else if(compilers.find(String(",") + String(argv[arg]) + String(",")) != String::npos) {
 			compilersToRun.push_back(argv[arg]);
@@ -626,14 +712,14 @@ int main(int argc, const char * const argv[]) {
 		);
 		exec::execute("mkdir -p bin/tests bin/logs", results);
 		if(results != "") {
-			printf(WarningTextFormatStart"WARNING: mkdir '%s'"ClearTextFormat"\n", results.c_str());
+			printf(WarningTextFormatStart "WARNING: mkdir '%s'" ClearTextFormat"\n", results.c_str());
 		}
 		exec::execute("rm -Rf *.gcov *.gcno *.gcda bin/coverage/* bin/logs/* bin/tests/*", results);
 		if(results != "") {
-			printf(WarningTextFormatStart"WARNING: rm '%s'"ClearTextFormat"\n", results.c_str());
+			printf(WarningTextFormatStart "WARNING: rm '%s'" ClearTextFormat"\n", results.c_str());
 		}
 		std::string::size_type maxNameSize = 0;
-		for(StringList::iterator test= testsToRun.begin(); test != testsToRun.end(); ++test) {
+		for(auto test= testsToRun.begin(); test != testsToRun.end(); ++test) {
 			if (test->size() > maxNameSize) {
 				maxNameSize = test->size();
 			}
@@ -641,7 +727,7 @@ int main(int argc, const char * const argv[]) {
 		if (compilersToRun.size() == 0) {
 			split(gCompilerList, ',', compilersToRun);
 		}
-		for(StringList::iterator test= testsToRun.begin(); test != testsToRun.end(); ++test) {
+		for(auto test= testsToRun.begin(); test != testsToRun.end(); ++test) {
 			runTest(*test, compilersToRun, maxNameSize, openssl, db);
 			testNames= testNames + testNamePrefix + *test;
 			if (testNamePrefix.length() == 0) {
@@ -652,7 +738,7 @@ int main(int argc, const char * const argv[]) {
 			printf("Examining overall coverage ...\n");
 			exec::execute("ls *.h", results);
 			split(results, '\n', headers);
-			for(StringList::iterator header= headers.begin(); header != headers.end(); ++header) {
+			for(auto header= headers.begin(); header != headers.end(); ++header) {
 				uint32_t	coverage;
 				uint32_t	uncovered;
 				StringList	uncoveredLines;
@@ -668,7 +754,7 @@ int main(int argc, const char * const argv[]) {
 				const int	coverageRate= hasCoverage ? 100 * coverage / (coverage + uncovered) : 0;
 
 				if ( (hasExpectations || hasCoverage) && (unexpectedCoverage || unexpectedLines) ) {
-					printf(WarningTextFormatStart"%s coverage changed %d/%d -> %d/%d (%d%% -> %d%%)"ClearTextFormat"\n",
+					printf(WarningTextFormatStart "%s coverage changed %d/%d -> %d/%d (%d%% -> %d%%)" ClearTextFormat"\n",
 						header->c_str(),
 						expectedLinesRun,
 							expectedLinesRun + expectedLinesNotRun,
@@ -677,25 +763,24 @@ int main(int argc, const char * const argv[]) {
 						hasExpectations ? 100 * expectedLinesRun / (expectedLinesRun + expectedLinesNotRun) : 0,
 						coverageRate
 					);
-					for (StringList::iterator i= uncoveredLines.begin(); i != uncoveredLines.end(); ++i) {
+					for (auto i= uncoveredLines.begin(); i != uncoveredLines.end(); ++i) {
 						printf("%s\n", i->c_str());
 					}
 				} if ( coverageRate < bestCoverage ) {
-					printf(ErrorTextFormatStart"%s coverage is lower than best %d/%d (%d%%) < %d%%"ClearTextFormat"\n",
+					printf(ErrorTextFormatStart "%s coverage is lower than best %d/%d (%d%%) < %d%%" ClearTextFormat"\n",
 						header->c_str(),
 						coverage,
 						coverage + uncovered,
 						coverageRate,
 						bestCoverage
 					);
-					for (StringList::iterator i= uncoveredLines.begin(); i != uncoveredLines.end(); ++i) {
+					for (auto i= uncoveredLines.begin(); i != uncoveredLines.end(); ++i) {
 						printf("%s\n", i->c_str());
 					}
 				}
-
-
 			}
 		}
+		// dumpCompilerStats(db); TODO: Need to determine what is wrong here
 	} catch(const std::exception &exception) {
 		printf("EXCEPTION: %s\n", exception.what());
 	}
