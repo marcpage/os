@@ -56,7 +56,9 @@ underline off    24
 inverse off      27
 */
 #define ErrorTextFormatStart "\033[41;1m"
-#define WarningTextFormatStart "\033[43;37;1m"
+#define WarningTextFormatStart "\033[43;30;1m"
+#define GoodTextFormatStart "\033[42;30;1m"
+#define GreatTextFormatStart "\033[42;34;1m"
 #define BoldTextFormatStart "\033[1m"
 #define ClearTextFormat "\033[0m"
 
@@ -437,7 +439,14 @@ void runTest(const String &name, const std::string::size_type maxNameSize, const
 		} else if( runPerfTime > meanInSeconds + timeStddev ) {
 			printf("\t"WarningTextFormatStart"Test took %0.3fs, expected less than 1 stddev %0.3fs"ClearTextFormat"\n", runPerfTime+0.000999, meanInSeconds + 1 * timeStddev);
 			displayNewLine= true;
+		} else if( runPerfTime < meanInSeconds - timeStddev ) {
+			printf("\t"GoodTextFormatStart"Test took %0.3fs, which is less than 1 stddev %0.3fs"ClearTextFormat"\n", runPerfTime+0.000999, meanInSeconds - 1 * timeStddev);
+			displayNewLine= true;
+		} else if( runPerfTime < meanInSeconds - 2 * timeStddev ) {
+			printf("\t"GreatTextFormatStart"Test took %0.3fs, which is less than 2 stddev %0.3fs"ClearTextFormat"\n", runPerfTime+0.000999, meanInSeconds - 2 * timeStddev);
+			displayNewLine= true;
 		}
+
 		if( (runPerfTime > durationInSeconds * (1 + gTestTimeAllowancePercent/100) ) ) {
 			printf("\t"ErrorTextFormatStart"(obsolete) Test took %0.3fs, expected less than %0.3fs"ClearTextFormat"\n", runPerfTime+0.000999, durationInSeconds);
 			displayNewLine= true;
@@ -534,6 +543,8 @@ int main(int argc, const char * const argv[]) {
 	//printf(ErrorTextFormatStart"Error"ClearTextFormat"\n");
 	//printf(WarningTextFormatStart"Warning"ClearTextFormat"\n");
 	//printf(BoldTextFormatStart"Bold"ClearTextFormat"\n");
+	//printf(GoodTextFormatStart"Good"ClearTextFormat"\n");
+	//printf(GreatTextFormatStart"Great"ClearTextFormat"\n");
 
 	try {
 		io::Path("tests").list(io::Path::NameOnly, testsToRun);
