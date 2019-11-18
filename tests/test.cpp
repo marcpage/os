@@ -11,6 +11,7 @@
 #include "os/Sqlite3Plus.h"
 #include "os/Hash.h"
 #include "os/Environment.h"
+#include "os/Statistics.h"
 
 // select name, compiler, options, count(*) as count, avg(run_time) as average_run_time, min(run_time) as min_run_time, max(run_time) as max_run_time, avg(100*lines_run/code_lines) as average_coverage, min(100*lines_run/code_lines) as min_coverage, max(100*lines_run/code_lines) as max_coverage from run group by name, test_hash, header_hash, compiler, options;
 // select name, compiler, options, count(*) as count, avg(run_time) as average_run_time, min(run_time) as min_run_time, max(run_time) as max_run_time, avg(100*lines_run/code_lines) as average_coverage, min(100*lines_run/code_lines) as min_coverage, max(100*lines_run/code_lines) as max_coverage from run group by name, source_identifier, compiler, options;
@@ -238,8 +239,9 @@ String sourceIdentifier(const String &dependenciesPath) {
 	return identifier;
 }
 
-void getTestStats(const String &name, const String &options, const String &headerHash, const String &testHash, uint32_t &testedLines, double &durationInSeconds, double &totalTimeInSeconds, double &slowTimeInSeconds, Sqlite3::DB &db) {
-	Sqlite3::DB::Results results;
+void getTestStats(const String &name, const String &options, const String &headerHash, const String &testHash, uint32_t &testedLines, double &durationInSeconds, double &meanInSeconds, double &timeStddev, double &totalTimeInSeconds, double &slowTimeInSeconds, Sqlite3::DB &db) {
+	Sqlite3::DB::Results	results;
+	math::List				times;
 
 	db.exec("SELECT "
 				"MAX(lines_run) AS testedLines, "
@@ -251,16 +253,38 @@ void getTestStats(const String &name, const String &options, const String &heade
 				"AND options LIKE '"+options+"' "
 				"AND header_hash LIKE '"+headerHash+"' "
 				"AND test_hash LIKE '"+testHash+"';", &results);
+
 	if (results.size() > 0) {
 		testedLines= mystoi(results[0]["testedLines"]);
 		durationInSeconds= mystod(results[0]["durationInSeconds"]);
 		totalTimeInSeconds= mystod(results[0]["totalTimeInSeconds"]);
-		slowTimeInSeconds= durationInSeconds > 0.0 ? (mystod(results[0]["averageTime"]) + durationInSeconds) / 2.0 : 0.0;
+		meanInSeconds = mystod(results[0]["averageTime"]);
+		slowTimeInSeconds= durationInSeconds > 0.0 ? (meanInSeconds + durationInSeconds) / 2.0 : 0.0;
 	} else {
 		testedLines= 0;
 		durationInSeconds= 0;
 		totalTimeInSeconds= 0;
 		slowTimeInSeconds= 0;
+		meanInSeconds = 0;
+	}
+
+	db.exec("SELECT "
+				"run_time"
+			" FROM run WHERE "
+				"name LIKE '" + name + "' "
+				"AND options LIKE '"+options+"' "
+				"AND header_hash LIKE '"+headerHash+"' "
+				"AND test_hash LIKE '"+testHash+"';", &results);
+
+	if (results.size() >= 2) {
+		for (Sqlite3::DB::Results::iterator row = results.begin(); row != results.end(); ++row) {
+			times.push_back(mystod((*row)["run_time"]));
+		}
+		timeStddev = math::stddev(times);
+	} else if (results.size() >= 1) {
+		timeStddev = mystod(results[0]["run_time"]);
+	} else {
+		timeStddev = -1.0;
 	}
 }
 
@@ -286,11 +310,13 @@ void runTest(const String &name, const std::string::size_type maxNameSize, const
 	const String		options= openssl.isEmpty() ? "" : "openssl";
 	uint32_t testedLines;
 	double durationInSeconds;
+	double meanInSeconds;
 	double totalTimeInSeconds;
+	double timeStddev;
 
 	hashFile(testSourcePath, testHash);
 	hashFile(headerPath, headerHash);
-	getTestStats(name, options, headerHash, testHash, testedLines, durationInSeconds, totalTimeInSeconds, slowTime, db);
+	getTestStats(name, options, headerHash, testHash, testedLines, durationInSeconds, meanInSeconds, timeStddev, totalTimeInSeconds, slowTime, db);
 	if (!openssl.isEmpty()) {
 		otherFlags = String(" -DOpenSSLAvailable=1 -I") + String(openssl) + String("/include -L") + String(openssl) + String("/lib") + " " + String(gOpensllFlags);
 		if (!io::Path(String(openssl) + "/include").isDirectory()) {
@@ -401,11 +427,22 @@ void runTest(const String &name, const std::string::size_type maxNameSize, const
 			printf("\t"WarningTextFormatStart"Tested Lines: %d Expected %d"ClearTextFormat"\n", coverage, testedLines);
 			displayNewLine= true;
 		}
+
+		if( runPerfTime > durationInSeconds ) {
+			printf("\t"ErrorTextFormatStart"Test took %0.3fs, expected less than slowest of %0.3fs"ClearTextFormat"\n", runPerfTime+0.000999, durationInSeconds);
+			displayNewLine= true;
+		} else if( runPerfTime > meanInSeconds + 2 * timeStddev ) {
+			printf("\t"ErrorTextFormatStart"Test took %0.3fs, expected less than 2 stddev %0.3fs"ClearTextFormat"\n", runPerfTime+0.000999, meanInSeconds + 2 * timeStddev);
+			displayNewLine= true;
+		} else if( runPerfTime > meanInSeconds + timeStddev ) {
+			printf("\t"WarningTextFormatStart"Test took %0.3fs, expected less than 1 stddev %0.3fs"ClearTextFormat"\n", runPerfTime+0.000999, meanInSeconds + 1 * timeStddev);
+			displayNewLine= true;
+		}
 		if( (runPerfTime > durationInSeconds * (1 + gTestTimeAllowancePercent/100) ) ) {
-			printf("\t"ErrorTextFormatStart"Test took %0.3fs, expected less than %0.3fs"ClearTextFormat"\n", runPerfTime+0.000999, durationInSeconds);
+			printf("\t"ErrorTextFormatStart"(obsolete) Test took %0.3fs, expected less than %0.3fs"ClearTextFormat"\n", runPerfTime+0.000999, durationInSeconds);
 			displayNewLine= true;
 		} else if( (runPerfTime > slowTime * (1 + gTestTimeAllowancePercent/100) ) ) {
-			printf("\t"WarningTextFormatStart"Test was a little slow at %0.3fs, expected less than %0.3fs but definitely less than %0.3fs"ClearTextFormat"\n", runPerfTime+0.000999, slowTime, durationInSeconds);
+			printf("\t"WarningTextFormatStart"(obsolete) Test was a little slow at %0.3fs, expected less than %0.3fs but definitely less than %0.3fs"ClearTextFormat"\n", runPerfTime+0.000999, slowTime, durationInSeconds);
 			displayNewLine= true;
 		}
 		totalTime= compilePerfTime + compileCoverageTime + runPerfTime + runCoverageTime;
