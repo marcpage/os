@@ -527,16 +527,18 @@ void runTest(const String &name, const std::string::size_type maxNameSize, const
 			printf("\t" ErrorTextFormatStart "Test took %0.3fs, expected less than slowest of %0.3fs" ClearTextFormat"\n", runPerfTime+0.000999, durationInSeconds);
 			displayNewLine= true;
 		} else if( runPerfTime > meanInSeconds + 2 * timeStddev ) {
-			printf("\t" ErrorTextFormatStart "Test took %0.3fs, expected less than 2 stddev %0.3fs" ClearTextFormat"\n", runPerfTime+0.000999, meanInSeconds + 2 * timeStddev);
+			printf("\t" ErrorTextFormatStart "Test took %0.3fs, too slow (%0.3fs average, %0.1fx stddev)" ClearTextFormat"\n",
+					runPerfTime+0.000999, meanInSeconds+0.000999, (runPerfTime - meanInSeconds) / timeStddev);
 			displayNewLine= true;
 		} else if( runPerfTime > meanInSeconds + timeStddev ) {
-			printf("\t" WarningTextFormatStart "Test took %0.3fs, expected less than 1 stddev %0.3fs" ClearTextFormat"\n", runPerfTime+0.000999, meanInSeconds + 1 * timeStddev);
+			printf("\t" WarningTextFormatStart "Test took %0.3fs, too slow (%0.3fs average, %0.1fx stddev)" ClearTextFormat"\n",
+					runPerfTime+0.000999, meanInSeconds+0.000999, (runPerfTime - meanInSeconds) / timeStddev);
 			displayNewLine= true;
 		} else if( runPerfTime < meanInSeconds - timeStddev ) {
-			printf("\t" GoodTextFormatStart "Test took %0.3fs, which is less than 1 stddev %0.3fs" ClearTextFormat"\n", runPerfTime+0.000999, meanInSeconds - 1 * timeStddev);
+			printf("\t" GoodTextFormatStart "Test took %0.3fs, faster than average (%0.3fs average, %0.1fx stddev)" ClearTextFormat"\n", runPerfTime+0.000999, meanInSeconds+0.000999, (meanInSeconds - runPerfTime) / timeStddev);
 			displayNewLine= true;
 		} else if( runPerfTime < meanInSeconds - 2 * timeStddev ) {
-			printf("\t" GreatTextFormatStart "Test took %0.3fs, which is less than 2 stddev %0.3fs" ClearTextFormat"\n", runPerfTime+0.000999, meanInSeconds - 2 * timeStddev);
+			printf("\t" GreatTextFormatStart "Test took %0.3fs, faster than average (%0.3fs average, %0.1fx stddev)" ClearTextFormat"\n", runPerfTime+0.000999, meanInSeconds+0.000999, (meanInSeconds - runPerfTime) / timeStddev);
 			displayNewLine= true;
 		}
 
