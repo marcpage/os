@@ -35,6 +35,7 @@ namespace io {
 			};
 			typedef std::string String;
 			typedef std::vector<String> StringList;
+			static bool endsWithPathSeparator(const String &text);
 			Path(const String &path="");
 			Path(const Path &other);
 			~Path() {}
@@ -84,13 +85,17 @@ namespace io {
 			bool _exists(struct stat &info, LinkHandling action) const;
 			StringList &_list(HavePath havePath, StringList &directoryListing, Depth recursive) const;
 			struct stat &_stat(struct stat &info, LinkHandling action) const;
-			const char *_separator() const;
+			static const char *_separator();
 	};
 
-	inline Path::Path(const String &path):_path(path) {
-		const char separator = _separator()[0];
+	inline bool Path::endsWithPathSeparator(const String &text) {
+		static const char separator = _separator()[0];
 
-		while ( (_path.length() > 1) && (_path[_path.length() - 1] == separator) ) {
+		return (text.length() > 1) && (text[text.length() - 1] == separator);
+	}
+
+	inline Path::Path(const String &path):_path(path) {
+		while ( endsWithPathSeparator(_path) ) {
 			_path.erase(_path.length() - 1);
 		}
 	}
@@ -280,7 +285,7 @@ namespace io {
 		}
 		return info;
 	}
-	inline const char *Path::_separator() const {
+	inline const char *Path::_separator() {
 		return "/";
 	}
 	inline dev_t Path::device(LinkHandling action) const {
