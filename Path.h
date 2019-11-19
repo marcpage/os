@@ -25,6 +25,10 @@ namespace io {
 				WorkOnLink,
 				WorkOnLinkTarget
 			};
+			enum Depth {
+				RecursiveListing,
+				FlatListing
+			};
 			enum HavePath {
 				NameOnly,
 				PathAndName
@@ -55,8 +59,8 @@ namespace io {
 			void write(const std::string &contents, io::File::Method method=io::File::Text) const;
 			String contents(io::File::Method method=io::File::Text) const {String buffer; return contents(buffer, method);}
 			String &contents(String &buffer, io::File::Method method=io::File::Text) const;
-			StringList list(HavePath havePath) const;
-			StringList &list(HavePath havePath, StringList &directoryListing) const;
+			StringList list(HavePath havePath, Depth recursive=FlatListing) const;
+			StringList &list(HavePath havePath, StringList &directoryListing, Depth recursive=FlatListing) const;
 			Path operator+(const Path &name) const;
 			Path operator+(const String &name) const;
 			Path &operator=(const Path &other);
@@ -78,6 +82,7 @@ namespace io {
 		private:
 			String _path;
 			bool _exists(struct stat &info, LinkHandling action) const;
+			StringList &_list(HavePath havePath, StringList &directoryListing, Depth recursive) const;
 			struct stat &_stat(struct stat &info, LinkHandling action) const;
 			const char *_separator() const;
 	};
@@ -200,24 +205,35 @@ namespace io {
 	inline void Path::write(const std::string &contents, io::File::Method method) const {
 		io::File(_path, method, io::File::ReadWrite).write(contents);
 	}
-	inline Path::StringList Path::list(HavePath havePath) const {
+	inline Path::StringList Path::list(HavePath havePath, Depth recursive) const {
 		StringList directoryListing;
 
-		return list(havePath, directoryListing);
+		return list(havePath, directoryListing, recursive);
 	}
-	inline Path::StringList &Path::list(HavePath havePath, StringList &directoryListing) const {
+	inline Path::StringList &Path::list(HavePath havePath, StringList &directoryListing, Depth recursive) const {
+		directoryListing.clear();
+
+		return _list(havePath, directoryListing, recursive);
+	}
+	inline Path::StringList &Path::_list(HavePath havePath, StringList &directoryListing, Depth recursive) const {
 		DIR 			*dp;
 		struct dirent	*ep;
+		StringList		directories;
 
-		directoryListing.clear();
   		ErrnoOnNULL(dp= ::opendir(String(*this).c_str()));
+
   		try {
 			do {
 				ErrnoOnNULL(ep= ::readdir(dp));
 				if (NULL != ep) {
-					String name= String(ep->d_name, 0, ep->d_namlen);
+					const String	name= String(ep->d_name, 0, ep->d_namlen);
+					const bool		isDirectory = DT_DIR == ep->d_type;
+
 					if ( (name != ".") && (name != "..")) {
-						directoryListing.push_back((havePath == NameOnly ? String() : (String(*this) + _separator())) + name);
+						directoryListing.push_back((havePath == NameOnly ? String() : (String(*this) + _separator())) + name + (isDirectory ? String(_separator()) : String()));
+						if ( (RecursiveListing == recursive) && isDirectory) {
+							directories.push_back(String(*this) + _separator() + name);
+						}
 					}
 				}
 			} while (NULL != ep);
@@ -226,7 +242,13 @@ namespace io {
 			ErrnoOnNegative(::closedir(dp));
 			throw;
 		}
+
 		ErrnoOnNegative(::closedir(dp));
+
+		for (auto directory = directories.begin(); directory != directories.end(); ++directory) {
+			Path(*directory)._list(havePath, directoryListing, recursive);
+		}
+
 		return directoryListing;
 	}
 	inline Path Path::operator+(const Path &name) const {

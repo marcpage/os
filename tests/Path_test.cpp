@@ -85,9 +85,10 @@ int main(int ,const char * const []) {
 				printf("FAILED: '/test' parent is not '/'\n");
 			}
 			listing= working.parent().list(io::Path::PathAndName);
+			const auto flatListingSize = listing.size();
 			bool found= false;
 			printf("Listing of: %s\n", ((io::Path::String)working.parent()).c_str());
-			for (io::Path::StringList::iterator item= listing.begin(); !found && (item != listing.end()); ++item) {
+			for (auto item= listing.begin(); !found && (item != listing.end()); ++item) {
 				io::Path	entry(*item);
 
 				printf("%16s inode=%d:%llu permissions=%o links=%d uid=%d gid=%d size=%llu size on disk=%llu created=%s modified=%s updated=%s accessed=%s\n",
@@ -102,6 +103,12 @@ int main(int ,const char * const []) {
 			if (!found) {
 				printf("FAILED: could not find 'test' in %s\n", std::string(working.parent()).c_str());
 			}
+
+			listing= working.parent().list(io::Path::PathAndName, io::Path::RecursiveListing);
+			if (listing.size() <= flatListingSize) {
+				printf("FAILED: Recursive should have more entries than flat listing '%s' flat=%lu recursive=%lu\n", std::string(test).c_str(), flatListingSize, listing.size());
+			}
+
 			try {
 				test.list(io::Path::NameOnly);
 				printf("FAILED: we cannot list '%s'\n", std::string(test).c_str());
