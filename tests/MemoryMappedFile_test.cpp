@@ -14,7 +14,7 @@ int main(const int argc, const char * const argv[]) {
 	iterations= 1;
 #endif
 	const io::Path	kTestFilePath(argc < 2 ? "bin/logs/testMemoryMappedFile.txt" : argv[1]);
-	const std::string kTestFileContents("Testing memory mapped file.");
+	const char * const kTestFileContents = "Testing memory mapped file.";
 
 	for (int i = 0; i < iterations; ++i) {
 		if (kTestFilePath.isFile()) {
@@ -28,18 +28,21 @@ int main(const int argc, const char * const argv[]) {
 
 			io::MemoryMappedFile	data(file);
 
+			dotest(data.size() == 1024);
 			file.close();
 
 			char * const buffer = data.address<char>();
 
-			strcpy(buffer, "Testing memory mapped file.");
+			strcpy(buffer, kTestFileContents);
 		}
 
 		{
 			io::MemoryMappedFile	data(kTestFilePath);
-			char *buffer = reinterpret_cast<char*>((void*)data);;
+			char *buffer = reinterpret_cast<char*>((void*)data);
 
-			dotest(kTestFileContents == std::string(buffer));
+			dotest(data.size() == 1024);
+			printf("data size = %lu\n", data.size());
+			dotest(std::string(kTestFileContents) == std::string(buffer));
 		}
 	}
 	return 0;
