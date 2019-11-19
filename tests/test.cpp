@@ -141,7 +141,7 @@ double mystod(const std::string &number) {
 	return 0.0;
 }
 
-void getHeaderStats(Sqlite3::DB &db, const String &name, const String &options, int &linesRun, int &linesNotRun, const std::string &testNames, int &bestPercent) {
+void getHeaderStats(Sqlite3::DB &db, const String &name, const String &headerHash, const String &options, int &linesRun, int &linesNotRun, const std::string &testNames, int &bestPercent) {
 	Sqlite3::DB::Results	results;
 
 	db.exec("SELECT name,lines_run,code_lines,timestamp FROM header WHERE name LIKE '" + name + "' AND tests LIKE '" + testNames + "' AND options LIKE '"+options+"' ORDER BY timestamp DESC;", &results);
@@ -152,7 +152,7 @@ void getHeaderStats(Sqlite3::DB &db, const String &name, const String &options, 
 		linesRun= 0;
 		linesNotRun= 0;
 	}
-	db.exec("SELECT MAX(100 * lines_run / code_lines) AS coverage FROM header WHERE name LIKE '"+name+"' AND tests like '"+testNames+"';", &results);
+	db.exec("SELECT MAX(100 * lines_run / code_lines) AS coverage FROM header WHERE name LIKE '"+name+"' AND tests like '"+testNames+"' AND hash LIKE '"+headerHash+"';", &results);
 	if ( (results.size() > 0) && (results[0]["coverage"].length() > 0) ) {
 		bestPercent= mystoi(results[0]["coverage"]);
 	} else {
@@ -745,8 +745,10 @@ int main(int argc, const char * const argv[]) {
 				uint32_t	uncovered;
 				StringList	uncoveredLines;
 				int			expectedLinesRun= 0, expectedLinesNotRun= 0, bestCoverage;
+				std::string	headerHash;
 
-				getHeaderStats(db, *header, openssl.isEmpty() ? "" : "openssl", expectedLinesRun, expectedLinesNotRun, testNames, bestCoverage);
+				hashFile(*header, headerHash);
+				getHeaderStats(db, *header, headerHash, openssl.isEmpty() ? "" : "openssl", expectedLinesRun, expectedLinesNotRun, testNames, bestCoverage);
 				findFileCoverage(*header, openssl.isEmpty() ? "" : "openssl", coverage, uncovered, uncoveredLines, testNames, db);
 
 				const bool hasExpectations= (expectedLinesRun > 0) || (expectedLinesNotRun > 0);
