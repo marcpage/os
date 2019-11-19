@@ -36,6 +36,7 @@ namespace io {
 			typedef std::string String;
 			typedef std::vector<String> StringList;
 			static bool endsWithPathSeparator(const String &text);
+			Path(const char *path);
 			Path(const String &path="");
 			Path(const Path &other);
 			~Path() {}
@@ -53,6 +54,7 @@ namespace io {
 			const Path &mkdirs(unsigned int mode=0777) const;
 			void rename(const Path &other) const;
 			Path readLink() const;
+			Path relativeTo(const Path &other) const;
 			void symlink(const Path &contents) const;
 			Path parent() const;
 			String name() const;
@@ -63,8 +65,9 @@ namespace io {
 			StringList list(HavePath havePath, Depth recursive=FlatListing) const;
 			StringList &list(HavePath havePath, StringList &directoryListing, Depth recursive=FlatListing) const;
 			Path operator+(const Path &name) const;
-			Path operator+(const String &name) const;
 			Path &operator=(const Path &other);
+			bool operator==(const Path &other);
+			bool operator!=(const Path &other);
 			operator String() const;
 			dev_t device(LinkHandling action=WorkOnLinkTarget) const;
 			ino_t inode(LinkHandling action=WorkOnLinkTarget) const;
@@ -94,8 +97,9 @@ namespace io {
 		return (text.length() > 1) && (text[text.length() - 1] == separator);
 	}
 
+	inline Path::Path(const char *path):Path(String(path)) {}
 	inline Path::Path(const String &path):_path(path) {
-		while ( endsWithPathSeparator(_path) ) {
+		while ( (_path.length() > 1) && endsWithPathSeparator(_path) ) {
 			_path.erase(_path.length() - 1);
 		}
 	}
@@ -173,6 +177,43 @@ namespace io {
 		ErrnoOnNegative(length = ::readlink(_path.c_str(), const_cast<char*>(linkPath.data()), linkPath.length()));
 		linkPath.erase(length);
 		return linkPath;
+	}
+	inline Path Path::relativeTo(const Path &other) const {
+		if (_path == other._path) {
+			return Path("");
+		}
+
+		if (!isAbsolute()) {
+			ThrowMessageException(String("Path is not absolute: ") + String(*this));
+		}
+
+		if (!other.isAbsolute()) {
+			ThrowMessageException(String("Path is not absolute: ") + String(other));
+		}
+
+		String::size_type	matchSeparator = String::npos;
+		static const char	separator = _separator()[0];
+		const String 		me = other._path + separator;
+		const String 		you = _path + separator;
+		Path				result;
+
+		if ( (you.length() > me.length()) && (you[me.length() - 1] == separator) && (you.substr(0, me.length()) == me) ) {
+			return you.substr(me.length() + (you[me.length()] == separator ? 1 : 0));
+		}
+
+		for (String::size_type index = 0; index < std::min(me.length(), you.length()) && (me[index] == you[index]); ++index) {
+			if (separator == me[index]) {
+				matchSeparator = index;
+			}
+		}
+
+		for (String::size_type index = matchSeparator + 1; index < me.length(); ++index) {
+			if (separator == me[index]) {
+				result = result + String("..");
+			}
+		}
+
+		return result + you.substr(matchSeparator + 1);
 	}
 	inline void Path::symlink(const Path &contents) const {
 		ErrnoOnNegative(::symlink(contents._path.c_str(), _path.c_str()));
@@ -257,14 +298,17 @@ namespace io {
 		return directoryListing;
 	}
 	inline Path Path::operator+(const Path &name) const {
-		return Path(_path + _separator() + name._path);
-	}
-	inline Path Path::operator+(const String &name) const {
-		return Path(_path + _separator() + name);
+		return Path((_path.length() > 0 ? _path + _separator() : String()) + name._path);
 	}
 	inline Path &Path::operator=(const Path &other) {
 		_path = other._path;
 		return *this;
+	}
+	inline bool Path::operator==(const Path &other) {
+		return _path == other._path;
+	}
+	inline bool Path::operator!=(const Path &other) {
+		return _path != other._path;
 	}
 	inline Path::operator Path::String() const {
 		return _path;

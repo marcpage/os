@@ -3,6 +3,11 @@
 #include <os/File.h>
 #include <os/Path.h>
 
+#define dotest(condition) \
+	if(!(condition)) { \
+		fprintf(stderr, "FAIL(%s:%d): %s\n",__FILE__, __LINE__, #condition); \
+	}
+
 int main(int ,const char * const []) {
 	int	iterations= 600;
 #ifdef __Tracer_h__
@@ -118,6 +123,46 @@ int main(int ,const char * const []) {
 			(working+"dir1").remove();
 			if ((working+"dir1").isDirectory()) {
 				printf("FAILED: We tried to delete %s, but its still there.\n", std::string(working+"dir1").c_str());
+			}
+
+			dotest(io::Path("/alpha/beta/gamma/").relativeTo("/alpha/beta/gamma").isEmpty());
+			dotest(io::Path("/alpha/beta/gamma").relativeTo("/alpha/beta/gamma").isEmpty());
+			dotest(io::Path("/alpha/beta/gamma/").relativeTo("/alpha/beta/gamma/").isEmpty());
+			dotest(io::Path("/alpha/beta/gamma").relativeTo("/alpha/beta/gamma/").isEmpty());
+
+			printf("io::Path(\"/alpha/b\").relativeTo(\"/alpha/beta/gamma\") = '%s'\n",
+					std::string(io::Path("/alpha/beta").relativeTo("/alpha/beta/gamma")).c_str());
+
+			dotest(io::Path("/alpha/beta").relativeTo("/alpha/beta/gamma") == io::Path(".."));
+			dotest(io::Path("/alpha/beta/").relativeTo("/alpha/beta/gamma") == io::Path(".."));
+			dotest(io::Path("/alpha/beta").relativeTo("/alpha/beta/gamma/") == io::Path(".."));
+			dotest(io::Path("/alpha/beta/").relativeTo("/alpha/beta/gamma/") == io::Path(".."));
+
+			printf("io::Path(\"/alpha/beta/gamma\").relativeTo(\"/alpha/beta\") = '%s'\n",
+					std::string(io::Path("/alpha/beta/gamma").relativeTo("/alpha/beta")).c_str());
+
+			dotest(io::Path("/alpha/beta/gamma").relativeTo("/alpha/beta") == io::Path("gamma"));
+			dotest(io::Path("/alpha/beta/gamma/").relativeTo("/alpha/beta") == io::Path("gamma"));
+			dotest(io::Path("/alpha/beta/gamma").relativeTo("/alpha/beta/") == io::Path("gamma"));
+			dotest(io::Path("/alpha/beta/gamma/").relativeTo("/alpha/beta/") == io::Path("gamma"));
+
+			dotest(io::Path("/alpha/beta/gamma/delta/epsilon/theta").relativeTo("/alpha/beta/gamma/phi/zeta/pi/omicron") == io::Path("../../../../delta/epsilon/theta"));
+			dotest(io::Path("/alpha/beta/gamma/delta/epsilon/theta/").relativeTo("/alpha/beta/gamma/phi/zeta/pi/omicron") == io::Path("../../../../delta/epsilon/theta"));
+			dotest(io::Path("/alpha/beta/gamma/delta/epsilon/theta").relativeTo("/alpha/beta/gamma/phi/zeta/pi/omicron/") == io::Path("../../../../delta/epsilon/theta"));
+			dotest(io::Path("/alpha/beta/gamma/delta/epsilon/theta/").relativeTo("/alpha/beta/gamma/phi/zeta/pi/omicron/") == io::Path("../../../../delta/epsilon/theta"));
+
+			try {
+				io::Path("test").relativeTo("/other");
+				dotest(false);
+			} catch(const msg::Exception &exception) {
+				printf("Expected exception: %s\n", exception.what());
+			}
+
+			try {
+				io::Path("/test").relativeTo("other");
+				dotest(false);
+			} catch(const msg::Exception &exception) {
+				printf("Expected exception: %s\n", exception.what());
 			}
 		} catch(const std::exception &exception) {
 			printf("FAILED: Exception: %s\n", exception.what());
