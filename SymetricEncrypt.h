@@ -43,6 +43,15 @@ namespace crypto {
 	template<class SpecificCryptor>
 	class SpecificSymetricKey : public SymetricKey {
 		public:
+			enum {
+				Size= SpecificCryptor::Size
+			};
+			enum {
+				BlockSize= SpecificCryptor::BlockSize
+			};
+			enum {
+				IVLength= SpecificCryptor::IVLength
+			};
 			SpecificSymetricKey(const void *data, size_t dataSize);
 			SpecificSymetricKey(const std::string &data);
 			virtual ~SpecificSymetricKey() {}

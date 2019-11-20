@@ -59,6 +59,7 @@ namespace io {
 			Path parent() const;
 			String name() const;
 			Path canonical() const;
+			Path uniqueName(const std::string &prefix="",const std::string &suffix="") const;
 			void write(const std::string &contents, io::File::Method method=io::File::Text) const;
 			String contents(io::File::Method method=io::File::Text) const {String buffer; return contents(buffer, method);}
 			String &contents(String &buffer, io::File::Method method=io::File::Text) const;
@@ -243,6 +244,24 @@ namespace io {
 		ErrnoOnNULL(::realpath(String(*this).c_str(), const_cast<char*>(buffer.data())));
 		buffer.erase(::strlen(buffer.c_str()));
 		return buffer;
+	}
+	inline Path Path::uniqueName(const std::string &prefix,const std::string &suffix) const {
+		static const char * const characters = "abcdefghijklmnopqrstuvwxyz0123456789_-+=~";
+		static const int characterCount = strlen(characters);
+
+		while (true) {
+			std::string name;
+
+			for (int i = 0; i < 8; ++i) {
+				name += characters[rand() % characterCount];
+			}
+
+			Path	result = (*this) + (prefix + name + suffix);
+
+			if (!result.exists()) {
+				return result;
+			}
+		}
 	}
 	inline Path::String &Path::contents(String &buffer, io::File::Method method) const {
 		io::File(_path, method, io::File::ReadOnly).read(buffer);

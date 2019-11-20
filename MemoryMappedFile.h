@@ -16,6 +16,7 @@ namespace io {
 			size_t size();
 			template<class T>
 			T *address();
+			void close();
 			virtual ~MemoryMappedFile();
 		private:
 			size_t _size;
@@ -58,14 +59,27 @@ namespace io {
 	/**
 		@todo Test!
 	*/
+	void MemoryMappedFile::close() {
+		if (nullptr != _address) {
+			ErrnoOnNegative(::munmap(_address, _size));
+		}
+		_address = nullptr;
+		_size = 0;
+	}
+	/**
+		@todo Test!
+	*/
 	template<class T>
 	inline T *MemoryMappedFile::address() {
+		if (nullptr == _address) {
+			ThrowMessageException("Memory Mapped File already closed");
+		}
 		return reinterpret_cast<T*>(_address);
 	}
 
 	inline MemoryMappedFile::~MemoryMappedFile() {
 		try {
-			ErrnoOnNegative(::munmap(_address, _size));
+			close();
 		} catch(const std::exception &) {
 			// cannot handle error in exception
 		}

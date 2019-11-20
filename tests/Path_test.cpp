@@ -151,6 +151,8 @@ int main(int ,const char * const []) {
 			dotest(io::Path("/alpha/beta/gamma/delta/epsilon/theta").relativeTo("/alpha/beta/gamma/phi/zeta/pi/omicron/") == io::Path("../../../../delta/epsilon/theta"));
 			dotest(io::Path("/alpha/beta/gamma/delta/epsilon/theta/").relativeTo("/alpha/beta/gamma/phi/zeta/pi/omicron/") == io::Path("../../../../delta/epsilon/theta"));
 
+			dotest(!io::Path("/tmp").uniqueName().exists());
+
 			try {
 				io::Path("test").relativeTo("/other");
 				dotest(false);
