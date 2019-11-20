@@ -31,8 +31,13 @@ namespace crypto {
 			std::string decrypt(const std::string &encrypted) const;
 			std::string encryptWithIV(const std::string &data, const std::string &iv) const;
 			std::string decryptWithIV(const std::string &encrypted, const std::string &iv) const;
-			virtual std::string &encryptInPlace(const std::string &data, const std::string &iv, std::string &encrypted) const=0;
-			virtual std::string &decryptInPlace(const std::string &encrypted, const std::string &iv, std::string &data) const=0;
+			std::string &encryptInPlace(const std::string &data, const std::string &iv, std::string &encrypted) const;
+			std::string &decryptInPlace(const std::string &encrypted, const std::string &iv, std::string &data) const;
+			virtual size_t blockSize() const=0;
+			virtual size_t keySize() const=0;
+			virtual size_t ivSize() const=0;
+			virtual void encryptInPlace(const char *data, const size_t dataSize, const std::string &iv, char *encrypted, size_t &encryptedSize) const=0;
+			virtual void decryptInPlace(const char *encrypted, size_t encryptedSize, const std::string &iv, char *data, size_t &dataSize) const=0;
 	};
 
 	template<class SpecificCryptor>
@@ -41,8 +46,11 @@ namespace crypto {
 			SpecificSymetricKey(const void *data, size_t dataSize);
 			SpecificSymetricKey(const std::string &data);
 			virtual ~SpecificSymetricKey() {}
-			virtual std::string &encryptInPlace(const std::string &data, const std::string &iv, std::string &encrypted) const;
-			virtual std::string &decryptInPlace(const std::string &encrypted, const std::string &iv, std::string &data) const;
+			virtual size_t blockSize() const;
+			virtual size_t keySize() const;
+			virtual size_t ivSize() const;
+			virtual void encryptInPlace(const char *data, const size_t dataSize, const std::string &iv, char *encrypted, size_t &encryptedSize) const;
+			virtual void decryptInPlace(const char *encrypted, size_t encryptedSize, const std::string &iv, char *data, size_t &dataSize) const;
 		private:
 			std::string _key;
 	};
@@ -93,6 +101,26 @@ namespace crypto {
 		return decryptInPlace(encrypted, iv, decrypted);
 	}
 
+	std::string &SymetricKey::encryptInPlace(const std::string &data, const std::string &iv, std::string &encrypted) const {
+		size_t	encryptedSize;
+
+		encrypted.assign(data.size() + blockSize(), '\0');
+		encryptedSize = encrypted.length();
+		encryptInPlace(data.data(), data.size(), iv, const_cast<char*>(encrypted.data()), encryptedSize);
+		encrypted.erase(encryptedSize);
+		return encrypted;
+	}
+
+	std::string &SymetricKey::decryptInPlace(const std::string &encrypted, const std::string &iv, std::string &data) const {
+		size_t	dataSize;
+
+		data.assign(encrypted.size() + blockSize(), '\0');
+		dataSize = data.length();
+		decryptInPlace(encrypted.data(), encrypted.size(), iv, const_cast<char*>(data.data()), dataSize);
+		data.erase(dataSize);
+		return data;
+	}
+
 	template<class SpecificCryptor>
 	inline SpecificSymetricKey<SpecificCryptor>::SpecificSymetricKey(const void *data, size_t dataSize):_key(reinterpret_cast<const char*>(data), dataSize) {
 		EncryptAssert(KeySize, dataSize == SpecificCryptor::Size);
@@ -102,24 +130,29 @@ namespace crypto {
 		EncryptAssert(KeySize, data.length() == SpecificCryptor::Size);
 	}
 	template<class SpecificCryptor>
-	inline std::string &SpecificSymetricKey<SpecificCryptor>::encryptInPlace(const std::string &data, const std::string &iv, std::string &encrypted) const {
+	inline size_t SpecificSymetricKey<SpecificCryptor>::blockSize() const {
+		return SpecificCryptor::BlockSize;
+	}
+
+	template<class SpecificCryptor>
+	inline size_t SpecificSymetricKey<SpecificCryptor>::keySize() const {
+		return SpecificCryptor::Size;
+	}
+
+	template<class SpecificCryptor>
+	inline size_t SpecificSymetricKey<SpecificCryptor>::ivSize() const {
+		return SpecificCryptor::IVLength;
+	}
+
+	template<class SpecificCryptor>
+	inline void SpecificSymetricKey<SpecificCryptor>::encryptInPlace(const char *data, const size_t dataSize, const std::string &iv, char *encrypted, size_t &encryptedSize) const {
 		EncryptAssert(IVWrongSize, (iv.length() == SpecificCryptor::IVLength) || (iv.length() == 0));
-		encrypted.assign(data.size() + SpecificCryptor::BlockSize, '\0');
-
-		size_t encryptedSize= SpecificCryptor::encrypt(_key.data(), data.data(), data.length(), const_cast<char*>(encrypted.data()), encrypted.length(), iv.length() ? iv.data() : NULL);
-
-		encrypted.erase(encryptedSize);
-		return encrypted;
+		encryptedSize= SpecificCryptor::encrypt(_key.data(), data, dataSize, encrypted, encryptedSize, iv.length() ? iv.data() : NULL);
 	}
 	template<class SpecificCryptor>
-	inline std::string &SpecificSymetricKey<SpecificCryptor>::decryptInPlace(const std::string &encrypted, const std::string &iv, std::string &data) const {
+	inline void SpecificSymetricKey<SpecificCryptor>::decryptInPlace(const char *encrypted, size_t encryptedSize, const std::string &iv, char *data, size_t &dataSize) const {
 		EncryptAssert(IVWrongSize, (iv.length() == SpecificCryptor::IVLength) || (iv.length() == 0));
-		data.assign(encrypted.size() + SpecificCryptor::BlockSize, '\0');
-
-		size_t encryptedSize= SpecificCryptor::decrypt(_key.data(), encrypted.data(), encrypted.length(), const_cast<char*>(data.data()), data.length(), iv.length() ? iv.data() : NULL);
-
-		data.erase(encryptedSize);
-		return data;
+		dataSize= SpecificCryptor::decrypt(_key.data(), encrypted, encryptedSize, data, dataSize, iv.length() ? iv.data() : NULL);
 	}
 
 #if OpenSSLAvailable

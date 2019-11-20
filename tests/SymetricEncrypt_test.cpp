@@ -23,6 +23,9 @@ int main(int /*argc*/, char * /*argv*/[]) {
 			std::string		iv;
 
 			fprintf(stderr, "AES256 size test\n");
+			dotest(16 == crypto::AES256(key).blockSize());
+			dotest(32 == crypto::AES256(key).keySize());
+			dotest(16 == crypto::AES256(key).ivSize());
 			while(source.length() < 128) {
 				fprintf(stderr, "test length=%lu\n", source.length());
 				dotest(source == crypto::AES256(key).decrypt(crypto::AES256(key).encrypt(source)));
@@ -30,6 +33,12 @@ int main(int /*argc*/, char * /*argv*/[]) {
 				source += "test";
 			}
 			fprintf(stderr, "AES256_EBC AlignmentError size test\n");
+			dotest(16 == crypto::AES256_EBC(key).blockSize());
+			dotest(32 == crypto::AES256_EBC(key).keySize());
+			dotest(16 == crypto::AES256_EBC(key).ivSize());
+			printf("blockSize: %lu\n", crypto::AES256(key).blockSize());
+			printf("keySize: %lu\n", crypto::AES256(key).keySize());
+			printf("ivSize: %lu\n", crypto::AES256(key).ivSize());
 			try {
 				crypto::AES256_EBC(key).decrypt(crypto::AES256_EBC(key).encrypt(source));
 				fprintf(stderr, "FAILED: Exception should have happened\n");
@@ -85,6 +94,27 @@ int main(int /*argc*/, char * /*argv*/[]) {
 				source += "a";
 			}
 			fprintf(stderr, "Testing permutations\n");
+			dotest(16 == crypto::AES256_CBC_Padded(key).blockSize());
+			dotest(32 == crypto::AES256_CBC_Padded(key).keySize());
+			dotest(16 == crypto::AES256_CBC_Padded(key).ivSize());
+			printf("blockSize: %lu\n", crypto::AES256_CBC_Padded(key).blockSize());
+			printf("keySize: %lu\n", crypto::AES256_CBC_Padded(key).keySize());
+			printf("ivSize: %lu\n", crypto::AES256_CBC_Padded(key).ivSize());
+
+			dotest(16 == crypto::AES256_EBC_Padded(key).blockSize());
+			dotest(32 == crypto::AES256_EBC_Padded(key).keySize());
+			dotest(16 == crypto::AES256_EBC_Padded(key).ivSize());
+			printf("blockSize: %lu\n", crypto::AES256_EBC_Padded(key).blockSize());
+			printf("keySize: %lu\n", crypto::AES256_EBC_Padded(key).keySize());
+			printf("ivSize: %lu\n", crypto::AES256_EBC_Padded(key).ivSize());
+
+			dotest(16 == crypto::AES256_CBC(key).blockSize());
+			dotest(32 == crypto::AES256_CBC(key).keySize());
+			dotest(16 == crypto::AES256_CBC(key).ivSize());
+			printf("blockSize: %lu\n", crypto::AES256_CBC(key).blockSize());
+			printf("keySize: %lu\n", crypto::AES256_CBC(key).keySize());
+			printf("ivSize: %lu\n", crypto::AES256_CBC(key).ivSize());
+
 			dotest("test" == crypto::AES256_CBC_Padded(key).decrypt(crypto::AES256_CBC_Padded(key).encrypt("test")));
 			dotest("test" == crypto::AES256_EBC_Padded(key).decrypt(crypto::AES256_EBC_Padded(key).encrypt("test")));
 			dotest("1234567890123456" == crypto::AES256_CBC_Padded(key).decrypt(crypto::AES256_CBC_Padded(key).encrypt("1234567890123456")));
