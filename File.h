@@ -158,7 +158,7 @@ namespace io {
 	*/
 	inline std::string &File::read(std::string &buffer, size_t bufferSize, off_t offset, Relative relative) const {
 		if(static_cast<size_t>(-1) == bufferSize) {
-			bufferSize= size();
+			bufferSize= size() - offset;
 		}
 		buffer.assign(bufferSize, '\0');
 		read(const_cast<char*>(buffer.data()), bufferSize, offset, relative);

@@ -61,9 +61,13 @@ namespace z {
 		return "";
 	}
 
+	inline size_t maxCompressedSize(size_t sourceSize) {
+		return ::compressBound(sourceSize);
+	}
+
 	inline size_t compress(const void *source, size_t sourceSize, void *destination, size_t destinationSize, int level=6) {
 		uLong	dSize= destinationSize;
-		AssertMessageException(destinationSize >= ::compressBound(sourceSize));
+		AssertMessageException(destinationSize >= maxCompressedSize(sourceSize));
 
 		zlib_handle_error(::compress2(reinterpret_cast<Bytef*>(destination), &dSize,
 									reinterpret_cast<const Bytef*>(source), static_cast<uLong>(sourceSize), level));
@@ -71,7 +75,7 @@ namespace z {
 	}
 
 	inline std::string &compress(const std::string &source, std::string &destination, int level= 6) {
-		const size_t	maxDestination= ::compressBound(source.size());
+		const size_t	maxDestination= maxCompressedSize(source.size());
 
 		destination.assign(static_cast<std::string::size_type>(maxDestination), '\0');
 

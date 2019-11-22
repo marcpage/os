@@ -61,8 +61,8 @@ namespace io {
 			Path canonical() const;
 			Path uniqueName(const std::string &prefix="",const std::string &suffix="") const;
 			void write(const std::string &contents, io::File::Method method=io::File::Text) const;
-			String contents(io::File::Method method=io::File::Text) const {String buffer; return contents(buffer, method);}
-			String &contents(String &buffer, io::File::Method method=io::File::Text) const;
+			String contents(io::File::Method method=io::File::Text, off_t offset=0, size_t size=static_cast<size_t>(-1)) const {String buffer; return contents(buffer, method, offset, size);}
+			String &contents(String &buffer, io::File::Method method=io::File::Text, off_t offset=0, size_t size=static_cast<size_t>(-1)) const;
 			StringList list(HavePath havePath, Depth recursive=FlatListing) const;
 			StringList &list(HavePath havePath, StringList &directoryListing, Depth recursive=FlatListing) const;
 			Path operator+(const Path &name) const;
@@ -263,8 +263,8 @@ namespace io {
 			}
 		}
 	}
-	inline Path::String &Path::contents(String &buffer, io::File::Method method) const {
-		io::File(_path, method, io::File::ReadOnly).read(buffer);
+	inline Path::String &Path::contents(String &buffer, io::File::Method method, off_t offset, size_t size) const {
+		io::File(_path, method, io::File::ReadOnly).read(buffer, size, offset);
 		return buffer;
 	}
 	inline void Path::write(const std::string &contents, io::File::Method method) const {

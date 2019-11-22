@@ -28,6 +28,8 @@ namespace net {
 			void connect(Address &address);
 			/** Read bytes into a buffer from the socket. */
 			std::string read(size_t bytes);
+			/** Read bytes into a buffer from the socket. */
+			std::string &read(size_t bytes, std::string &buffer);
 			/** Write bytes from a buffer to the socket. */
 			size_t write(const std::string &buffer, size_t bytes= static_cast<size_t>(-1), size_t offset= 0);
 			/** @todo Document */
@@ -55,9 +57,19 @@ namespace net {
 		@todo	Figure out when we are end of stream and return -1
 	*/
 	inline std::string Socket::read(size_t bytes) {
-		std::string buffer(bytes, '\0');
+		std::string buffer;
+		return read(bytes, buffer);
+	}
+	/**
+		@param bytes	The number of bytes to but in the buffer, or -1 for buffer max.
+							If <code>bytes</code> is greater than the buffer size, the
+							buffer max will be used.
+		@todo	Figure out when we are end of stream and return -1
+	*/
+	inline std::string &Socket::read(size_t bytes, std::string &buffer) {
 		ssize_t		amount;
 
+		buffer.assign(bytes, '\0');
 		ErrnoOnNegative(amount= ::read(_socket, const_cast<char*>(buffer.data()), bytes));
 		buffer.erase(amount);
 		return buffer;
