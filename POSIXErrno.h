@@ -46,7 +46,8 @@ namespace posix { namespace err {
 			int code() const throw();
 			static void _throw(int errnoCode, const std::string &message, const char *file, int line);
 			static int _throwOnNegative(const int returnCode, const char *call, const char *file, const int line);
-			static void *_throwOnNull(void *returnAddress, const char *call, const char *file, const int line);
+			template<typename T>
+			static T *_throwOnNull(T *returnAddress, const char *call, const char *file, const int line);
 			static void _noop();
 		private:
 			int			_errno;		///< The error code
@@ -178,7 +179,8 @@ namespace posix { namespace err {
 		}
 		return returnCode;
 	}
-	inline void *Errno::_throwOnNull(void *returnAddress, const char *call, const char *file, const int line) {
+	template<typename T>
+	inline T *Errno::_throwOnNull(T *returnAddress, const char *call, const char *file, const int line) {
 		if(nullptr == returnAddress) {
 			_throw(errno, call, file, line);
 		}

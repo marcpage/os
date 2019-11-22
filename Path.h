@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <dirent.h>
+#include <sys/param.h>
 #include <vector>
 #include "os/POSIXErrno.h"
 #include "os/File.h"
@@ -36,6 +37,7 @@ namespace io {
 			typedef std::string String;
 			typedef std::vector<String> StringList;
 			static bool endsWithPathSeparator(const String &text);
+			static Path working();
 			Path(const char *path);
 			Path(const String &path="");
 			Path(const Path &other);
@@ -55,6 +57,7 @@ namespace io {
 			void rename(const Path &other) const;
 			Path readLink() const;
 			Path relativeTo(const Path &other) const;
+			Path absolute(const Path &from=working()) const;
 			void symlink(const Path &contents) const;
 			Path parent() const;
 			String name() const;
@@ -96,6 +99,12 @@ namespace io {
 		static const char separator = _separator()[0];
 
 		return (text.length() > 1) && (text[text.length() - 1] == separator);
+	}
+
+	inline Path Path::working() {
+		char buffer[MAXPATHLEN];
+
+		return Path(ErrnoOnNULL(getcwd(buffer, sizeof(buffer))));
 	}
 
 	inline Path::Path(const char *path):Path(String(path)) {}
@@ -185,11 +194,11 @@ namespace io {
 		}
 
 		if (!isAbsolute()) {
-			ThrowMessageException(String("Path is not absolute: ") + String(*this));
+			ThrowMessageException(String("Path is not absolute: '") + String(*this) + "'");
 		}
 
 		if (!other.isAbsolute()) {
-			ThrowMessageException(String("Path is not absolute: ") + String(other));
+			ThrowMessageException(String("Path is not absolute: '") + String(other) + "'");
 		}
 
 		String::size_type	matchSeparator = String::npos;
@@ -215,6 +224,12 @@ namespace io {
 		}
 
 		return result + you.substr(matchSeparator + 1);
+	}
+	inline Path Path::absolute(const Path &from) const {
+		if (isAbsolute()) {
+			return *this;
+		}
+		return (from + *this).canonical();
 	}
 	inline void Path::symlink(const Path &contents) const {
 		ErrnoOnNegative(::symlink(contents._path.c_str(), _path.c_str()));
