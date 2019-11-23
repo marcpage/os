@@ -32,4 +32,10 @@ namespace exec {
 		::pclose(out);
 		return stdout;
 	}
+
+	inline std::string &execute(const std::string &command, const size_t blocks= 4096) {
+		std::string stdout;
+
+		return execute(command, stdout, blocks);
+	}
 }

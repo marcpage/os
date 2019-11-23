@@ -4,7 +4,7 @@
 int main(const int /*argc*/,const char*const /*argv*/[]) {
 	std::string	result,test;
 
-	exec::execute("ls /", result, 4096);
+	result = exec::execute("ls /", 4096);
 	for(size_t i= 1; i < 300; ++i) {
 		exec::execute("ls /", test, i);
 		if(test != result) {
