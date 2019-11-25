@@ -64,6 +64,7 @@ namespace net {
 		@param bytes	The number of bytes to but in the buffer, or -1 for buffer max.
 							If <code>bytes</code> is greater than the buffer size, the
 							buffer max will be used.
+		@param buffer	The buffer to store the bytes in, also returned for convenience
 		@todo	Figure out when we are end of stream and return -1
 	*/
 	inline std::string &Socket::read(size_t bytes, std::string &buffer) {

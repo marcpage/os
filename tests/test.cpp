@@ -29,7 +29,7 @@ const double		gTestMinimumTimeInSeconds= 1;
 const char * const	gOpensllFlags= "-lcrypto";
 const char * const	gCompilerFlags= "-I.. -MMD -std=c++11"
 										" -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings"
-										" -lz -lsqlite3 -framework Carbon";
+										" -lz -lsqlite3 -framework CoreFoundation";
 const uint32_t		gMinimumPercentCodeCoverage= 70;
 const String		gCompilerList= "clang++,g++,llvm-g++";
 Dictionary			gCompilerLocations;

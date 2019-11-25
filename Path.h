@@ -299,24 +299,32 @@ namespace io {
 		DIR 			*dp;
 		struct dirent	*ep;
 		StringList		directories;
+        bool            keepListing = true;
 
   		ErrnoOnNULL(dp= ::opendir(String(*this).c_str()));
 
   		try {
 			do {
-				ErrnoOnNULL(ep= ::readdir(dp));
-				if (NULL != ep) {
-					const String	name= String(ep->d_name, 0, ep->d_namlen);
-					const bool		isDirectory = DT_DIR == ep->d_type;
+                try {
+                    ErrnoOnNULL(ep= ::readdir(dp));
 
-					if ( (name != ".") && (name != "..")) {
-						directoryListing.push_back((havePath == NameOnly ? String() : (String(*this) + _separator())) + name + (isDirectory ? String(_separator()) : String()));
-						if ( (RecursiveListing == recursive) && isDirectory) {
-							directories.push_back(String(*this) + _separator() + name);
-						}
-					}
-				}
-			} while (NULL != ep);
+                    if (NULL != ep) {
+                        const String    name= String(ep->d_name, 0, ep->d_namlen);
+                        const bool        isDirectory = DT_DIR == ep->d_type;
+
+                        if ( (name != ".") && (name != "..")) {
+                            directoryListing.push_back((havePath == NameOnly ? String() : (String(*this) + _separator())) + name + (isDirectory ? String(_separator()) : String()));
+                            if ( (RecursiveListing == recursive) && isDirectory) {
+                                directories.push_back(String(*this) + _separator() + name);
+                            }
+                        }
+                    } else {
+                        keepListing = false;
+                    }
+                } catch(const posix::err::EINTR_Errno &) {
+                    keepListing = false; // sometimes we get spurious EINTR when there is an empty directory
+                }
+			} while (keepListing);
 		} catch(const posix::err::ENOENT_Errno &) {
 		} catch(const std::exception &) {
 			ErrnoOnNegative(::closedir(dp));
