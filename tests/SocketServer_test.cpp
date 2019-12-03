@@ -74,9 +74,12 @@ int main(const int argc, const char * const argv[]) {
 
 				printf("THREAD: Connecting\n");
 				connection.connect(local);
-				writeString= "Hello";
+				if (writeString.size() > 1024) {
+					writeString = "";
+				}
+				writeString+= "he";
 				printf("THREAD: Writing %s\n", writeString.c_str());
-				amount= connection.write(writeString, 20);
+				amount= connection.write(writeString, writeString.size() + 20);
 				if(amount != writeString.size()) {
 					printf("THREAD: FAIL: Unable to write Hello\n");
 				}
