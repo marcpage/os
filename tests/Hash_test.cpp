@@ -21,7 +21,6 @@ int main(int /*argc*/, char * /*argv*/[]) {
 		#if __APPLE_CC__ || __APPLE__
 			printf("Testing Mac specific code\n");
 			dotest(std::string("sha256") == hash::CommonCryptoSHA256Hasher().name());
-			dotest(std::string("md5") == hash::CommonCryptoMD5Hasher().name());
 		#endif
 		#if OpenSSLAvailable
 			printf("Testing openssl specific code\n");
@@ -32,8 +31,6 @@ int main(int /*argc*/, char * /*argv*/[]) {
 			printf("Testing openssl Mac specific code\n");
 			dotest(hash::sha256("test", 4).hex() == hash::openssl_sha256("test", 4).hex(otherHash));
 			dotest(hash::sha256("", 0).hex() == hash::openssl_sha256("", 0).hex(otherHash));
-			dotest(hash::md5("test", 4).hex() == hash::openssl_md5("test", 4).hex(otherHash));
-			dotest(hash::md5("", 0).hex() == hash::openssl_md5("", 0).hex(otherHash));
 			dotest(hash::openssl_sha256("", 0).hex() == std::string("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"));
 		#endif
 			dotest(hash::sha256("", 0).hex(hash) == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
@@ -48,8 +45,6 @@ int main(int /*argc*/, char * /*argv*/[]) {
 			dotest(hash::sha256("test", 4) == test);
 			dotest(!hash::sha256().valid());
 			dotest(hash::sha256("test", 4).size() == 32);
-			dotest(hash::md5("test", 4).hex() == "098f6bcd4621d373cade4e832627b4f6");
-			dotest(std::string(hash::md5().name()) == "md5");
 			dotest(std::string(hash::sha256().name()) == "sha256");
 			test.reset(std::string("working"));
 			dotest(hash::sha256("working", 7) == test);

@@ -9,6 +9,8 @@ int main(const int /*argc*/,const char*const /*argv*/[]) {
 		exec::execute("ls /", test, i);
 		if(test != result) {
 			printf("FAILED on blockSize=%ld\n", i);
+			printf("=== EXPECTED ===\n%s\n", result.c_str());
+			printf("=== RESULT ===\n%s\n", test.c_str());
 		}
 	}
 	return 0;
