@@ -65,7 +65,7 @@ namespace hash {
 			};
 			/// Create a hash object from raw hash data
 			static SpecificHash<Hasher> fromData(const void *buffer, uint32_t size);
-			/// Create a hash object from raw hash data
+			/// Create a hash object from hex hash
 			static SpecificHash<Hasher> fromHex(const std::string &hex);
 			/// The default constructor.
 			SpecificHash();
