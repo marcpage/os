@@ -7,6 +7,10 @@
 
 namespace sys {
 	/*
+
+	See:
+	https://stackoverflow.com/questions/11072804/how-do-i-determine-the-os-version-at-runtime-in-os-x-or-ios-without-using-gesta
+
 	sysname: Darwin
 	nodename: crazyhorse.amer.corp.natinst.com
 	release: 18.7.0
