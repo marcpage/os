@@ -12,7 +12,15 @@ std::string dumpKey(const void *key) {
 	OSStatus res;
 	CFDataRef exported;
 
+	if (!key) {
+		printf("key is null\n");
+		return "";
+	}
 	res = SecItemExport(key, kSecFormatUnknown, kSecItemPemArmour, nullptr, &exported);
+	if (!exported) {
+		printf("Unable to export key data\n");
+		return "";
+	}
 	CFIndex size = CFDataGetLength(exported);
 
 	std::string value(std::string::size_type(size), '\0');
@@ -25,6 +33,14 @@ int main(int argc, char* argv[]) {
 	SecKeyRef publicKey, privateKey;
 	OSStatus res;
 	int keySize = (argc == 2) ? atoi(argv[1]) : 1024; // 1024 - 4096 increment 8
+
+	/* Time to generate key
+		1024 = 0.25 seconds
+		2048 - 2 seconds
+		3072 - 8 seconds
+		4096 - 30 seconds
+	*/
+
     SecItemImportExportKeyParameters params;
     SecExternalItemType itemType = kSecItemTypeUnknown;
     SecExternalFormat format = kSecFormatUnknown;
@@ -52,12 +68,20 @@ int main(int argc, char* argv[]) {
 	printf("res=%d\n", res);
 	printf("length=%ld\n", (long)CFArrayGetCount(keyList));
 
+	SecKeyRef pubCopy = reinterpret_cast<SecKeyRef>(const_cast<void*>(CFArrayGetValueAtIndex(keyList, 0)));
+	printf("pubCopy = %p\n", pubCopy);
+	dumpKey(pubCopy);
+
 	data = CFDataCreate(nullptr, reinterpret_cast<const UInt8 *>(priv.data()), priv.size());
 	res = SecItemImport(data, nullptr, &format, &itemType, 0, &params, nullptr, &keyList);
 	printf("res=%d\n", res);
 	printf("length=%ld\n", (long)CFArrayGetCount(keyList));
 	printf("Keysize = %d\n", keySize);
 	// SecKeyCreateEncryptedData https://developer.apple.com/documentation/security/1643957-seckeycreateencrypteddata?language=objc
+
+	SecKeyRef privCopy = reinterpret_cast<SecKeyRef>(const_cast<void*>(CFArrayGetValueAtIndex(keyList, 0)));
+	printf("privCopy = %p\n", privCopy);
+	dumpKey(privCopy);
 
 	return 0;
 }
