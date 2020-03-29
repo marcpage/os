@@ -1,12 +1,19 @@
+
+// clang++ 2clean/AsymetricEncrypt.cpp -framework Security -framework CoreFoundation -DOpenSSLAvailable=1 -I/usr/local/Cellar/openssl@1.1/1.1.1d/include -L/usr/local/Cellar/openssl@1.1/1.1.1d/lib -lcrypto -o /tmp/test
+
+#include <stdio.h>
+#include <string>
+
+// Recommended public exponents: 3, 5, 17, 257 or 65537
+
+#define AppleAPI 0
+
+#if AppleAPI
+
 #if __APPLE_CC__ || __APPLE__
 	#include <CommonCrypto/CommonCryptor.h>
 	#include <Security/Security.h>
 #endif
-
-// clang++ 2clean/AsymetricEncrypt.cpp -framework Security -framework CoreFoundation -o /tmp/test
-
-#include <stdio.h>
-#include <string>
 
 std::string dumpKey(const void *key) {
 	OSStatus res;
@@ -86,3 +93,33 @@ int main(int argc, char* argv[]) {
 	return 0;
 }
 
+#else
+
+#include <openssl/rsa.h>
+#include <openssl/pem.h>
+
+int main(int argc, char* argv[]) {
+	const int kBits = 1024;
+	const int kExp = 3;
+
+	int keylen;
+	char *pem_key;
+
+	RSA *rsa = RSA_generate_key(kBits, kExp, 0, 0);
+
+	/* To get the C-string PEM form: */
+	BIO *bio = BIO_new(BIO_s_mem());
+	PEM_write_bio_RSAPrivateKey(bio, rsa, NULL, NULL, 0, NULL, NULL);
+
+	keylen = BIO_pending(bio);
+	pem_key = reinterpret_cast<char*>(calloc(keylen+1, 1)); /* Null-terminate */
+	BIO_read(bio, pem_key, keylen);
+
+	printf("%s", pem_key);
+
+	BIO_free_all(bio);
+	RSA_free(rsa);
+	free(pem_key);
+}
+
+#endif
