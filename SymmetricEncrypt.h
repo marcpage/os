@@ -1,7 +1,7 @@
-#ifndef __SymetricEncrypt_h__
-#define __SymetricEncrypt_h__
+#ifndef __SymmetricEncrypt_h__
+#define __SymmetricEncrypt_h__
 
-/** @file SymetricEncrypt.h
+/** @file SymmetricEncrypt.h
 	@todo document
 	@todo genericize like Hash to move Mac specific code into platform isolcation
 */
@@ -23,10 +23,10 @@
 
 namespace crypto {
 
-	class SymetricKey {
+	class SymmetricKey {
 		public:
-			SymetricKey() {}
-			virtual ~SymetricKey() {}
+			SymmetricKey() {}
+			virtual ~SymmetricKey() {}
 			std::string encrypt(const std::string &data) const;
 			std::string decrypt(const std::string &encrypted) const;
 			std::string encryptWithIV(const std::string &data, const std::string &iv) const;
@@ -41,7 +41,7 @@ namespace crypto {
 	};
 
 	template<class SpecificCryptor>
-	class SpecificSymetricKey : public SymetricKey {
+	class SpecificSymmetricKey : public SymmetricKey {
 		public:
 			enum {
 				Size= SpecificCryptor::Size
@@ -52,9 +52,9 @@ namespace crypto {
 			enum {
 				IVLength= SpecificCryptor::IVLength
 			};
-			SpecificSymetricKey(const void *data, size_t dataSize);
-			SpecificSymetricKey(const std::string &data);
-			virtual ~SpecificSymetricKey() {}
+			SpecificSymmetricKey(const void *data, size_t dataSize);
+			SpecificSymmetricKey(const std::string &data);
+			virtual ~SpecificSymmetricKey() {}
 			virtual size_t blockSize() const;
 			virtual size_t keySize() const;
 			virtual size_t ivSize() const;
@@ -89,28 +89,28 @@ namespace crypto {
 	DeclareError(Unimplemented, "Function not implemented for the current algorithm");
 	DeclareError(IVWrongSize, "Initialization Vector is the wrong size");
 
-	inline std::string SymetricKey::encrypt(const std::string &data) const {
+	inline std::string SymmetricKey::encrypt(const std::string &data) const {
 		std::string encrypted;
 
 		return encryptInPlace(data, "", encrypted);
 	}
-	inline std::string SymetricKey::decrypt(const std::string &encrypted) const {
+	inline std::string SymmetricKey::decrypt(const std::string &encrypted) const {
 		std::string decrypted;
 
 		return decryptInPlace(encrypted, "", decrypted);
 	}
-	inline std::string SymetricKey::encryptWithIV(const std::string &data, const std::string &iv) const {
+	inline std::string SymmetricKey::encryptWithIV(const std::string &data, const std::string &iv) const {
 		std::string encrypted;
 
 		return encryptInPlace(data, iv, encrypted);
 	}
-	inline std::string SymetricKey::decryptWithIV(const std::string &encrypted, const std::string &iv) const {
+	inline std::string SymmetricKey::decryptWithIV(const std::string &encrypted, const std::string &iv) const {
 		std::string decrypted;
 
 		return decryptInPlace(encrypted, iv, decrypted);
 	}
 
-	std::string &SymetricKey::encryptInPlace(const std::string &data, const std::string &iv, std::string &encrypted) const {
+	std::string &SymmetricKey::encryptInPlace(const std::string &data, const std::string &iv, std::string &encrypted) const {
 		size_t	encryptedSize;
 
 		encrypted.assign(data.size() + blockSize(), '\0');
@@ -120,7 +120,7 @@ namespace crypto {
 		return encrypted;
 	}
 
-	std::string &SymetricKey::decryptInPlace(const std::string &encrypted, const std::string &iv, std::string &data) const {
+	std::string &SymmetricKey::decryptInPlace(const std::string &encrypted, const std::string &iv, std::string &data) const {
 		size_t	dataSize;
 
 		data.assign(encrypted.size() + blockSize(), '\0');
@@ -131,35 +131,35 @@ namespace crypto {
 	}
 
 	template<class SpecificCryptor>
-	inline SpecificSymetricKey<SpecificCryptor>::SpecificSymetricKey(const void *data, size_t dataSize):_key(reinterpret_cast<const char*>(data), dataSize) {
+	inline SpecificSymmetricKey<SpecificCryptor>::SpecificSymmetricKey(const void *data, size_t dataSize):_key(reinterpret_cast<const char*>(data), dataSize) {
 		EncryptAssert(KeySize, dataSize == SpecificCryptor::Size);
 	}
 	template<class SpecificCryptor>
-	inline SpecificSymetricKey<SpecificCryptor>::SpecificSymetricKey(const std::string &data):_key(data) {
+	inline SpecificSymmetricKey<SpecificCryptor>::SpecificSymmetricKey(const std::string &data):_key(data) {
 		EncryptAssert(KeySize, data.length() == SpecificCryptor::Size);
 	}
 	template<class SpecificCryptor>
-	inline size_t SpecificSymetricKey<SpecificCryptor>::blockSize() const {
+	inline size_t SpecificSymmetricKey<SpecificCryptor>::blockSize() const {
 		return SpecificCryptor::BlockSize;
 	}
 
 	template<class SpecificCryptor>
-	inline size_t SpecificSymetricKey<SpecificCryptor>::keySize() const {
+	inline size_t SpecificSymmetricKey<SpecificCryptor>::keySize() const {
 		return SpecificCryptor::Size;
 	}
 
 	template<class SpecificCryptor>
-	inline size_t SpecificSymetricKey<SpecificCryptor>::ivSize() const {
+	inline size_t SpecificSymmetricKey<SpecificCryptor>::ivSize() const {
 		return SpecificCryptor::IVLength;
 	}
 
 	template<class SpecificCryptor>
-	inline void SpecificSymetricKey<SpecificCryptor>::encryptInPlace(const char *data, const size_t dataSize, const std::string &iv, char *encrypted, size_t &encryptedSize) const {
+	inline void SpecificSymmetricKey<SpecificCryptor>::encryptInPlace(const char *data, const size_t dataSize, const std::string &iv, char *encrypted, size_t &encryptedSize) const {
 		EncryptAssert(IVWrongSize, (iv.length() == SpecificCryptor::IVLength) || (iv.length() == 0));
 		encryptedSize= SpecificCryptor::encrypt(_key.data(), data, dataSize, encrypted, encryptedSize, iv.length() ? iv.data() : NULL);
 	}
 	template<class SpecificCryptor>
-	inline void SpecificSymetricKey<SpecificCryptor>::decryptInPlace(const char *encrypted, size_t encryptedSize, const std::string &iv, char *data, size_t &dataSize) const {
+	inline void SpecificSymmetricKey<SpecificCryptor>::decryptInPlace(const char *encrypted, size_t encryptedSize, const std::string &iv, char *data, size_t &dataSize) const {
 		EncryptAssert(IVWrongSize, (iv.length() == SpecificCryptor::IVLength) || (iv.length() == 0));
 		dataSize= SpecificCryptor::decrypt(_key.data(), encrypted, encryptedSize, data, dataSize, iv.length() ? iv.data() : NULL);
 	}
@@ -241,13 +241,13 @@ namespace crypto {
 	typedef OpenSSLAES<EVP_aes_256_cbc, false, 32, AES_BLOCK_SIZE, AES_BLOCK_SIZE> OpenSSL_AES256_CBC_Cryptor;
 
 #if __APPLE_CC__ || __APPLE__
-	typedef SpecificSymetricKey<OpenSSL_AES256_CBC_Padded_Cryptor> OpenSSL_AES256_CBC_Padded;
-	typedef SpecificSymetricKey<OpenSSL_AES256_CBC_Cryptor> OpenSSL_AES256_CBC;
+	typedef SpecificSymmetricKey<OpenSSL_AES256_CBC_Padded_Cryptor> OpenSSL_AES256_CBC_Padded;
+	typedef SpecificSymmetricKey<OpenSSL_AES256_CBC_Cryptor> OpenSSL_AES256_CBC;
 
 	typedef OpenSSL_AES256_CBC_Padded OpenSSL_AES256;
 #else
-	typedef SpecificSymetricKey<OpenSSL_AES256_CBC_Padded_Cryptor> AES256_CBC_Padded;
-	typedef SpecificSymetricKey<OpenSSL_AES256_CBC_Cryptor> AES256_CBC;
+	typedef SpecificSymmetricKey<OpenSSL_AES256_CBC_Padded_Cryptor> AES256_CBC_Padded;
+	typedef SpecificSymmetricKey<OpenSSL_AES256_CBC_Cryptor> AES256_CBC;
 
 	typedef AES256_CBC_Padded AES256;
 #endif
@@ -310,10 +310,10 @@ namespace crypto {
 	typedef CommonCryptoKey<kCCAlgorithmAES, kCCOptionECBMode | kCCOptionPKCS7Padding, kCCKeySizeAES256, kCCBlockSizeAES128, kCCBlockSizeAES128> CommonCrypto_AES256_EBC_Padded_Cryptor;
 	typedef CommonCryptoKey<kCCAlgorithmAES, kCCOptionECBMode, kCCKeySizeAES256, kCCBlockSizeAES128, kCCBlockSizeAES128> CommonCrypto_AES256_EBC_Cryptor;
 
-	typedef SpecificSymetricKey<CommonCrypto_AES256_CBC_Padded_Cryptor> AES256_CBC_Padded;
-	typedef SpecificSymetricKey<CommonCrypto_AES256_CBC_Cryptor> AES256_CBC;
-	typedef SpecificSymetricKey<CommonCrypto_AES256_EBC_Padded_Cryptor> AES256_EBC_Padded;
-	typedef SpecificSymetricKey<CommonCrypto_AES256_EBC_Cryptor> AES256_EBC;
+	typedef SpecificSymmetricKey<CommonCrypto_AES256_CBC_Padded_Cryptor> AES256_CBC_Padded;
+	typedef SpecificSymmetricKey<CommonCrypto_AES256_CBC_Cryptor> AES256_CBC;
+	typedef SpecificSymmetricKey<CommonCrypto_AES256_EBC_Padded_Cryptor> AES256_EBC_Padded;
+	typedef SpecificSymmetricKey<CommonCrypto_AES256_EBC_Cryptor> AES256_EBC;
 
 	typedef AES256_CBC_Padded AES256;
 
@@ -325,4 +325,4 @@ namespace crypto {
 #undef EncryptAssert
 #undef DeclareError
 
-#endif // __SymetricEncrypt_h__
+#endif // __SymmetricEncrypt_h__

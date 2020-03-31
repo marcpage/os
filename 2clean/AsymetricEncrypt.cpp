@@ -4,6 +4,41 @@
 #include <stdio.h>
 #include <string>
 
+
+/*
+	Asymmetric Encrypt Behaviors
+
+		Public Key
+			1. Verify Signature
+			2. Serialize
+			3. Deserialize
+
+		Private Key
+			1. Sign
+			2. Serialize
+			3. Deserialize
+			4. Get public key
+			5. Generate
+
+*/
+
+namespace crypto {
+
+	class AsymmetricPublicKey {
+		public:
+			AsymmetricPublicKey() {}
+			virtual ~AsymmetricPublicKey() {}
+	};
+
+	class AsymmetricPrivateKey {
+		public:
+			SymetricKey() {}
+			virtual ~SymetricKey() {}
+	};
+
+}
+
+
 // Recommended public exponents: 3, 5, 17, 257 or 65537
 
 #define AppleAPI 0

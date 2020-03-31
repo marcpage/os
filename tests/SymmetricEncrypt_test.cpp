@@ -1,4 +1,4 @@
-#include "os/SymetricEncrypt.h"
+#include "os/SymmetricEncrypt.h"
 #include "os/Hash.h"
 #include <stdio.h>
 
