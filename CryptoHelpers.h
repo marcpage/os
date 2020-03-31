@@ -71,17 +71,20 @@ namespace crypto {
 
 	#define __crypto_OSSLHandle(call) handleOpenSSLResult( (call), #call, __FILE__, __LINE__)
 
-	void handleOpenSSLResult(int status, const std::string &call, const char *file, int line) {
+	int handleOpenSSLResult(int status, const std::string &call, const char *file, int line) {
 		if(!status) {
 			std::string buffer(512, '\0');
 			ERR_error_string(ERR_get_error(), const_cast<char*>(buffer.data()));
 			buffer.erase(strlen(buffer.c_str()));
 			throw Exception(std::string("OpenSSL Error (" + call + "): ") + buffer, file, line);
 		}
+		return status;
 	}
 
-	void handleOpenSSLResult(void *pointer, const std::string &call, const char *file, int line) {
+	template<typename T>
+	T *handleOpenSSLResult(T *pointer, const std::string &call, const char *file, int line) {
 		handleOpenSSLResult(NULL == pointer ? 0 : 1, call, file, line);
+		return pointer;
 	}
 
 	class OpenSSLContext {

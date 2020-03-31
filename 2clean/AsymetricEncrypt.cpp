@@ -22,22 +22,6 @@
 
 */
 
-namespace crypto {
-
-	class AsymmetricPublicKey {
-		public:
-			AsymmetricPublicKey() {}
-			virtual ~AsymmetricPublicKey() {}
-	};
-
-	class AsymmetricPrivateKey {
-		public:
-			SymetricKey() {}
-			virtual ~SymetricKey() {}
-	};
-
-}
-
 
 // Recommended public exponents: 3, 5, 17, 257 or 65537
 
