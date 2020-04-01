@@ -1,5 +1,5 @@
 
-// clang++ 2clean/AsymetricEncrypt.cpp -framework Security -framework CoreFoundation -DOpenSSLAvailable=1 -I/usr/local/Cellar/openssl@1.1/1.1.1d/include -L/usr/local/Cellar/openssl@1.1/1.1.1d/lib -lcrypto -o /tmp/test
+// clang++ 2clean/AsymetricEncrypt.cpp -framework Security -framework CoreFoundation -DOpenSSLAvailable=1 -I.. -I2Clean -I/usr/local/Cellar/openssl@1.1/1.1.1d/include -L/usr/local/Cellar/openssl@1.1/1.1.1d/lib -lcrypto -o /tmp/test
 
 #include <stdio.h>
 #include <string>
@@ -109,6 +109,34 @@ int main(int argc, char* argv[]) {
 	printf("privCopy = %p\n", privCopy);
 	dumpKey(privCopy);
 
+	return 0;
+}
+
+#elif 1
+
+#include "AsymmetricEncrypt.h"
+int main(int argc, char* argv[]) {
+	crypto::OpenSSLRSA<EVP_sha256>	rsa(1024);
+	std::string signature;
+
+	rsa.sign("testing", signature);
+	if (!rsa.verify("testing", signature)) {
+		printf("Failed to verify\n");
+	}
+
+	std::string publicKey,privateKey;
+	rsa.serializePublic(publicKey);
+	rsa.serializePrivate(privateKey);
+	printf("public\n%s\n", publicKey.c_str());
+	printf("private\n%s\n", privateKey.c_str());
+
+	crypto::OpenSSLRSA<EVP_sha256>	publicRsa(publicKey, PEM_read_bio_RSA_PUBKEY);
+	crypto::OpenSSLRSA<EVP_sha256>	privateRsa(privateKey, PEM_read_bio_RSAPrivateKey);
+
+	privateRsa.sign("testing", signature);
+	if (!publicRsa.verify("testing", signature)) {
+		printf("Failed to verify 2\n");
+	}
 	return 0;
 }
 

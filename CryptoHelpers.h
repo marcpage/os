@@ -1,6 +1,7 @@
 #ifndef __OpenSLLHelpers_h__
 #define __OpenSLLHelpers_h__
 
+#include "os/Exception.h"
 
 #if OpenSSLAvailable
 	#include <openssl/err.h>
