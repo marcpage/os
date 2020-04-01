@@ -68,7 +68,7 @@ namespace crypto {
 			OpenSSLRSA(const std::string &serialized, KeyReader keyReader) {
 				AutoClean<BIO> memory(__crypto_OSSLHandle(BIO_new_mem_buf(serialized.data(), serialized.size())));
 
-				__crypto_OSSLHandle(keyReader(memory, &_key.data, nullptr, nullptr));
+				__crypto_OSSLHandle(keyReader(memory, &_key.data, nullptr, nullptr)); // exception thrown PEM routines:get_name:no start line
 			}
 			std::string &serializePrivate(std::string &buffer) {
 				serializeKey(buffer, _writePrivate);

@@ -119,11 +119,6 @@ int main(int argc, char* argv[]) {
 	crypto::OpenSSLRSA<EVP_sha256>	rsa(1024);
 	std::string signature;
 
-	rsa.sign("testing", signature);
-	if (!rsa.verify("testing", signature)) {
-		printf("Failed to verify\n");
-	}
-
 	std::string publicKey,privateKey;
 	rsa.serializePublic(publicKey);
 	rsa.serializePrivate(privateKey);
@@ -132,6 +127,11 @@ int main(int argc, char* argv[]) {
 
 	crypto::OpenSSLRSA<EVP_sha256>	publicRsa(publicKey, PEM_read_bio_RSA_PUBKEY);
 	crypto::OpenSSLRSA<EVP_sha256>	privateRsa(privateKey, PEM_read_bio_RSAPrivateKey);
+
+	rsa.sign("testing", signature);
+	if (!rsa.verify("testing", signature)) {
+		printf("Failed to verify\n");
+	}
 
 	privateRsa.sign("testing", signature);
 	if (!publicRsa.verify("testing", signature)) {
