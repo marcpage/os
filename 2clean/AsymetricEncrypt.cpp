@@ -114,6 +114,40 @@ int main(int argc, char* argv[]) {
 
 #elif 1
 
+int main(int argc, char*argv[]) {
+	// *** crypto::OpenSSLRSA<EVP_sha256>	rsa(1024);
+	RSA *rsa = RSA_new();
+	BIGNUM *publicExponent = BN_new();
+	int err;
+	std::string s;
+
+	err = (nullptr == rsa || nullptr == publicExponent) ? -1 : BN_set_word(publicExponent, RSA_F4);
+	err = err ? err : RSA_generate_key_ex(rsa, 1024, publicExponent, RSA_F4, nullptr);
+
+	// *** rsa.serializePublic(publicKey);
+	BIO *bio = BIO_new(BIO_s_mem());
+	err = err ? err : (nullptr == bio ? -1 : PEM_write_bio_RSAPublicKey(bio, rsa));
+
+	int length = BIO_pending(bio);
+
+	s.assign(length, '\0');
+
+
+				return PEM_write_bio_RSAPublicKey(b, r);
+				AutoClean<BIO> memory(__crypto_OSSLHandle(BIO_new(BIO_s_mem())));
+				__crypto_OSSLHandle(keytypeSerializer(memory, _key));
+				buffer.clear();
+
+				const int dataSize = BIO_pending(memory);
+
+				buffer.assign(dataSize, '\0');
+				__crypto_OSSLHandle(BIO_read(memory, const_cast<char*>(buffer.data()), dataSize));
+
+	return 0;
+}
+
+#elif 1
+
 #include "AsymmetricEncrypt.h"
 int main(int argc, char* argv[]) {
 	crypto::OpenSSLRSA<EVP_sha256>	rsa(1024);

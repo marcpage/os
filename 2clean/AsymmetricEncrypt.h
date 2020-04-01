@@ -75,7 +75,7 @@ namespace crypto {
 				return buffer;
 			}
 			std::string &serializePublic(std::string &buffer) {
-				serializeKey(buffer, _readPrivate);
+				serializeKey(buffer, _writePublic);
 				return buffer;
 			}
 			std::string &sign(const std::string &text, std::string &signature) {
@@ -116,7 +116,7 @@ namespace crypto {
 			static int _writePrivate(BIO *b, RSA *r) {
 				return PEM_write_bio_RSAPrivateKey(b, r, nullptr, nullptr, 0, nullptr, nullptr);
 			}
-			static int _readPrivate(BIO *b, RSA *r) {
+			static int _writePublic(BIO *b, RSA *r) {
 				return PEM_write_bio_RSAPublicKey(b, r);
 			}
 			void serializeKey(std::string &buffer, KeyTypeSerializer keytypeSerializer) {
