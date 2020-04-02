@@ -106,7 +106,7 @@ namespace crypto {
 			~OpenSSLRSA() {
 			}
 		private:
-			RSA* _key;
+			RSA* _key; // LEAKED
 			AutoClean<BIGNUM> _publicExponent;
 			typedef int(*KeyTypeSerializer)(BIO *b, RSA *r);
 			static int _writePrivate(BIO *b, RSA *r) {
