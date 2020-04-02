@@ -136,15 +136,16 @@ int main(int argc, char* argv[]) {
 	printf("public\n%s\n", publicKey.c_str());
 	printf("private\n%s\n", privateKey.c_str());
 
-	rsa.sign("testing", signature, EVP_sha256); // crash EXC_BAD_ACCESS (code=1, address=0x8)
-	if (!rsa.verify("testing", signature, EVP_sha256)) {
-		printf("Failed to verify\n");
-	}
-
 	privateRsa.sign("testing", signature, EVP_sha256);
 	if (!publicRsa.verify("testing", signature, EVP_sha256)) {
 		printf("Failed to verify 2\n");
 	}
+
+	rsa.sign("testing", signature, EVP_sha256); // crash EXC_BAD_ACCESS (code=1, address=0x8)
+	if (!rsa.verify("testing", signature, EVP_sha256)) { // crash EXC_BAD_ACCESS (code=1, address=0x60)
+		printf("Failed to verify\n");
+	}
+
 	return 0;
 }
 

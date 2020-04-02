@@ -94,7 +94,7 @@ namespace crypto {
 				__crypto_OSSLHandle(EVP_PKEY_assign_RSA(key, _key));
 				__crypto_OSSLHandle(EVP_DigestVerifyInit(verifier, nullptr, messageDigestType(), nullptr, key));
 				__crypto_OSSLHandle(EVP_DigestVerifyUpdate(verifier, text.data(), text.size()));
-				status = EVP_DigestVerifyFinal(verifier, reinterpret_cast<const unsigned char *>(signature.data()), signature.size());
+				status = EVP_DigestVerifyFinal(verifier, reinterpret_cast<const unsigned char *>(signature.data()), signature.size()); // crash EXC_BAD_ACCESS (code=1, address=0x60)
 				if (status == 1) {
 					return true;
 				}
