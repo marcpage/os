@@ -116,14 +116,47 @@ int main(int argc, char* argv[]) {
 
 #include "AsymmetricEncrypt.h"
 int main(int argc, char* argv[]) {
+	crypto::OpenSSLRSAAES256PrivateKey rsa(1024);
+	std::string signature;
+	std::string	buffer;
+
+	if (!rsa.publicKey()->verify("testing", rsa.sign("testing", signature))) {
+		printf("Sign/Verify failed\n");
+	}
+
+	crypto::OpenSSLRSAAES256PrivateKey rsa2(rsa.serialize(buffer));
+
+	if (!rsa2.publicKey()->verify("testing", rsa2.sign("testing", signature))) {
+		printf("Sign/Verify failed\n");
+	}
+
+	if (!rsa.publicKey()->verify("testing", rsa2.sign("testing", signature))) {
+		printf("Sign/Verify failed\n");
+	}
+
+	if (!rsa2.publicKey()->verify("testing", rsa.sign("testing", signature))) {
+		printf("Sign/Verify failed\n");
+	}
+
+	return 0;
+}
+#elif 1
+
+#include "AsymmetricEncrypt.h"
+int main(int argc, char* argv[]) {
 	crypto::OpenSSLRSA	rsa(1024);
 	std::string signature;
 
+	rsa.sign("testing", signature, EVP_sha256);
+	if (!rsa.verify("testing", signature, EVP_sha256)) {
+		printf("Failed to verify original\n");
+	}
+
 	std::string publicKey,privateKey;
-	rsa.serializePublic(publicKey); // crash EXC_BAD_ACCESS (code=1, address=0x80280ec0)
+	rsa.serializePublic(publicKey);
 	rsa.serializePrivate(privateKey);
-	printf("public\n%s\n", publicKey.c_str());
-	printf("private\n%s\n", privateKey.c_str());
+	//printf("public\n%s\n", publicKey.c_str());
+	//printf("private\n%s\n", privateKey.c_str());
 
 	crypto::OpenSSLRSA	publicRsa(publicKey, PEM_read_bio_RSAPublicKey);
 	crypto::OpenSSLRSA	privateRsa(privateKey, PEM_read_bio_RSAPrivateKey);
@@ -132,50 +165,24 @@ int main(int argc, char* argv[]) {
 	privateKey.clear();
 
 	publicRsa.serializePublic(publicKey);
+	if (publicKey != rsa.serializePublic(signature)) {
+		printf("Original Public Key does not match Serialized/Deserialized Public Key\n");
+	}
+
 	privateRsa.serializePrivate(privateKey);
-	printf("public\n%s\n", publicKey.c_str());
-	printf("private\n%s\n", privateKey.c_str());
+	if (privateKey != rsa.serializePrivate(signature)) {
+		printf("Original Public Key does not match Serialized/Deserialized Public Key\n");
+	}
 
 	privateRsa.sign("testing", signature, EVP_sha256);
 	if (!publicRsa.verify("testing", signature, EVP_sha256)) {
-		printf("Failed to verify 2\n");
+		printf("Failed to verify copy\n");
 	}
 
-	rsa.sign("testing", signature, EVP_sha256); // crash EXC_BAD_ACCESS (code=1, address=0x8)
-	if (!rsa.verify("testing", signature, EVP_sha256)) { // crash EXC_BAD_ACCESS (code=1, address=0x60)
-		printf("Failed to verify\n");
-	}
+	printf("public\n%s\n", publicKey.c_str());
+	printf("private\n%s\n", privateKey.c_str());
 
 	return 0;
-}
-
-#else
-
-#include <openssl/rsa.h>
-#include <openssl/pem.h>
-
-int main(int argc, char* argv[]) {
-	const int kBits = 1024;
-	const int kExp = 3;
-
-	int keylen;
-	char *pem_key;
-
-	RSA *rsa = RSA_generate_key(kBits, kExp, 0, 0);
-
-	/* To get the C-string PEM form: */
-	BIO *bio = BIO_new(BIO_s_mem());
-	PEM_write_bio_RSAPrivateKey(bio, rsa, NULL, NULL, 0, NULL, NULL);
-
-	keylen = BIO_pending(bio);
-	pem_key = reinterpret_cast<char*>(calloc(keylen+1, 1)); /* Null-terminate */
-	BIO_read(bio, pem_key, keylen);
-
-	printf("%s", pem_key);
-
-	BIO_free_all(bio);
-	RSA_free(rsa);
-	free(pem_key);
 }
 
 #endif

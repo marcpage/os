@@ -182,20 +182,18 @@ namespace crypto {
 
 	typedef OpenSSLAES<EVP_aes_256_cbc, true, 32, AES_BLOCK_SIZE, AES_BLOCK_SIZE> OpenSSL_AES256_CBC_Padded_Cryptor;
 	typedef OpenSSLAES<EVP_aes_256_cbc, false, 32, AES_BLOCK_SIZE, AES_BLOCK_SIZE> OpenSSL_AES256_CBC_Cryptor;
-
-#if __APPLE_CC__ || __APPLE__
 	typedef SpecificSymmetricKey<OpenSSL_AES256_CBC_Padded_Cryptor> OpenSSL_AES256_CBC_Padded;
 	typedef SpecificSymmetricKey<OpenSSL_AES256_CBC_Cryptor> OpenSSL_AES256_CBC;
 
+#if __APPLE_CC__ || __APPLE__
 	typedef OpenSSL_AES256_CBC_Padded OpenSSL_AES256;
 #else
 	typedef SpecificSymmetricKey<OpenSSL_AES256_CBC_Padded_Cryptor> AES256_CBC_Padded;
 	typedef SpecificSymmetricKey<OpenSSL_AES256_CBC_Cryptor> AES256_CBC;
-
 	typedef AES256_CBC_Padded AES256;
-#endif
+#endif // __APPLE_CC__ || __APPLE__
 
-#endif
+#endif // OpenSSLAvailable
 
 #if __APPLE_CC__ || __APPLE__
 
@@ -237,7 +235,7 @@ namespace crypto {
 
 	typedef AES256_CBC_Padded AES256;
 
-#endif
+#endif // __APPLE_CC__ || __APPLE__
 }
 
 #endif // __SymmetricEncrypt_h__
