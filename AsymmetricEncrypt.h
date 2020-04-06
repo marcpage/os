@@ -45,6 +45,7 @@ namespace crypto {
 			~AutoClean() {dispose();}
 			operator const T*() const {return data;}
 			operator T*() const {return data;}
+			T* operator->() const {return data;}
 			AutoClean<T> &operator=(const AutoClean<T> &other) {data = other.data; return *this;}
 			void dispose() {if (nullptr != data) {delete data; data = nullptr;}}
 			T *data;
