@@ -6,7 +6,7 @@ lint:bin/logs/lint.txt
 
 bin/logs/lint.txt: *.h
 	@mkdir -p bin/logs
-	@cppcheck --enable=all --std=c++11 --suppress=unusedFunction --language=c++ *.h &> $@
+	@cppcheck --enable=all --std=c++11 --suppress=unusedFunction --language=c++ -I.. *.h &> $@
 	@cat $@ | grep style:
 	@cat $@ | grep performance:
 	@cat $@ | grep portability:
