@@ -25,7 +25,7 @@
 
 // Recommended public exponents: 3, 5, 17, 257 or 65537
 
-#define AppleAPI 0
+#define AppleAPI 1
 
 #if AppleAPI
 
@@ -43,7 +43,10 @@ std::string dumpKey(const void *key) {
 		return "";
 	}
 	res = SecItemExport(key, kSecFormatUnknown, kSecItemPemArmour, nullptr, &exported);
-	if (!exported) {
+	if (errSecPassphraseRequired == res) {
+		printf("Passphrase Required\n");
+		return "";
+	} else if (!exported) {
 		printf("Unable to export key data\n");
 		return "";
 	}
@@ -68,9 +71,10 @@ int main(int argc, char* argv[]) {
 	*/
 
     SecItemImportExportKeyParameters params;
-    SecExternalItemType itemType = kSecItemTypeUnknown;
-    SecExternalFormat format = kSecFormatUnknown;
+    SecExternalItemType itemType = kSecItemTypePublicKey;
+    SecExternalFormat format = kSecFormatOpenSSL;
 
+	memset(&params, 0, sizeof(params));
 	params.flags = kSecKeyNoAccessControl;
 	params.passphrase = nullptr;
 
@@ -86,11 +90,12 @@ int main(int argc, char* argv[]) {
 	std::string pub = dumpKey(publicKey);
 	std::string priv = dumpKey(privateKey);
 
-	CFArrayRef keyList;
+	CFArrayRef keyList = nullptr;
 	CFDataRef data;
 
 	data = CFDataCreate(nullptr, reinterpret_cast<const UInt8 *>(pub.data()), pub.size());
-	res = SecItemImport(data, nullptr, &format, &itemType, 0, &params, nullptr, &keyList);
+	itemType = kSecItemTypePublicKey;
+	res = SecItemImport(data, nullptr, &format, &itemType, 0, &params, nullptr, &keyList); // crash
 	printf("res=%d\n", res);
 	printf("length=%ld\n", (long)CFArrayGetCount(keyList));
 
@@ -99,6 +104,7 @@ int main(int argc, char* argv[]) {
 	dumpKey(pubCopy);
 
 	data = CFDataCreate(nullptr, reinterpret_cast<const UInt8 *>(priv.data()), priv.size());
+	itemType = kSecItemTypePrivateKey;
 	res = SecItemImport(data, nullptr, &format, &itemType, 0, &params, nullptr, &keyList);
 	printf("res=%d\n", res);
 	printf("length=%ld\n", (long)CFArrayGetCount(keyList));
@@ -106,6 +112,9 @@ int main(int argc, char* argv[]) {
 	// SecKeyCreateEncryptedData https://developer.apple.com/documentation/security/1643957-seckeycreateencrypteddata?language=objc
 
 	SecKeyRef privCopy = reinterpret_cast<SecKeyRef>(const_cast<void*>(CFArrayGetValueAtIndex(keyList, 0)));
+	if (CFGetTypeID(privCopy) != SecKeyGetTypeID()) {
+		printf("Not a SecKey\n");
+	}
 	printf("privCopy = %p\n", privCopy);
 	dumpKey(privCopy);
 

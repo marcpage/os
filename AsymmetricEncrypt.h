@@ -114,7 +114,7 @@ namespace crypto {
 					return true;
 				}
 				if (status != 0) {
-					handleOpenSSLResult(0, "EVP_DigestVerifyFinal", __FILE__, __LINE__);
+					handleOpenSSLResult(0, "EVP_DigestVerifyFinal", __FILE__, __LINE__); // not tested
 				}
 				return false;
 			}

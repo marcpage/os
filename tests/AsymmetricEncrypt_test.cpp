@@ -59,6 +59,8 @@ int main(int /*argc*/, char * /*argv*/[]) {
 						dotest(publicRsa2->verify(testSets[dataIndex], rsa2.sign(testSets[dataIndex], signature)));
 						dotest(publicRsa2->verify(testSets[dataIndex], rsa.sign(testSets[dataIndex], signature)));
 						dotest(publicRsa->verify(testSets[dataIndex], rsa2.sign(testSets[dataIndex], signature)));
+
+						dotest(!publicRsa->verify(testSets[dataIndex], rsa2.sign(testSets[dataIndex], signature).substr(1)));
 					} catch(const std::exception &exception) {
 						fprintf(stderr, "FAILED(%d:%d): Exception: %s\n", keySizeIndex, dataIndex, exception.what());
 					}
