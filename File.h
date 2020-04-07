@@ -7,7 +7,7 @@
 
 #if _DEBUG_FILE // Debug
 inline FILE *printResult(FILE *t) {printf("\t RESULT: %08x\n", t); return t;}
-inline off_t printResult(off_t t) {printf("\t RESULT: %d,%d\n", t); return t;}
+inline off_t printResult(off_t t) {printf("\t RESULT: %d\n", t); return t;}
 #define fopen(p,m) (printf("fopen(%s, %s)\n", p, m), printResult(fopen(p,m)))
 #define ftello(f) (printf("ftello(%08x)\n", f), printResult(ftello(f)))
 #define fseeko(f,o,w) (printf("fseeko(%08x, %d, %d)\n", f, o, w), printResult(fseeko(f,o,w)))

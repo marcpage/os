@@ -1,6 +1,17 @@
 .PHONY:test docs
 
-all:test docs
+all:test docs lint
+
+lint:bin/logs/lint.txt
+
+bin/logs/lint.txt: *.h
+	@mkdir -p bin/logs
+	@cppcheck --enable=all --std=c++11 --suppress=unusedFunction --language=c++ *.h &> $@
+	@cat $@ | grep style:
+	@cat $@ | grep performance:
+	@cat $@ | grep portability:
+	@cat $@ | grep warning:
+	@cat $@ | grep error:
 
 documentation/index.html:
 	@mkdir -p documentation
