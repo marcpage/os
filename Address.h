@@ -33,9 +33,9 @@ namespace net {
 #define GAIException(GAI_name) \
 	class GAI_name##_GAI : public GetAddressInfoException { \
 		public: \
-		virtual const char *name() const {return #GAI_name;} \
-		GAI_name##_GAI(const char *file= NULL, int line= 0) throw():GetAddressInfoException(GAI_name, #GAI_name, file, line) {} \
-		GAI_name##_GAI(const std::string &message, const char *file= NULL, int line= 0) throw():GetAddressInfoException(message, GAI_name, #GAI_name, file, line) {} \
+		const char *name() const override {return #GAI_name;} \
+		explicit GAI_name##_GAI(const char *file= NULL, int line= 0) throw():GetAddressInfoException(GAI_name, #GAI_name, file, line) {} \
+		explicit GAI_name##_GAI(const std::string &message, const char *file= NULL, int line= 0) throw():GetAddressInfoException(message, GAI_name, #GAI_name, file, line) {} \
 	}
 
 GAIException(EAI_AGAIN);	GAIException(EAI_BADFLAGS);	GAIException(EAI_BADHINTS);

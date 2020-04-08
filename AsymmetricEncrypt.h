@@ -66,7 +66,7 @@ namespace crypto {
 
 	class OpenSSLRSA {
 		public:
-			OpenSSLRSA(const int keySize, const unsigned long publicExponent = RSA_F4) // publicExponent = RSA_3
+			explicit OpenSSLRSA(const int keySize, const unsigned long publicExponent = RSA_F4) // publicExponent = RSA_3
 					:_rsa(__crypto_OSSLHandle(RSA_new())) {
 				AutoClean<BIGNUM> bigPublicExponent(__crypto_OSSLHandle(BN_new()));
 
@@ -144,13 +144,13 @@ namespace crypto {
 
 	class OpenSSLRSAAES256PublicKey : public AsymmetricPublicKey {
 		public:
-			OpenSSLRSAAES256PublicKey(const std::string &serialized)
+			explicit OpenSSLRSAAES256PublicKey(const std::string &serialized)
 				:rsa(serialized, PEM_read_bio_RSAPublicKey) {}
 			virtual ~OpenSSLRSAAES256PublicKey() {}
-			virtual std::string &serialize( std::string &buffer) {
+			std::string &serialize( std::string &buffer) override {
 				return rsa.serializePublic(buffer);
 			}
-			virtual bool verify(const std::string &text, const std::string &signature) {
+			bool verify(const std::string &text, const std::string &signature) override {
 				return rsa.verify(text, signature, EVP_sha256);
 			}
 		private:
@@ -161,18 +161,18 @@ namespace crypto {
 
 	class OpenSSLRSAAES256PrivateKey : public AsymmetricPrivateKey {
 		public:
-			OpenSSLRSAAES256PrivateKey(const int keySize, const unsigned long publicExponent=3)
+			explicit OpenSSLRSAAES256PrivateKey(const int keySize, const unsigned long publicExponent=3)
 				:rsa(keySize, publicExponent) {}
-			OpenSSLRSAAES256PrivateKey(const std::string &serialized)
+			explicit OpenSSLRSAAES256PrivateKey(const std::string &serialized)
 				:rsa(serialized, PEM_read_bio_RSAPrivateKey) {}
 			virtual ~OpenSSLRSAAES256PrivateKey() {}
-			virtual std::string &serialize(std::string &buffer) {
+			std::string &serialize(std::string &buffer) override {
 				return rsa.serializePrivate(buffer);
 			}
-			virtual std::string &sign(const std::string &text, std::string &signature) {
+			std::string &sign(const std::string &text, std::string &signature) override {
 				return rsa.sign(text, signature, EVP_sha256);
 			}
-			virtual AsymmetricPublicKey *publicKey() {
+			AsymmetricPublicKey *publicKey() override {
 				std::string buffer;
 
 				return new OpenSSLRSAAES256PublicKey(rsa.serializePublic(buffer));

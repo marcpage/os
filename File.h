@@ -252,9 +252,9 @@ namespace io {
 				eol= foundLF ? lf : cr;
 			}
 			if(eol != std::string::npos) {
-				const off_t	rewind= (partial.size() - eol - 1);
+				const off_t	rewindTo= (partial.size() - eol - 1);
 
-				_goto(-1 * rewind, FromHere);
+				_goto(-1 * rewindTo, FromHere);
 				partial.erase(eol + 1);
 			}
 			buffer.append(partial);

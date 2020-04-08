@@ -563,6 +563,7 @@ void runTest(const String &name, const StringList &compilers, const std::string:
 	}
 }
 
+// TODO: Filter out lines where the only source is a close bracket
 void findFileCoverage(const String &file, const String &options, uint32_t &covered, uint32_t &uncovered, StringList &uncoveredLines, const std::string &testNames, Sqlite3::DB &db) {
 	String			results;
 	StringList		lines;

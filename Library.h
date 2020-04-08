@@ -57,7 +57,7 @@ namespace sys {
 	class Library {
 		public:
 			/// Library at a given path
-			Library(const char *path);
+			explicit Library(const char *path);
 			/// Close the library
 			~Library();
 			/// Lookup a function in the library
@@ -65,14 +65,14 @@ namespace sys {
 
 			/** Exceptions thrown from this library
 			*/
-			class Exception : public msg::Exception {
+			class LibException : public msg::Exception {
 				public:
-					/// Exception to throw if compiler does not support function
-					Exception(const std::string &message, const char *file, int line) throw();
-					/// Exception to throw if compiler does support function
-					Exception(const std::string &message, const char *file, int line, const char *function) throw();
+					/// LibException to throw if compiler does not support function
+					LibException(const std::string &message, const char *file, int line) throw();
+					/// LibException to throw if compiler does support function
+					LibException(const std::string &message, const char *file, int line, const char *function) throw();
 					/// cleanup std::string
-					virtual ~Exception() throw();
+					virtual ~LibException() throw();
 				private:
 					/// common code for constructors
 					static std::string _buildMessage(const std::string &message, const char *file, int line, const char *function= NULL);
@@ -115,14 +115,14 @@ namespace sys {
 
 #if defined(__FUNCTION__)
 	/// Throw an exception if condition isn't met
-	#define sysLibraryAssert(condition,message) if(!(condition)) {throw sys::Library::Exception(std::string(#condition)+(message), __FILE__, __LINE__, __FUNCTION__);} else sys::noop()
+	#define sysLibraryAssert(condition,message) if(!(condition)) {throw sys::Library::LibException(std::string(#condition)+(message), __FILE__, __LINE__, __FUNCTION__);} else sys::noop()
 	/// Throw an exception if the expression is NULL
-	#define sysLibraryAssertNotNULL(variable,message) if(NULL==(variable)) {throw sys::Library::Exception(std::string(#variable " was NULL:")+message, __FILE__, __LINE__, __FUNCTION__);} else sys::noop()
+	#define sysLibraryAssertNotNULL(variable,message) if(NULL==(variable)) {throw sys::Library::LibException(std::string(#variable " was NULL:")+message, __FILE__, __LINE__, __FUNCTION__);} else sys::noop()
 #else
 	/// Throw an exception if condition isn't met
-	#define sysLibraryAssert(condition,message) if(!(condition)) {throw sys::Library::Exception(std::string("("#condition") failed:")+(message), __FILE__, __LINE__);} else sys::noop()
+	#define sysLibraryAssert(condition,message) if(!(condition)) {throw sys::Library::LibException(std::string("("#condition") failed:")+(message), __FILE__, __LINE__);} else sys::noop()
 	/// Throw an exception if the expression is NULL
-	#define sysLibraryAssertNotNULL(variable,message) if(NULL==(variable)) {throw sys::Library::Exception(std::string(#variable " was NULL:")+message, __FILE__, __LINE__);} else sys::noop()
+	#define sysLibraryAssertNotNULL(variable,message) if(NULL==(variable)) {throw sys::Library::LibException(std::string(#variable " was NULL:")+message, __FILE__, __LINE__);} else sys::noop()
 #endif
 
 
@@ -135,7 +135,7 @@ namespace sys {
 
 	/** Gets the library at the given path.
 		@param path	The path to the library. <b>Mac OS X</b>: Can also be a bundle identifier.
-		@throw Library::Exception	on error
+		@throw Library::LibException	on error
 		@todo justAName in 1st if is always true. Test it false.
 		@todo test not finding a bundle (for loop always exits from find=true).
 	*/
@@ -216,7 +216,7 @@ namespace sys {
 	/** Gets a function pointer from the library.
 		@tparam Function	The typedef for the function expected.
 		@param name			The name of the function to lookup.
-		@throw Exception	If the function does not exist, or any other problems.
+		@throw LibException	If the function does not exist, or any other problems.
 		@todo test function not being found.
 	*/
 	template<class Function> inline Function Library::function(const char *name) {
@@ -342,7 +342,7 @@ namespace sys {
 		@param file		pass __FILE__
 		@param line		pass __LINE__
 	*/
-	inline Library::Exception::Exception(const std::string &message, const char *file, int line) throw()
+	inline Library::LibException::LibException(const std::string &message, const char *file, int line) throw()
 		:msg::Exception(message, file, line) {}
 	/** Creates a new library exception for when you know what function you are in.
 		@param message	The message about what was going on when the exception was thrown.
@@ -350,11 +350,11 @@ namespace sys {
 		@param line		pass __LINE__
 		@param function	pass __FUNCTION__
 	*/
-	inline Library::Exception::Exception(const std::string &message, const char *file, int line, const char *function) throw()
+	inline Library::LibException::LibException(const std::string &message, const char *file, int line, const char *function) throw()
 		:msg::Exception(std::string(function) + ":" + message, file, line) {}
 	/** cleanup.
 	*/
-	inline Library::Exception::~Exception() throw() {}
+	inline Library::LibException::~LibException() throw() {}
 	/** Builds up a message about the exception.
 		Message will be of the format:
 			(file):(line):[function:][dlerror:](message)
@@ -364,7 +364,7 @@ namespace sys {
 		@param line		__LINE__
 		@param function	__FUNCTION__ or NULL
 	*/
-	inline std::string Library::Exception::_buildMessage(const std::string &message, const char *file, int line, const char *function) {
+	inline std::string Library::LibException::_buildMessage(const std::string &message, const char *file, int line, const char *function) {
 		std::string	result(file);
 
 		result.append(1, ':');

@@ -60,9 +60,9 @@ namespace posix { namespace err {
 #define ErrnoException(errno_name) \
 	class errno_name##_Errno : public Errno { \
 		public: \
-		virtual const char *name() const {return #errno_name;} \
-		errno_name##_Errno(const char *file= NULL, int line= 0) throw():Errno(errno_name, #errno_name, file, line) {} \
-		errno_name##_Errno(const std::string &message, const char *file= NULL, int line= 0) throw():Errno(message, errno_name, #errno_name, file, line) {} \
+		const char *name() const override {return #errno_name;} \
+		explicit errno_name##_Errno(const char *file= NULL, int line= 0) throw():Errno(errno_name, #errno_name, file, line) {} \
+		explicit errno_name##_Errno(const std::string &message, const char *file= NULL, int line= 0) throw():Errno(message, errno_name, #errno_name, file, line) {} \
 	}
 	ErrnoException(E2BIG);			ErrnoException(EACCES);			ErrnoException(EADDRINUSE);
 	ErrnoException(EADDRNOTAVAIL);	ErrnoException(EAFNOSUPPORT);	ErrnoException(EAGAIN);

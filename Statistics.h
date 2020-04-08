@@ -45,17 +45,17 @@ namespace math {
 	}
 
 	inline double variance(const List &numbers) {
-		double mean = 0.0, sum=0.0, variance=0.0, standardDeviation=0.0;
-		statistics(numbers, mean, sum, variance, standardDeviation);
+		double meanValue = 0.0, sumValue=0.0, varianceValue=0.0, standardDeviationValue=0.0;
+		statistics(numbers, meanValue, sumValue, varianceValue, standardDeviationValue);
 
-		return variance;
+		return varianceValue;
 	}
 
 	inline double stddev(const List &numbers) {
-		double mean = 0.0, sum=0.0, variance=0.0, standardDeviation=0.0;
-		statistics(numbers, mean, sum, variance, standardDeviation);
+		double meanValue = 0.0, sumValue=0.0, varianceValue=0.0, standardDeviationValue=0.0;
+		statistics(numbers, meanValue, sumValue, varianceValue, standardDeviationValue);
 
-		return standardDeviation;
+		return standardDeviationValue;
 	}
 
 

@@ -32,11 +32,11 @@ namespace net {
 			AddressIPv6(const std::string &address, in_port_t port);
 			virtual ~AddressIPv6();
 			/// @brief Gets the address of the the sockaddr_in6 structure
-			virtual struct sockaddr *get();
+			struct sockaddr *get() override;
 			/// @brief Gets the size of the sockaddr_in6 structure
-			virtual socklen_t size() const;
+			socklen_t size() const override;
 			/// @brief AF_INET6
-			virtual sa_family_t family() const;
+			sa_family_t family() const override;
 		private:
 			/// @brief The IPv6 AF_INET structure
 			struct sockaddr_in6	_address;

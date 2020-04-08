@@ -4,46 +4,46 @@
 #include <zlib.h>
 #include "Exception.h"
 
-#define zlib_handle_error(code) if(0 != (code)) throw z::Exception(code, __FILE__, __LINE__); else z::noop()
+#define zlib_handle_error(code) if(0 != (code)) throw z::ZException(code, __FILE__, __LINE__); else z::noop()
 
 namespace z {
 
 	inline void noop() {}
 
-	class Exception : public msg::Exception {
+	class ZException : public msg::Exception {
 		public:
 			typedef msg::Exception	Super;
-			Exception(int zcode, const char *file= NULL, int line= 0) throw();
-			Exception(const Exception &other);
-			Exception &operator=(const Exception &other);
-			virtual ~Exception() throw();
-			virtual const char* what() const throw();
+			explicit ZException(int zcode, const char *file= NULL, int line= 0) throw();
+			ZException(const ZException &other);
+			ZException &operator=(const ZException &other);
+			virtual ~ZException() throw();
+			const char* what() const throw() override;
 			int code();
 		private:
 			int	_code;
 			static const char *_codestring(int code);
 	};
 
-	inline Exception::Exception(int zcode, const char *file, int line) throw()
+	inline ZException::ZException(int zcode, const char *file, int line) throw()
 		:Super(_codestring(zcode), file, line), _code(zcode) {
 	}
-	inline Exception::Exception(const Exception &other)
+	inline ZException::ZException(const ZException &other)
 		:Super(other), _code(other._code) {
 	}
-	inline Exception &Exception::operator=(const Exception &other) {
+	inline ZException &ZException::operator=(const ZException &other) {
 		Super::operator=(other);
 		_code= other._code;
 		return *this;
 	}
-	inline Exception::~Exception() throw() {
+	inline ZException::~ZException() throw() {
 	}
-	inline const char* Exception::what() const throw() {
+	inline const char* ZException::what() const throw() {
 		return Super::what();
 	}
-	inline int Exception::code() {
+	inline int ZException::code() {
 		return _code;
 	}
-	inline const char *Exception::_codestring(int code) {
+	inline const char *ZException::_codestring(int code) {
 		switch(code) {
 			case Z_OK:
 				break;

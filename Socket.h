@@ -21,7 +21,7 @@ namespace net {
 			/** Invalid socket. */
 			Socket();
 			/** Creates a new socket */
-			Socket(int domain, int type= SOCK_STREAM, int protocol= 0);
+			explicit Socket(int domain, int type= SOCK_STREAM, int protocol= 0);
 			/** nothing beyond super class behavior. */
 			virtual ~Socket();
 			/** Connect to a given address. */

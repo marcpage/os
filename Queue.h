@@ -21,9 +21,9 @@ namespace exec {
 		class Closed : public msg::Exception {
 		public:
 			/// Get a message
-			Closed(const char *message, const char *file= NULL, int line= 0) throw();
+			explicit Closed(const char *message, const char *file= NULL, int line= 0) throw();
 			/// Get a message
-			Closed(const std::string &message, const char *file= NULL, int line= 0) throw();
+			explicit Closed(const std::string &message, const char *file= NULL, int line= 0) throw();
 			/// Copy constructor
 			Closed(const Closed &other);
 			/// destructs _message
@@ -78,7 +78,7 @@ namespace exec {
 		std::lock_guard<std::mutex>	lock(_lock);
 
 		AssertQueueNotClosed;
-		return _queue.size() <= 0;
+		return _queue.size() == 0;
 	}
 	template<class T>
 	inline bool Queue<T>::full() {

@@ -42,9 +42,9 @@ namespace msg {
 	class Exception : public std::exception {
 	public:
 		/// Get a message
-		Exception(const char *message, const char *file= NULL, int line= 0) throw();
+		explicit Exception(const char *message, const char *file= NULL, int line= 0) throw();
 		/// Get a message
-		Exception(const std::string &message, const char *file= NULL, int line= 0) throw();
+		explicit Exception(const std::string &message, const char *file= NULL, int line= 0) throw();
 		/// Copy constructor
 		Exception(const Exception &other);
 		/// assignment operator

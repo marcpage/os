@@ -13,7 +13,7 @@ namespace net {
 	class SocketServer : public SocketGeneric {
 		public:
 			/// @brief New Socket
-			SocketServer(int domain, int type= SOCK_STREAM, int protocol= 0);
+			explicit SocketServer(int domain, int type= SOCK_STREAM, int protocol= 0);
 			/// @brief super class behavior
 			virtual ~SocketServer();
 			/// @brief Bind to an address to listen to

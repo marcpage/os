@@ -48,11 +48,11 @@ namespace dt {
 			typedef std::string String;
 			DateTime();
 			DateTime(const DateTime &time);
-			DateTime(const time_t &time);
-			DateTime(const timeval &time);
-			DateTime(const timespec &time);
-			DateTime(tm &time);
-			DateTime(const double &time);
+			explicit DateTime(const time_t &time);
+			explicit DateTime(const timeval &time);
+			explicit DateTime(const timespec &time);
+			explicit DateTime(tm &time);
+			explicit DateTime(const double &time);
 			DateTime(int year, Month month, int day, int hour24= 0, int minutes= 0, double seconds= 0.0);
 			DateTime(int year, Month month, int day, int hour, CivilianHour ampm, int minutes= 0, double seconds= 0.0);
 			~DateTime();
@@ -92,10 +92,10 @@ namespace dt {
 	*/
 	inline DateTime::DateTime()
 		:_time() {;
-		struct timeval	time;
-		ErrnoOnNegative(::gettimeofday(&time,NULL));
-		_time.tv_sec= time.tv_sec;
-		_time.tv_nsec= static_cast<long>(time.tv_usec) * 1000UL;
+		struct timeval	timeValue;
+		ErrnoOnNegative(::gettimeofday(&timeValue,NULL));
+		_time.tv_sec= timeValue.tv_sec;
+		_time.tv_nsec= static_cast<long>(timeValue.tv_usec) * 1000UL;
 	}
 	inline DateTime::DateTime(const DateTime &time)
 		:_time(time._time) {;
@@ -162,9 +162,9 @@ namespace dt {
 		return _time.tv_sec;
 	}
 	inline DateTime::operator timeval() const {;
-		struct timeval	time;
-		value(time);
-		return time;
+		struct timeval	timeValue;
+		value(timeValue);
+		return timeValue;
 	}
 	inline DateTime::operator const timespec() const {
 		return _time;
@@ -262,11 +262,11 @@ namespace dt {
 	}
 	inline DateTime::String &DateTime::format(const String &format, String &buffer) const {
 		size_t		size;
-		struct tm	time;
+		struct tm	timeValue;
 
-		local(time);
+		local(timeValue);
 		buffer.assign(format.length() * 15, '\0');
-		size = ::strftime(const_cast<char*>(buffer.data()), buffer.length(), format.c_str(), &time);
+		size = ::strftime(const_cast<char*>(buffer.data()), buffer.length(), format.c_str(), &timeValue);
 		buffer.erase(size);
 		return buffer;
 	}

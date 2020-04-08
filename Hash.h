@@ -33,7 +33,7 @@ namespace hash {
 			/// Nothing to do in destructor.
 			virtual ~Hash();
 			/// Returns the hex value of the hash.
-			virtual std::string hex() const {std::string buffer; return hex(buffer);}
+			virtual std::string hex() const {std::string tempBuffer; return hex(tempBuffer);}
 			/// Fills <code>value</code> with the hex value of the hash.
 			virtual std::string &hex(std::string &value) const= 0;
 			/// Returns the number of bytes in the hash.
@@ -70,11 +70,11 @@ namespace hash {
 			/// The default constructor.
 			SpecificHash();
 			/// Construct and initialize with hash of a string.
-			SpecificHash(const char *hash);
+			explicit SpecificHash(const char *hash);
 			/// Construct and initialize with hash of data.
 			SpecificHash(const void *data, size_t count);
 			/// Construct and initialize with hash of a string.
-			SpecificHash(const std::string &data);
+			explicit SpecificHash(const std::string &data);
 			/// Copy another hash's data.
 			SpecificHash(const SpecificHash &other);
 			/// Nothing to do in destructor.
@@ -89,14 +89,14 @@ namespace hash {
 			bool same(const SpecificHash &other);
 			operator bool() const;
 			uint8_t *buffer();
-			virtual const uint8_t *buffer() const;
-			virtual uint32_t size() const;
-			virtual std::string hex() const {return Hash::hex();}
-			virtual std::string &hex(std::string &value) const;
-			virtual void reset(const char *hash);
-			virtual void reset(const void *data, size_t count);
-			virtual void reset(const std::string &data);
-			virtual const char *name() const;
+			const uint8_t *buffer() const override;
+			uint32_t size() const override;
+			std::string hex() const override {return Hash::hex();}
+			std::string &hex(std::string &value) const override;
+			void reset(const char *hash) override;
+			void reset(const void *data, size_t count) override;
+			void reset(const std::string &data) override;
+			const char *name() const override;
 		private:
 			uint8_t	_hash[Size];
 	};

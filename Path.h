@@ -38,7 +38,7 @@ namespace io {
 			typedef std::vector<String> StringList;
 			static bool endsWithPathSeparator(const String &text);
 			static Path working();
-			Path(const char *path);
+			explicit Path(const char *path);
 			Path(const String &path="");
 			Path(const Path &other);
 			~Path() {}
@@ -57,6 +57,7 @@ namespace io {
 			void rename(const Path &other) const;
 			Path readLink() const;
 			Path relativeTo(const Path &other) const;
+			Path relativeTo(const std::string &other) const {return relativeTo(Path(other));}
 			Path absolute(const Path &from=working()) const;
 			void symlink(const Path &contents) const;
 			Path parent() const;
@@ -69,6 +70,7 @@ namespace io {
 			StringList list(HavePath havePath, Depth recursive=FlatListing) const;
 			StringList &list(HavePath havePath, StringList &directoryListing, Depth recursive=FlatListing) const;
 			Path operator+(const Path &name) const;
+			Path operator+(const std::string &name) const {return *this + io::Path(name);}
 			Path &operator=(const Path &other);
 			bool operator==(const Path &other);
 			bool operator!=(const Path &other);
@@ -211,14 +213,14 @@ namespace io {
 			return you.substr(me.length() + (you[me.length()] == separator ? 1 : 0));
 		}
 
-		for (String::size_type index = 0; index < std::min(me.length(), you.length()) && (me[index] == you[index]); ++index) {
-			if (separator == me[index]) {
-				matchSeparator = index;
+		for (String::size_type position = 0; position < std::min(me.length(), you.length()) && (me[position] == you[position]); ++position) {
+			if (separator == me[position]) {
+				matchSeparator = position;
 			}
 		}
 
-		for (String::size_type index = matchSeparator + 1; index < me.length(); ++index) {
-			if (separator == me[index]) {
+		for (String::size_type position = matchSeparator + 1; position < me.length(); ++position) {
+			if (separator == me[position]) {
 				result = result + String("..");
 			}
 		}
@@ -297,15 +299,16 @@ namespace io {
 	}
 	inline Path::StringList &Path::_list(HavePath havePath, StringList &directoryListing, Depth recursive) const {
 		DIR 			*dp;
-		struct dirent	*ep;
 		StringList		directories;
-        bool            keepListing = true;
 
   		ErrnoOnNULL(dp= ::opendir(String(*this).c_str()));
 
   		try {
+	        bool            keepListing = true;
+
 			do {
                 try {
+					struct dirent	*ep;
                     ErrnoOnNULL(ep= ::readdir(dp));
 
                     if (NULL != ep) {
@@ -407,22 +410,22 @@ namespace io {
 	inline dt::DateTime Path::lastAccess(LinkHandling action) const {
 		struct stat info;
 
-		return _stat(info, action).st_atimespec;
+		return dt::DateTime(_stat(info, action).st_atimespec);
 	}
 	inline dt::DateTime Path::lastModification(LinkHandling action) const {
 		struct stat info;
 
-		return _stat(info, action).st_mtimespec;
+		return dt::DateTime(_stat(info, action).st_mtimespec);
 	}
 	inline dt::DateTime Path::lastStatusChange(LinkHandling action) const {
 		struct stat info;
 
-		return _stat(info, action).st_ctimespec;
+		return dt::DateTime(_stat(info, action).st_ctimespec);
 	}
 	inline dt::DateTime Path::created(LinkHandling action) const {
 		struct stat info;
 
-		return _stat(info, action).st_birthtimespec;
+		return dt::DateTime(_stat(info, action).st_birthtimespec);
 	}
 	inline off_t Path::size(LinkHandling action) const {
 		struct stat info;

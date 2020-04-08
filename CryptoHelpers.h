@@ -14,19 +14,19 @@
 
 namespace crypto {
 
-	class Exception : public msg::Exception {
+	class CryptoException : public msg::Exception {
 		public:
 			/// Generic crypto exception
-			Exception(const std::string &message, const char *file= NULL, int line= 0) throw():msg::Exception(message, file, line) {}
+			explicit CryptoException(const std::string &message, const char *file= NULL, int line= 0) throw():msg::Exception(message, file, line) {}
 			/// destructs _message
-			virtual ~Exception() throw() {}
+			virtual ~CryptoException() throw() {}
 	};
 
 	#define __crypto_EncryptAssert(name, condition) if (!(condition)) {throw name##Error(#condition, __FILE__, __LINE__);} else msg::noop()
 	#define DeclareError(name, message) \
-	class name##Error : public Exception { \
+	class name##Error : public CryptoException { \
 		public: \
-			name##Error(const std::string &call, const char *file= NULL, int line= 0) throw():Exception(call + " : " message, file, line) {} \
+			explicit name##Error(const std::string &call, const char *file= NULL, int line= 0) throw():CryptoException(call + " : " message, file, line) {} \
 			virtual ~name##Error() throw() {} \
 	}
 
@@ -62,7 +62,7 @@ namespace crypto {
      		case kCCUnimplemented:
      			throw UnimplementedError(call, file, line);
      		default:
-     			throw new Exception(call, file, line);
+     			throw new CryptoException(call, file, line);
      	}
 	}
 
@@ -77,7 +77,7 @@ namespace crypto {
 			std::string buffer(512, '\0');
 			ERR_error_string(ERR_get_error(), const_cast<char*>(buffer.data()));
 			buffer.erase(strlen(buffer.c_str()));
-			throw Exception(std::string("OpenSSL Error (" + call + "): ") + buffer, file, line);
+			throw CryptoException(std::string("OpenSSL Error (" + call + "): ") + buffer, file, line);
 		}
 		return status;
 	}

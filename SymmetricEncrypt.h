@@ -53,13 +53,13 @@ namespace crypto {
 				IVLength= SpecificCryptor::IVLength
 			};
 			SpecificSymmetricKey(const void *data, size_t dataSize);
-			SpecificSymmetricKey(const std::string &data);
+			explicit SpecificSymmetricKey(const std::string &data);
 			virtual ~SpecificSymmetricKey() {}
-			virtual size_t blockSize() const;
-			virtual size_t keySize() const;
-			virtual size_t ivSize() const;
-			virtual void encryptInPlace(const char *data, const size_t dataSize, const std::string &iv, char *encrypted, size_t &encryptedSize) const;
-			virtual void decryptInPlace(const char *encrypted, size_t encryptedSize, const std::string &iv, char *data, size_t &dataSize) const;
+			size_t blockSize() const override;
+			size_t keySize() const override;
+			size_t ivSize() const override;
+			void encryptInPlace(const char *data, const size_t dataSize, const std::string &iv, char *encrypted, size_t &encryptedSize) const override;
+			void decryptInPlace(const char *encrypted, size_t encryptedSize, const std::string &iv, char *data, size_t &dataSize) const override;
 		private:
 			std::string _key;
 	};

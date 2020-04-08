@@ -33,11 +33,11 @@ namespace net {
 			AddressIPv4(const std::string &address, in_port_t port);
 			virtual ~AddressIPv4();
 			/// @brief Gets the address of the the sockaddr_in structure
-			virtual struct sockaddr *get();
+			struct sockaddr *get() override;
 			/// @brief Gets the size of the sockaddr_in structure
-			virtual socklen_t size() const;
+			socklen_t size() const override;
 			/// @brief AF_INET
-			virtual sa_family_t family() const;
+			sa_family_t family() const override;
 		private:
 			/// @brief The IPv4 AF_INET structure
 			struct sockaddr_in	_address;

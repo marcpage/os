@@ -11,8 +11,8 @@ namespace io {
 
 	class FileDescriptor {
 		public:
-			FileDescriptor(const std::string &path, int oflag=O_RDWR|O_CREAT, mode_t mode=0777);
-			FileDescriptor(const int descriptor);
+			explicit FileDescriptor(const std::string &path, int oflag=O_RDWR|O_CREAT, mode_t mode=0777);
+			explicit FileDescriptor(const int descriptor);
 			struct stat &info(struct stat &buffer) const;
 			off_t size() const;
 			void resize(off_t newSize) const;

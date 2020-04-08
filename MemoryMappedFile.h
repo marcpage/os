@@ -10,8 +10,8 @@ namespace io {
 
 	class MemoryMappedFile {
 		public:
-			MemoryMappedFile(const FileDescriptor &file, size_t size=0, size_t offset=0, int protections=PROT_READ|PROT_WRITE, int flags=MAP_SHARED);
-			MemoryMappedFile(const std::string &file, size_t size=0, size_t offset=0, int protections=PROT_READ|PROT_WRITE, int flags=MAP_SHARED);
+			explicit MemoryMappedFile(const FileDescriptor &file, size_t size=0, size_t offset=0, int protections=PROT_READ|PROT_WRITE, int flags=MAP_SHARED);
+			explicit MemoryMappedFile(const std::string &file, size_t size=0, size_t offset=0, int protections=PROT_READ|PROT_WRITE, int flags=MAP_SHARED);
 			operator void*();
 			size_t size();
 			template<class T>
