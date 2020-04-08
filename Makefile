@@ -6,18 +6,18 @@ lint:bin/logs/lint.txt
 
 OPENSSL_PATH=$(subst openssl=,-I,$(OS_OPTIONS))/include
 
-KNOWN_ERRORS:= --suppress=syntaxError:../os/Path.h:216 \
-				--suppress=unusedFunction \
-				--suppress=constParameter
+KNOWN_ERRORS:= --suppress=unusedFunction \
+				--suppress=knownConditionTrueFalse:Library.h:162 \
+				-U_DEBUG_FILE
 
 bin/logs/lint.txt: *.h
 	@mkdir -p bin/logs
-	@cppcheck --enable=all --force --std=c++11 $(KNOWN_ERRORS) --language=c++ $(OPENSSL_PATH) -I/usr/include -I.. *.h &> $@
-	@-cat $@ | grep performance:
-	@-cat $@ | grep portability:
-	@-cat $@ | grep style:
-	@-cat $@ | grep warning:
-	@-cat $@ | grep error:
+	@cppcheck --enable=all --force --std=c++11 $(KNOWN_ERRORS) --language=c++ $(OPENSSL_PATH) -I.. *.h &> $@
+	@-cat $@ | grep performance: || true
+	@-cat $@ | grep portability: || true
+	@-cat $@ | grep style: || true
+	@-cat $@ | grep warning: || true
+	@-cat $@ | grep error: || true
 
 documentation/index.html:
 	@mkdir -p documentation

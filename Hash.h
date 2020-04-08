@@ -186,7 +186,7 @@ namespace hash {
 	}
 	template<class Hasher> inline SpecificHash<Hasher>::SpecificHash(const char *hash)
 		:_hash() {
-		reset(hash);
+		SpecificHash<Hasher>::reset(hash);
 	}
 	template<class Hasher> inline SpecificHash<Hasher>::SpecificHash(const void *data, size_t count)
 		:_hash() {

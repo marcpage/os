@@ -322,16 +322,16 @@ namespace io {
                             }
                         }
                     } else {
-                        keepListing = false;
+                        keepListing = false; // not covered by tests
                     }
-                } catch(const posix::err::EINTR_Errno &) {
+                } catch(const posix::err::EINTR_Errno &) {  // not covered by tests
                     keepListing = false; // sometimes we get spurious EINTR when there is an empty directory
                 }
 			} while (keepListing);
 		} catch(const posix::err::ENOENT_Errno &) {
 		} catch(const std::exception &) {
-			ErrnoOnNegative(::closedir(dp));
-			throw;
+			ErrnoOnNegative(::closedir(dp)); // not covered by tests
+			throw; // not covered by tests
 		}
 
 		ErrnoOnNegative(::closedir(dp));
