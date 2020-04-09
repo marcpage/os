@@ -29,20 +29,20 @@ int main(const int , const char * const []) {
 		while (source.size() < 1024 * 1024) {
 			source += "Nobody inspects the spammish repetition. ";
 		}
-		if (strlen(z::ZException(Z_OK, __FILE__, __LINE__).what()) == 0) {
+		if (strlen(z::Exception(Z_OK, __FILE__, __LINE__).what()) == 0) {
 			printf("FAILED: Z_OK is empty\n");
 		}
-		if (strlen(z::ZException(-10000, __FILE__, __LINE__).what()) == 0) {
+		if (strlen(z::Exception(-10000, __FILE__, __LINE__).what()) == 0) {
 			printf("FAILED: -10000 is empty\n");
 		}
-		if (strlen(z::ZException(Z_MEM_ERROR, __FILE__, __LINE__).what()) == 0) {
+		if (strlen(z::Exception(Z_MEM_ERROR, __FILE__, __LINE__).what()) == 0) {
 			printf("FAILED: Z_MEM_ERROR is empty\n");
 		}
 		try {
 			z::compress(source, compressed);
 			z::uncompress(compressed, uncompressed);
 			printf("FAILED: We should have thrown an exception for size being to small\n");
-		} catch(const z::ZException &exception) {
+		} catch(const z::Exception &exception) {
 			printf("Correctly caught exception: %s\n", exception.what());
 		} catch(const std::exception &exception) {
 			printf("FAILED: We threw an unexpected exception (small size): %s\n", exception.what());
@@ -65,14 +65,14 @@ int main(const int , const char * const []) {
 		try {
 			z::compress(source, compressed, 10);
 			printf("FAILED: We should have thrown an exception for bad level (10)\n");
-		} catch(const z::ZException &) {
+		} catch(const z::Exception &) {
 		} catch(const std::exception &exception) {
 			printf("FAILED: We threw an unexpected exception (10): %s\n", exception.what());
 		}
 		try {
 			z::uncompress(source, compressed);
 			printf("FAILED: We should have thrown an exception for corrupted compressed data\n");
-		} catch(const z::ZException &) {
+		} catch(const z::Exception &) {
 		} catch(const std::exception &exception) {
 			printf("FAILED: We threw an unexpected exception (corrupted): %s\n", exception.what());
 		}

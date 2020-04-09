@@ -59,7 +59,7 @@ int main(const int argc, const char * const argv[]) {
 		try {
 			sys::Library("Nonsense Library");
 			fprintf(stderr, "FAILED: Expected an exception for Nonsense Library\n");
-		} catch(const sys::Library::LibException &) {
+		} catch(const sys::Library::Exception &) {
 		} catch(const std::exception &exception) {
 			fprintf(stderr, "FAILED: Expected an exception for Nonsense Library\n");
 		}

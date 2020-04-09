@@ -13,26 +13,26 @@
 
 /// Throws an Sqlite3::Exception for the given line
 #define Sql3Throw() \
-	throw Sqlite3::Sqlite3Exception(__FILE__, __LINE__)
-	/// Throws an Sqlite3::Sqlite3Exception if a pointer is NULL
+	throw Sqlite3::Exception(__FILE__, __LINE__)
+	/// Throws an Sqlite3::Exception if a pointer is NULL
 #define Sql3ThrowIfNull(ptr, message) \
 	if(NULL == (ptr)) \
-	throw Sqlite3::Sqlite3Exception(__FILE__, __LINE__, message); \
+	throw Sqlite3::Exception(__FILE__, __LINE__, message); \
 	else noop()
-/// Throws an Sqlite3::Sqlite3Exception if 'error' is not NULL, 0, false, etc. 'error' must be a const char* or int
+/// Throws an Sqlite3::Exception if 'error' is not NULL, 0, false, etc. 'error' must be a const char* or int
 #define Sql3ThrowIfError(error) \
 	if(error) \
-	throw Sqlite3::Sqlite3Exception(__FILE__, __LINE__, error); \
+	throw Sqlite3::Exception(__FILE__, __LINE__, error); \
 	else noop()
-/// Throws an Sqlite3::Sqlite3Exception if a sqlite3 return code is an error, throws the error string from sqlite3 for the db
+/// Throws an Sqlite3::Exception if a sqlite3 return code is an error, throws the error string from sqlite3 for the db
 #define Sql3ThrowIfDbError(db, returnCode) \
 	if(returnCode) \
-	throw Sqlite3::Sqlite3Exception(__FILE__, __LINE__, sqlite3_errmsg(db)); \
+	throw Sqlite3::Exception(__FILE__, __LINE__, sqlite3_errmsg(db)); \
 	else noop()
-/// Throws an Sqlite3::Sqlite3Exception if an assertion fails
+/// Throws an Sqlite3::Exception if an assertion fails
 #define Sql3Assert(condition) \
 	if(!(condition)) \
-	throw Sqlite3::Sqlite3Exception(__FILE__, __LINE__, #condition); \
+	throw Sqlite3::Exception(__FILE__, __LINE__, #condition); \
 	else noop()
 
 /**
@@ -49,31 +49,31 @@ namespace Sqlite3 {
 	Number fromString(const std::string &asString);
 
 	/// exceptions in Sqlite3
-	class Sqlite3Exception : public msg::Exception {
+	class Exception : public msg::Exception {
 	public:
 		/// copy constructor
-		Sqlite3Exception(const Sqlite3Exception &exception) throw();
+		Exception(const Exception &exception) throw();
 		/** @brief construct an exception for the given file and line number
 		 @param file	The file in which the exception occurred
 		 @param line	The line number at which the exception occurred
 		 */
-		Sqlite3Exception(const char *file, int line);
+		Exception(const char *file, int line);
 		/** @brief construct an exception for the given file, line number and an error code
 		 @param file		The file in which the exception occurred
 		 @param line		The line number at which the exception occurred
 		 @param errorCode	An error code
 		 */
-		Sqlite3Exception(const char *file, int line, int errorCode);
+		Exception(const char *file, int line, int errorCode);
 		/** @brief construct an exception for the given file, line number and an error message
 		 @param file		The file in which the exception occurred
 		 @param line		The line number at which the exception occurred
 		 @param errorString	A message describing the error
 		 */
-		Sqlite3Exception(const char *file, int line, const std::string &errorString);
+		Exception(const char *file, int line, const std::string &errorString);
 		/// destructor
-		virtual ~Sqlite3Exception() throw();
+		virtual ~Exception() throw();
 		/// assignment operator
-		Sqlite3Exception &operator=(const Sqlite3Exception &exception);
+		Exception &operator=(const Exception &exception);
 	};
 
 	/// An Sqlite3 database
@@ -83,7 +83,7 @@ namespace Sqlite3 {
 		typedef std::map<String,String>	Row;
 		typedef std::vector<Row>		Results;
 		/** @brief Opens or Creates a database at the given path
-		 @throw Sqlite3::Sqlite3Exception	If there is any problem executing the query
+		 @throw Sqlite3::Exception	If there is any problem executing the query
 		 */
 		explicit DB(const String &filepath);
 		/// Closes and cleans up the database
@@ -92,13 +92,13 @@ namespace Sqlite3 {
 		 @param command	The command to execute
 		 @param rows	Must be allocated before the call.
 						Filled with Rows of items describing the results
-		 @throw Sqlite3::Sqlite3Exception	If there is any problem executing the query
+		 @throw Sqlite3::Exception	If there is any problem executing the query
 		 */
 		void exec(const String &command, Results *rows= NULL);
 		/** @brief Adds a row to the given table.
 			@param table	The name of the table to add the row to
 			@param row		The data for the row to add
-			@throw Sqlite3::Sqlite3Exception	If there is any problem adding the row
+			@throw Sqlite3::Exception	If there is any problem adding the row
 		*/
 		void addRow(const String &table, const Row &row);
 	private:
@@ -136,26 +136,26 @@ namespace Sqlite3 {
 		Number				x;
 
 		if( !(i >> x) ) {
-			throw Sqlite3::Sqlite3Exception(__FILE__, __LINE__, "Unable to convert number string to number");
+			throw Sqlite3::Exception(__FILE__, __LINE__, "Unable to convert number string to number");
 		}
 		return x;
 	}
 
 	// ****** Exception implementation ******
 
-	inline Sqlite3Exception::Sqlite3Exception(const Sqlite3Exception &exceptionToCopy) throw()
+	inline Exception::Exception(const Exception &exceptionToCopy) throw()
 		:msg::Exception(exceptionToCopy) {}
-	inline Sqlite3Exception::Sqlite3Exception(const char *file, int line)
+	inline Exception::Exception(const char *file, int line)
 		:msg::Exception("Error", file, line) {
 	}
-	inline Sqlite3Exception::Sqlite3Exception(const char *file, int line, int errorCode)
+	inline Exception::Exception(const char *file, int line, int errorCode)
 		:msg::Exception("Error #"+std::to_string(errorCode), file, line) {
 	}
-	inline Sqlite3Exception::Sqlite3Exception(const char *file, int line, const std::string &errorString)
+	inline Exception::Exception(const char *file, int line, const std::string &errorString)
 		:msg::Exception("Error "+errorString, file, line) {
 	}
-	inline Sqlite3Exception::~Sqlite3Exception() throw() {}
-	inline Sqlite3Exception &Sqlite3Exception::operator=(const Sqlite3Exception &exceptionToCopy) {
+	inline Exception::~Exception() throw() {}
+	inline Exception &Exception::operator=(const Exception &exceptionToCopy) {
 		*reinterpret_cast<msg::Exception*>(this)= exceptionToCopy;
 		return *this;
 	}
