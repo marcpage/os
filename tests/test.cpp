@@ -581,7 +581,11 @@ void findFileCoverage(const String &file, const String &options, uint32_t &cover
 			split(*line, ':', parts);
 
 			if (parts.size() < 2) {
-				continue;
+				continue;  // not a validate source line
+			}
+
+			if (strip(parts[2]) == "}") {
+				continue;  // just a close bracket (destructors)
 			}
 
 			const bool lineRun = strip(parts[0]).substr(0,1) != "#";
@@ -603,6 +607,10 @@ void findFileCoverage(const String &file, const String &options, uint32_t &cover
 
 			if (parts.size() < 2) {
 				continue;
+			}
+
+			if (strip(parts[2]) == "}") {
+				continue;  // just a close bracket (destructors)
 			}
 
 			int lineNumber = std::stoi(strip(parts[1]));
