@@ -11,6 +11,7 @@ KNOWN_ERRORS:= --suppress=unusedFunction \
 				-U_DEBUG_FILE
 
 bin/logs/lint.txt: *.h
+	@echo Linting ...
 	@mkdir -p bin/logs
 	@cppcheck --enable=all --force --std=c++11 $(KNOWN_ERRORS) --language=c++ $(OPENSSL_PATH) -I.. *.h &> $@
 	@-cat $@ | grep performance: || true
