@@ -71,6 +71,7 @@ namespace Sqlite3 {
 		 */
 		Exception(const char *file, int line, const std::string &errorString);
 		/// destructor
+		// cppcheck-suppress missingOverride
 		virtual ~Exception() throw();
 		/// assignment operator
 		Exception &operator=(const Exception &exception);

@@ -72,6 +72,7 @@ namespace sys {
 					/// Exception to throw if compiler does support function
 					Exception(const std::string &message, const char *file, int line, const char *function) throw();
 					/// cleanup std::string
+					// cppcheck-suppress missingOverride
 					virtual ~Exception() throw();
 				private:
 					/// common code for constructors
@@ -159,6 +160,7 @@ namespace sys {
 			if(NULL != __std_lib_prefix__) { // try adding a prefix
 				found= _attempt_core((__std_lib_prefix__+str).c_str(), Modified);
 			}
+			// cppcheck-suppress knownConditionTrueFalse
 			if((!found) && (NULL != __std_lib_suffix__) ) { // try adding a suffix
 				found= _attempt_core((str+__std_lib_suffix__).c_str(), Modified);
 			}

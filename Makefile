@@ -7,12 +7,7 @@ lint:bin/logs/lint.txt
 OPENSSL_PATH=$(subst openssl=,-I,$(OS_OPTIONS))/include
 
 KNOWN_ERRORS:= --suppress=unusedFunction \
-				--suppress=knownConditionTrueFalse:Library.h:162 \
-				--suppress=missingOverride:Library.h:75 \
-				--suppress=missingOverride:Sqlite3Plus.h:74 \
-				--suppress=missingOverride:ZCompression.h:19 \
-				--suppress=missingOverride:CryptoHelpers.h:22 \
-				--suppress=missingOverride:../os/CryptoHelpers.h:22 \
+    			--inline-suppr \
 				-U_DEBUG_FILE
 
 bin/logs/lint.txt: *.h

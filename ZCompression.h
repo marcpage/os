@@ -16,6 +16,7 @@ namespace z {
 			explicit Exception(int zcode, const char *file= NULL, int line= 0) throw();
 			Exception(const Exception &other);
 			Exception &operator=(const Exception &other);
+			// cppcheck-suppress missingOverride
 			virtual ~Exception() throw();
 			const char* what() const throw() override;
 			int code();

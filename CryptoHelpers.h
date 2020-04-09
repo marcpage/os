@@ -19,6 +19,7 @@ namespace crypto {
 			/// Generic crypto exception
 			explicit Exception(const std::string &message, const char *file= NULL, int line= 0) throw():msg::Exception(message, file, line) {}
 			/// destructs _message
+			// cppcheck-suppress missingOverride
 			virtual ~Exception() throw() {}
 	};
 
