@@ -10,6 +10,7 @@ KNOWN_ERRORS:= --suppress=unusedFunction \
     			--inline-suppr \
 				-U_DEBUG_FILE
 
+
 bin/logs/lint.txt: *.h
 	@echo Linting ...
 	@mkdir -p bin/logs
@@ -29,6 +30,17 @@ docs:documentation/index.html
 
 test:bin/test
 	@bin/test $(OS_OPTIONS) $(COMPILER) $(TEST)
+
+bin/test:format
+test:format
+docs:format
+lint:format
+
+format:bin/logs/clang-format.txt
+
+bin/logs/clang-format.txt:tests/*.cpp *.h
+	@echo Cleaning code ...
+	@clang-format --verbose -i *.h tests/*.cpp 2> bin/logs/clang-format.txt
 
 bin/test:tests/test.cpp *.h
 	@mkdir -p bin
