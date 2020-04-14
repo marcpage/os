@@ -20,9 +20,11 @@ class AsymmetricPublicKey {
 public:
   AsymmetricPublicKey() {}
   virtual ~AsymmetricPublicKey() {}
+  virtual std::string &serialize(std::string &buffer) = 0;
   virtual bool verify(const std::string &text,
                       const std::string &signature) = 0;
-  virtual std::string &serialize(std::string &buffer) = 0;
+  virtual std::string &encrypt(const std::string &source,
+                               std::string &encrypted) = 0;
 
 private:
   AsymmetricPublicKey(const AsymmetricPublicKey &);
@@ -35,6 +37,8 @@ public:
   virtual ~AsymmetricPrivateKey() {}
   virtual AsymmetricPublicKey *publicKey() = 0;
   virtual std::string &serialize(std::string &buffer) = 0;
+  virtual std::string &decrypt(const std::string &source,
+                               std::string &decrypted) = 0;
   virtual std::string &sign(const std::string &text,
                             std::string &signature) = 0;
 
@@ -95,6 +99,30 @@ public:
     _rsa.data =
         __crypto_OSSLHandle(keyReader(memory, nullptr, nullptr, nullptr));
   }
+  typedef int (*Cryptor)(
+      int flen, const unsigned char *from, unsigned char *to, RSA *rsa,
+      int padding); // RSA_public_encrypt or RSA_private_decrypt
+  std::string &crypt(const std::string &source, std::string &output,
+                     Cryptor cryptor, int overheadSize = 41,
+                     int padding = RSA_PKCS1_OAEP_PADDING) {
+    const int keyBytes = RSA_size(_rsa);
+    int dataSize;
+
+    __crypto_OSSLHandle(
+        static_cast<long>(source.size()) <= keyBytes - overheadSize ? 1 : 0);
+    output.assign(keyBytes, '\0');
+    __crypto_OSSLHandle(
+        (dataSize =
+             cryptor(source.size(),
+                     reinterpret_cast<const unsigned char *>(source.data()),
+                     reinterpret_cast<unsigned char *>(
+                         const_cast<char *>(output.data())),
+                     _rsa, padding)) >= 0
+            ? 1
+            : 0);
+    output.erase(dataSize);
+    return output;
+  }
   std::string &serializePrivate(std::string &buffer) {
     serializeKey(buffer, _writePrivate);
     return buffer;
@@ -140,8 +168,8 @@ public:
       return true;
     }
     if (status != 0) {
-      handleOpenSSLResult(0, "EVP_DigestVerifyFinal", __FILE__,
-                          __LINE__); // not tested
+      handleOpenSSLResult(0, "EVP_DigestVerifyFinal", __FILE__, // not tested
+                          __LINE__);
     }
     return false;
   }
@@ -182,6 +210,11 @@ public:
   bool verify(const std::string &text, const std::string &signature) override {
     return rsa.verify(text, signature, EVP_sha256);
   }
+  std::string &encrypt(const std::string &source,
+                       std::string &encrypted) override {
+    return rsa.crypt(source, encrypted, RSA_public_encrypt, 41,
+                     RSA_PKCS1_OAEP_PADDING);
+  }
 
 private:
   OpenSSLRSA rsa;
@@ -202,6 +235,11 @@ public:
   }
   std::string &sign(const std::string &text, std::string &signature) override {
     return rsa.sign(text, signature, EVP_sha256);
+  }
+  std::string &decrypt(const std::string &source,
+                       std::string &decrypted) override {
+    return rsa.crypt(source, decrypted, RSA_private_decrypt, 0,
+                     RSA_PKCS1_OAEP_PADDING);
   }
   AsymmetricPublicKey *publicKey() override {
     std::string buffer;

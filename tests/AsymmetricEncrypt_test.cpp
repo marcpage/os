@@ -50,6 +50,8 @@ int main(int /*argc*/, char * /*argv*/[]) {
       "2345678901234567890123456789"
       "012345678901234567890123456789012345678901234567890123456789012345678901"
       "2345678901234567890123456789"};
+  const char *dummyHash =
+      "0123456789ABCDEDF0123456789abcdef0123456789ABCDEDF0123456789abcdef";
   std::string publicKey, privateKey, signature, buffer;
 
   for (int i = 0; i < iterations; ++i) {
@@ -69,6 +71,9 @@ int main(int /*argc*/, char * /*argv*/[]) {
 
             dotest(publicRsa->verify(testSets[dataIndex],
                                      rsa.sign(testSets[dataIndex], signature)));
+
+            dotest(rsa.decrypt(publicRsa->encrypt(dummyHash, buffer),
+                               signature) == dummyHash);
 
             crypto::OpenSSLRSAAES256PrivateKey rsa2(rsa.serialize(buffer));
             crypto::AutoClean<crypto::AsymmetricPublicKey> publicRsa2(
@@ -91,6 +96,14 @@ int main(int /*argc*/, char * /*argv*/[]) {
             dotest(!publicRsa->verify(
                 testSets[dataIndex],
                 rsa2.sign(testSets[dataIndex], signature).substr(1)));
+
+            dotest(rsa2.decrypt(publicRsa2->encrypt(dummyHash, buffer),
+                                signature) == dummyHash);
+            dotest(rsa.decrypt(publicRsa2->encrypt(dummyHash, buffer),
+                               signature) == dummyHash);
+            dotest(rsa2.decrypt(publicRsa->encrypt(dummyHash, buffer),
+                                signature) == dummyHash);
+
           } catch (const std::exception &exception) {
             fprintf(stderr, "FAILED(%d:%d): Exception: %s\n", keySizeIndex,
                     dataIndex, exception.what());
