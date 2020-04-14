@@ -58,7 +58,7 @@ inline void SocketGeneric::setOption(int name, bool value, int level) {
 inline SocketGeneric::SocketGeneric() : _socket(-1) {}
 /**
         @param domain	The family or domain. You can use
-   <code>Address.family()</code>
+                        <code>Address.family()</code>
         @param type		The type of socket (ie SOCK_STREAM)
         @param protocol	The protocol (usually 0?)
 */
