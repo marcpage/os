@@ -144,9 +144,8 @@ inline bool Queue<T>::dequeue(T &value, double timeoutInSeconds) {
   std::unique_lock<std::mutex> lock(_lock);
 
   while ((_queue.size() == 0) && (-1 != _max)) {
-    if (!_empty.wait_for(lock,
-                         std::chrono::nanoseconds(uint64_t(timeoutInSeconds *
-                                                  1000 * 1000 * 1000)))) {
+    if (!_empty.wait_for(lock, std::chrono::nanoseconds(uint64_t(
+                                   timeoutInSeconds * 1000 * 1000 * 1000)))) {
       return false;
     } else {
       AssertQueueNotClosed;
