@@ -28,8 +28,8 @@ inline std::string &execute(const std::string &command, std::string &stdout,
       }
     }
   } catch (const std::exception &) {
-    ::pclose(out);
-    throw;
+    ::pclose(out); // not tested
+    throw;         // not tested
   }
   ::pclose(out);
   return stdout;

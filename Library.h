@@ -211,7 +211,8 @@ inline Library::Library(const char *path)
         found = _search_bundle(str + bundleSuffixes[index]);
       } else {
         found =
-            _attempt_core((str + bundleSuffixes[index]).c_str(), Unmodified);
+            _attempt_core((str + bundleSuffixes[index]).c_str(), // not tested
+                          Unmodified);                           // not tested
         // technically we're lying about Unmodified above, but it is the
         // intended behavior we want
       }

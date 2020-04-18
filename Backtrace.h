@@ -43,13 +43,13 @@ inline std::string demangleLine(const std::string &line) {
   std::string::size_type start, end;
   end = line.rfind('+');
   if ((std::string::npos == end) || (end < 3) || (' ' != line[end - 1])) {
-    return line;
+    return line; // not tested
   }
 
   end -= 1;
   start = line.rfind(' ', end - 1);
   if ((std::string::npos == end) || (start < 3) || (end - start < 1)) {
-    return line;
+    return line; // not tested
   }
 
   ++start;
@@ -67,7 +67,7 @@ inline std::string stripPrefix(const std::string &line) {
   if (std::string::npos != zeroEx) {
     return line.substr(zeroEx + 2);
   }
-  return line;
+  return line; // not tested
 }
 inline StringList &stack(StringList &list, int maxDepth = 4096) {
   const int skipStackFrames =

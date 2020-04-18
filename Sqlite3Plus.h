@@ -160,8 +160,8 @@ inline Exception::Exception(const char *file, int line, int errorCode)
     : msg::Exception("Error #" + std::to_string(errorCode), file, line) {}
 inline Exception::Exception(const char *file, int line,
                             const std::string &errorString)
-    : msg::Exception("Error " + errorString, file, line) {}
-inline Exception::~Exception() throw() {}
+    : msg::Exception("Error " + errorString, file, line) {} // not tested
+inline Exception::~Exception() throw() {}                   // not tested
 inline Exception &Exception::operator=(const Exception &exceptionToCopy) {
   *reinterpret_cast<msg::Exception *>(this) = exceptionToCopy;
   return *this;
@@ -208,8 +208,8 @@ inline void DB::exec(const String &command, Results *rows) {
         rows->push_back(row);
       }
     } else if (SQLITE_DONE != stepResult) {
-      Sql3ThrowIfDbError(_db, sqlite3_finalize(statement));
-      Sql3ThrowIfDbError(_db, stepResult);
+      Sql3ThrowIfDbError(_db, sqlite3_finalize(statement)); // not tested
+      Sql3ThrowIfDbError(_db, stepResult);                  // not tested
     }
   } while (SQLITE_DONE != stepResult);
   Sql3ThrowIfDbError(_db, sqlite3_finalize(statement));

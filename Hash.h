@@ -282,7 +282,7 @@ template <class Hasher> inline uint8_t *SpecificHash<Hasher>::buffer() {
 */
 template <class Hasher>
 inline const uint8_t *SpecificHash<Hasher>::buffer() const {
-  return _hash;
+  return _hash; // not tested
 }
 /**
         @todo TEST!
