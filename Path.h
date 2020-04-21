@@ -46,6 +46,7 @@ public:
   void mkdir(unsigned int mode = 0777) const;
   const Path &mkdirs(unsigned int mode = 0777) const;
   void rename(const Path &other) const;
+  // TODO add copyAttributesTo(const path &other) const;
   const Path &copyTo(const Path &other) const;
   Path readLink() const;
   Path relativeTo(const Path &other) const;
