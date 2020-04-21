@@ -46,6 +46,7 @@ public:
   void mkdir(unsigned int mode = 0777) const;
   const Path &mkdirs(unsigned int mode = 0777) const;
   void rename(const Path &other) const;
+  const Path &copyTo(const Path &other) const;
   Path readLink() const;
   Path relativeTo(const Path &other) const;
   Path relativeTo(const std::string &other) const {
@@ -186,6 +187,21 @@ inline const Path &Path::mkdirs(unsigned int mode) const {
 }
 inline void Path::rename(const Path &other) const {
   ErrnoOnNegative(::rename(_path.c_str(), other._path.c_str()));
+}
+// todo Test
+const Path &Path::copyTo(const Path &other) const {
+  io::File src(_path, io::File::Binary, io::File::ReadOnly);
+  io::File dst(other._path, io::File::Binary, io::File::ReadWrite);
+  auto bytesLeft = size();
+  std::string buffer;
+  static const decltype(bytesLeft) blockSize = 1024 * 1024;
+
+  while (bytesLeft > 0) {
+    src.read(buffer, std::min(blockSize, bytesLeft));
+    dst.write(buffer);
+    bytesLeft -= buffer.size();
+  }
+  return other;
 }
 inline Path Path::readLink() const {
   ssize_t length;
