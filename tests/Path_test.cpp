@@ -19,6 +19,11 @@ int main(int, const char *const[]) {
       io::Path test(working + "Path_test_file.txt");
       io::Path::StringList listing;
 
+      dotest(test.extension() == "txt");
+      dotest(test.basename() == "Path_test_file");
+      dotest(working.extension() == "");
+      dotest(working.basename() == "logs");
+
       if (io::Path("test").name() != "test") {
         printf("FAILED: 'test' name was %s\n", io::Path("test").name().c_str());
       }

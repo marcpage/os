@@ -55,6 +55,8 @@ public:
   void symlink(const Path &contents) const;
   Path parent() const;
   String name() const;
+  String extension() const;
+  String basename() const;
   Path canonical() const;
   Path uniqueName(const std::string &prefix = "",
                   const std::string &suffix = "") const;
@@ -266,6 +268,23 @@ inline Path::String Path::name() const {
     return _path;
   }
   return _path.substr(sepPos + 1);
+}
+inline Path::String Path::extension() const {
+  String::size_type sepPos = _path.rfind('.');
+
+  if (sepPos == String::npos) {
+    return "";
+  }
+  return _path.substr(sepPos + 1);
+}
+inline Path::String Path::basename() const {
+  String fullname = name();
+  String::size_type sepPos = fullname.rfind('.');
+
+  if (sepPos == String::npos) {
+    return fullname;
+  }
+  return fullname.substr(0, sepPos);
 }
 inline Path Path::canonical() const {
   String buffer(PATH_MAX, '\0');
