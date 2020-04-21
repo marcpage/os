@@ -181,7 +181,7 @@ inline void File::write(const void *buffer, size_t bufferSize, off_t offset,
 inline std::string &File::read(std::string &buffer, size_t bufferSize,
                                off_t offset, Relative relative) const {
   if (static_cast<size_t>(-1) == bufferSize) {
-    bufferSize = size() - offset;
+    bufferSize = size() - offset; // not tested
   }
   buffer.assign(bufferSize, '\0');
   read(const_cast<char *>(buffer.data()), bufferSize, offset, relative);
@@ -271,14 +271,14 @@ inline std::string &File::readline(std::string &buffer, off_t offset,
     if (foundCR && (cr == partial.size() - 1) && (left > 0)) {
       char character;
 
-      read(&character, 1, 0, FromHere);
-      partial.append(1, character);
+      read(&character, 1, 0, FromHere); // not tested
+      partial.append(1, character);     // not tested
     }
     lf = partial.find('\n');
     foundLF = (lf != std::string::npos);
     eol = std::string::npos;
     if (foundLF && foundCR) {
-      eol = ((cr + 1 == lf) || (lf < cr)) ? lf : cr;
+      eol = ((cr + 1 == lf) || (lf < cr)) ? lf : cr; // not tested
     } else if (foundLF || foundCR) {
       eol = foundLF ? lf : cr;
     }

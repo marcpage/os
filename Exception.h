@@ -144,7 +144,8 @@ inline const char *Exception::what() const throw() {
   if (NULL != _message) {
     return _message->c_str();
   } else {
-    return "Unable to allocate message string at exception throw!";
+    return "Unable to allocate message string at exception throw!"; // not
+                                                                    // tested
   }
 }
 /** Allows for the same code to be used to initialize, regardless of the string

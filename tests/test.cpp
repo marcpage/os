@@ -559,11 +559,12 @@ void runTest(const String &name, const std::string::size_type maxNameSize,
     runLogName = executableName + "_run.log";
     gcovLogName = executableName + "_gcov.log";
     executablePath = "bin/tests/" + executableName;
-    command = gCompilerLocations[compiler] + " -o " + executablePath +
-              " tests/" + name + "_test.cpp " + (gDebugging ? " -g " : "") +
-              gCompilerFlags + otherFlags +
-              " -D__Tracer_h__ -fprofile-arcs -ftest-coverage &> bin/logs/" +
-              logName;
+    command =
+        gCompilerLocations[compiler] + " -o " + executablePath + " tests/" +
+        name + "_test.cpp " + (gDebugging ? " -g " : "") + gCompilerFlags +
+        otherFlags +
+        " -D__Tracer_h__ -fprofile-arcs -ftest-coverage -g -O0 &> bin/logs/" +
+        logName;
     if (gVerbose) {
       printf("EXECUTING: %s\n", command.c_str());
     }

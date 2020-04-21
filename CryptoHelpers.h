@@ -40,14 +40,16 @@ public:
   }
 
 DeclareError(KeySize, "Key data is incorrect size");
-DeclareError(Param, "Illegal parameter value");
+DeclareError(Param, "Illegal parameter value"); // not tested
 DeclareError(BufferTooSmall,
              "Insufficient buffer provided for specified operation");
-DeclareError(Memory, "Memory allocation failure");
+DeclareError(Memory, "Memory allocation failure"); // not tested
 DeclareError(Alignment, "Input size was not aligned properly");
-DeclareError(Decode, "Input data did not decode or decrypt properly");
-DeclareError(Unimplemented,
-             "Function not implemented for the current algorithm");
+DeclareError(Decode,
+             "Input data did not decode or decrypt properly"); // not tested
+DeclareError(
+    Unimplemented,
+    "Function not implemented for the current algorithm"); // not tested
 DeclareError(IVWrongSize, "Initialization Vector is the wrong size");
 
 #undef DeclareError
@@ -63,19 +65,19 @@ void handleCCCryptorStatus(CCCryptorStatus status, const std::string &call,
   case kCCSuccess:
     break;
   case kCCParamError:
-    throw ParamError(call, file, line);
+    throw ParamError(call, file, line); // not tested
   case kCCBufferTooSmall:
     throw BufferTooSmallError(call, file, line);
   case kCCMemoryFailure:
-    throw MemoryError(call, file, line);
+    throw MemoryError(call, file, line); // not tested
   case kCCAlignmentError:
     throw AlignmentError(call, file, line);
   case kCCDecodeError:
-    throw DecodeError(call, file, line);
+    throw DecodeError(call, file, line); // not tested
   case kCCUnimplemented:
-    throw UnimplementedError(call, file, line);
+    throw UnimplementedError(call, file, line); // not tested
   default:
-    throw new Exception(call, file, line);
+    throw new Exception(call, file, line); // not tested
   }
 }
 
@@ -89,11 +91,12 @@ void handleCCCryptorStatus(CCCryptorStatus status, const std::string &call,
 int handleOpenSSLResult(int status, const std::string &call, const char *file,
                         int line) {
   if (!status) {
-    std::string buffer(512, '\0');
-    ERR_error_string(ERR_get_error(), const_cast<char *>(buffer.data()));
-    buffer.erase(strlen(buffer.c_str()));
+    std::string buffer(512, '\0'); // not tested
+    ERR_error_string(ERR_get_error(),
+                     const_cast<char *>(buffer.data())); // not tested
+    buffer.erase(strlen(buffer.c_str()));                // not tested
     throw Exception(std::string("OpenSSL Error (" + call + "): ") + buffer,
-                    file, line);
+                    file, line); // not tested
   }
   return status;
 }

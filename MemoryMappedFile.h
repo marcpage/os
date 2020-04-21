@@ -79,7 +79,7 @@ void MemoryMappedFile::close() {
 */
 template <class T> inline T *MemoryMappedFile::address() {
   if (nullptr == _address) {
-    ThrowMessageException("Memory Mapped File already closed");
+    ThrowMessageException("Memory Mapped File already closed"); // not tested
   }
   return reinterpret_cast<T *>(_address);
 }
