@@ -10,6 +10,7 @@ KNOWN_ERRORS:= --suppress=unusedFunction \
     			--inline-suppr \
 				-U_DEBUG_FILE
 
+check:format lint docs
 
 bin/logs/lint.txt: *.h
 	@echo Linting ...
@@ -20,6 +21,7 @@ bin/logs/lint.txt: *.h
 	@-cat $@ | grep style: || true
 	@-cat $@ | grep warning: || true
 	@-cat $@ | grep error: || true
+	@grep -rniw todo *.h
 
 documentation/index.html:
 	@mkdir -p documentation
