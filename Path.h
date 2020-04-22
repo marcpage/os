@@ -384,6 +384,9 @@ inline Path::StringList &Path::_list(HavePath havePath,
         } else {
           keepListing = false; // not covered by tests
         }
+      } catch (const posix::err::ESRCH_Errno &) {
+        keepListing = false; // sometimes we get spurious ESRCH No such process
+                             // after listing a directory
       } catch (const posix::err::EINTR_Errno &) { // not covered by tests
         keepListing = false; // sometimes we get spurious EINTR when there is an
                              // empty directory
