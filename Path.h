@@ -47,7 +47,7 @@ public:
   const Path &mkdirs(unsigned int mode = 0777) const;
   void rename(const Path &other) const;
   // TODO add copyAttributesTo(const path &other) const;
-  const Path &copyTo(const Path &other) const;
+  const Path &copyContentsTo(const Path &other) const;
   Path readLink() const;
   Path relativeTo(const Path &other) const;
   Path relativeTo(const std::string &other) const {
@@ -190,7 +190,7 @@ inline void Path::rename(const Path &other) const {
   ErrnoOnNegative(::rename(_path.c_str(), other._path.c_str()));
 }
 // todo Test
-const Path &Path::copyTo(const Path &other) const {
+const Path &Path::copyContentsTo(const Path &other) const {
   io::File src(_path, io::File::Binary, io::File::ReadOnly);
   io::File dst(other._path, io::File::Binary, io::File::ReadWrite);
   auto bytesLeft = size();
