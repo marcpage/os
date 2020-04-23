@@ -22,6 +22,7 @@ bin/logs/lint.txt: *.h
 	@-cat $@ | grep warning: || true
 	@-cat $@ | grep error: || true
 	@grep -rniw todo *.h
+	@echo `grep -rniw todo *.h | wc -l` TODO items
 
 documentation/index.html:
 	@mkdir -p documentation
