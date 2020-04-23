@@ -6,8 +6,13 @@
 #include <vector>
 
 namespace math {
-typedef std::vector<double> List;
+typedef std::vector<double>
+    List; ///< A list of double-precision floating point numbers
 
+/** Get the sum of a list of numbers.
+        @param numbers list of numbers to add up.
+        @return the sum of the numbers
+*/
 inline double sum(const List &numbers) {
   double sum = 0.0;
 
@@ -18,6 +23,11 @@ inline double sum(const List &numbers) {
   return sum;
 }
 
+/** Get the mean (or average) of a list of numbers.
+        @param numbers the list of numbers to get the mean
+        @return the mean of the numbers
+        @throws std::out_of_range if there are no numbers in numbers
+*/
 inline double mean(const List &numbers) {
   if (numbers.size() < 1) {
     throw std::out_of_range(
@@ -28,6 +38,15 @@ inline double mean(const List &numbers) {
   return math::sum(numbers) / double(numbers.size());
 }
 
+/** Get various statistics about a list of numbers.
+        @param numbers the numbers to evaluate
+        @param mean receives the mean (or average) of the numbers
+        @param sum receives the sum of the numbers
+        @param variance sum of the square of the distance between each number
+   and the mean divided by one less than the number of items in numbers
+        @param standardDeviation square root of the variance
+        @throws std::out_of_range if there are not at least two items in numbers
+*/
 inline void statistics(const List &numbers, double &mean, double &sum,
                        double &variance, double &standardDeviation) {
   double distanceSquaredSum = 0.0;
@@ -49,6 +68,12 @@ inline void statistics(const List &numbers, double &mean, double &sum,
   standardDeviation = sqrt(variance);
 }
 
+/** Get the variance for a list of numbers.
+        @param numbers the number to evaluate
+        @return sum of the square of the distance between each number and the
+   mean divided by one less than the number of items in numbers
+        @throws std::out_of_range if there are not at least two items in numbers
+*/
 inline double variance(const List &numbers) {
   double meanValue = 0.0, sumValue = 0.0, varianceValue = 0.0,
          standardDeviationValue = 0.0;
@@ -58,6 +83,11 @@ inline double variance(const List &numbers) {
   return varianceValue;
 }
 
+/** Get the standard deviation of a list of numbers.
+        @param numbers the number to evaluate
+        @return the standard deviation of a list of numbers.
+        @throws std::out_of_range if there are not at least two items in numbers
+*/
 inline double stddev(const List &numbers) {
   double meanValue = 0.0, sumValue = 0.0, varianceValue = 0.0,
          standardDeviationValue = 0.0;
