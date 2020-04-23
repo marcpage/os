@@ -42,6 +42,7 @@ format:bin/logs/clang-format.txt
 
 bin/logs/clang-format.txt:tests/*.cpp *.h
 	@echo Cleaning code ...
+	@mkdir -p bin/logs/
 	@clang-format --verbose -i *.h tests/*.cpp 2> bin/logs/clang-format.txt
 
 bin/test:tests/test.cpp *.h
