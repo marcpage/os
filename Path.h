@@ -15,95 +15,282 @@
 
 /**
         @todo Document
-        @todo test list
         @todo chmod
 */
 namespace io {
 
+/// Represents a path on disk and operations you can perform on that path.
 class Path {
 public:
+  /// Should we operator on the link, or what the link points to?
   enum LinkHandling { WorkOnLink, WorkOnLinkTarget };
+  /// List everything under the directory or just at the root?
   enum Depth { RecursiveListing, FlatListing };
+  /// Do we want the name of directory contents or full path?
   enum HavePath { NameOnly, PathAndName };
-  typedef std::string String;
-  typedef std::vector<String> StringList;
+  typedef std::string String;             ///< The type of string used
+  typedef std::vector<String> StringList; ///< string list
+  /** Determines if a string ends with a path separator.
+        @param text the text to check
+        @return true if the platform path separator is at the end of the text.
+  */
   static bool endsWithPathSeparator(const String &text);
+  /// Get the current working directory.
   static Path working();
+  /// Construct a path from a string.
   explicit Path(const char *path);
+  /// Construct a path from a string. defaults to empty path.s
   Path(const String &path = "");
+  /// copy constructor.
   Path(const Path &other);
+  /// destructor.
   ~Path() {}
+  /** Checks to see if there is something on disk at the path.
+        @param action defaults to WorkOnLinkTarget, which will return true if
+     the link points to an item.
+        @return true if the item exists
+  */
   bool exists(LinkHandling action = WorkOnLinkTarget) const;
+  /** Does the path represent a directory.
+        @param action defaults to WorkOnLinkTarget, which will return true if
+     the link points to a directory.
+  */
   bool isDirectory(LinkHandling action = WorkOnLinkTarget) const;
+  /** Does the path represent a file.
+        @param action defaults to WorkOnLinkTarget, which will return true if
+     the link points to a file.
+  */
   bool isFile(LinkHandling action = WorkOnLinkTarget) const;
+  /// Does this path represent a link on disk.
   bool isLink() const;
+  /// Is this path a relative path
   bool isRelative() const;
+  /// Is this path an absolute path
   bool isAbsolute() const;
+  /// Is this an empty path
   bool isEmpty() const;
+  /// Delete file.
   void unlink() const;
+  /// Delete an empty directory.
   void rmdir() const;
+  /// Delete the path item, regardless of file or directory or contents.
   void remove() const;
+  /** Create a directory.
+        @param mode defaults to 0777 which is means read/write/execute
+     permissions.
+  */
   void mkdir(unsigned int mode = 0777) const;
+  /** Create a directory and all directories leading up to it.
+        @param mode defaults to 0777 which is means read/write/execute
+     permissions.
+        @return a reference to this path.
+  */
   const Path &mkdirs(unsigned int mode = 0777) const;
+  /// Rename an item or move it from one path to another.
   void rename(const Path &other) const;
   // TODO add copyAttributesTo(const path &other) const;
+  /// Copies the contents of a file from one path to another.
   const Path &copyContentsTo(const Path &other) const;
+  /// Get the location a link points to.
   Path readLink() const;
+  /// Returns a relative path that if added to other would result in this path.
   Path relativeTo(const Path &other) const;
+  /// Returns a relative path that if added to other would result in this path.
   Path relativeTo(const std::string &other) const {
     return relativeTo(Path(other));
   }
+  /** Convert a path from relative to absolute.
+        @param from The path that this path is relative to. Defaults to the
+     current working dirctory.
+        @return An absolute path.
+  */
   Path absolute(const Path &from = working()) const;
+  /// Creates a symlink to contents
   void symlink(const Path &contents) const;
+  /// Get the parent directory.
   Path parent() const;
+  /// Get the filename
   String name() const;
+  /// Get the extension, excluding the dot (.) of the filename, or empty string
   String extension() const;
+  /// Get the name of the file without the extension
   String basename() const;
+  /// Remove symlinks, extra separators, and relative paths.
   Path canonical() const;
+  /** Create a path that does not exist on disk.
+        The filename core is eight random characters.
+        @param prefix The prefix for the filename. Defaults to no prefix
+        @param suffix The suffix to append onto the filename. Defaults to no
+     suffix. This could include an extension.
+  */
   Path uniqueName(const std::string &prefix = "",
                   const std::string &suffix = "") const;
+  /** Write data to a file.
+          @param contents the contents of the file.
+          @param method The method, text or binary, to use. Defaults to
+     io::File::Text
+  */
   void write(const std::string &contents,
              io::File::Method method = io::File::Text) const;
+  /** Get the contents of a file.
+         @param method the method to use to read the file. Defaults to
+     io::File::Text
+         @param offset The offset to read from the file. Defaults to the
+     beginning, 0.
+         @param size The number of bytes to read from the file. Defaults to all
+     remaining.
+         @return The contents of the file.
+  */
   String contents(io::File::Method method = io::File::Text, off_t offset = 0,
                   size_t size = static_cast<size_t>(-1)) const {
     String buffer;
     return contents(buffer, method, offset, size);
   }
+  /** Get the contents of a file.
+         @param buffer The buffer to fill with the contents.
+         @param method the method to use to read the file. Defaults to
+     io::File::Text
+         @param offset The offset to read from the file. Defaults to the
+     beginning, 0.
+         @param size The number of bytes to read from the file. Defaults to all
+     remaining.
+         @return A reference to buffer.
+  */
   String &contents(String &buffer, io::File::Method method = io::File::Text,
                    off_t offset = 0,
                    size_t size = static_cast<size_t>(-1)) const;
+  /** Get the contents of a directory.
+          Does not include '.' or '..'
+          @param havePath NameOnly just return the names of the items,
+     PathAndName return the full path to every item.
+          @param recursive RecursiveListing if subdirectories are to be
+     searched, FlatListing if just the contents of the directory.
+          @return A list of the strings that represent the contents of the
+     directory.
+  */
   StringList list(HavePath havePath, Depth recursive = FlatListing) const;
+  /** Get the contents of a directory.
+          Does not include '.' or '..'
+          @param havePath NameOnly just return the names of the items,
+     PathAndName return the full path to every item.
+          @param directoryListing a list to add the contents strings to.
+          @param recursive RecursiveListing if subdirectories are to be
+     searched, FlatListing if just the contents of the directory.
+          @return A reference to directoryListing
+  */
   StringList &list(HavePath havePath, StringList &directoryListing,
                    Depth recursive = FlatListing) const;
+  /** Concatenate a relative path onto this path.
+          @param name a relative path to append
+          @return a path that represents this path plus a relative path
+  */
   Path operator+(const Path &name) const;
+  /** Concatenate a relative path onto this path.
+          @param name a relative path to append
+          @return a path that represents this path plus a relative path
+  */
   Path operator+(const std::string &name) const {
     return *this + io::Path(name);
   }
+  /// assignment operator.
   Path &operator=(const Path &other);
+  /// Compare canonical version of two paths.
   bool operator==(const Path &other);
-  bool operator!=(const Path &other);
+  /// Compare canonical version of two paths.
+  bool operator!=(const Path &other) { return !(*this == other); }
+  /// typecast this path to a string.
   operator String() const;
+  /** Get the device id.
+        @param action defaults to WorkOnLinkTarget, which will return
+     information of the file a link references.
+        @return The identifier of the device the file is on.
+  */
   dev_t device(LinkHandling action = WorkOnLinkTarget) const;
+  /** Get the inode.
+        @param action defaults to WorkOnLinkTarget, which will return
+     information of the file a link references.
+        @return The identifier of the file contents.
+  */
   ino_t inode(LinkHandling action = WorkOnLinkTarget) const;
+  /** Get the permissions.
+        @param action defaults to WorkOnLinkTarget, which will return
+     information of the file a link references.
+        @return The permissions of the file.
+  */
   mode_t permissions(LinkHandling action = WorkOnLinkTarget) const;
+  /** Get the number of inode links.
+        @param action defaults to WorkOnLinkTarget, which will return
+     information of the file a link references.
+        @return The number of inode links of the file contents.
+  */
   nlink_t links(LinkHandling action = WorkOnLinkTarget) const;
+  /** Get the id of the owner.
+        @param action defaults to WorkOnLinkTarget, which will return
+     information of the file a link references.
+        @return The id of the owner of the file.
+  */
   uid_t userId(LinkHandling action = WorkOnLinkTarget) const;
+  /** Get the id of the owning group.
+        @param action defaults to WorkOnLinkTarget, which will return
+     information of the file a link references.
+        @return The id of the owning group of the file.
+  */
   gid_t groupId(LinkHandling action = WorkOnLinkTarget) const;
+  /** Get the time when the file was last accessed.
+        @param action defaults to WorkOnLinkTarget, which will return
+     information of the file a link references.
+        @return The time when the file was last accessed.
+  */
   dt::DateTime lastAccess(LinkHandling action = WorkOnLinkTarget) const;
+  /** Get the time when the file was last modified.
+        @param action defaults to WorkOnLinkTarget, which will return
+     information of the file a link references.
+        @return The time when the file was last modified.
+  */
   dt::DateTime lastModification(LinkHandling action = WorkOnLinkTarget) const;
+  /** Get the time when the file contents or attributes were last modified.
+        @param action defaults to WorkOnLinkTarget, which will return
+     information of the file a link references.
+        @return The time when the file contents or attributes were last
+     modified.
+  */
   dt::DateTime lastStatusChange(LinkHandling action = WorkOnLinkTarget) const;
+  /** Get the time when the file was created.
+        @param action defaults to WorkOnLinkTarget, which will return
+     information of the file a link references.
+        @return The time when the file was created.
+  */
   dt::DateTime created(LinkHandling action = WorkOnLinkTarget) const;
+  /** Get the size of the file.
+        @param action defaults to WorkOnLinkTarget, which will return
+     information of the file a link references.
+        @return The size of the file.
+  */
   off_t size(LinkHandling action = WorkOnLinkTarget) const;
+  /** Get the number of blocks in the file.
+        @param action defaults to WorkOnLinkTarget, which will return
+     information of the file a link references.
+        @return The number of blocks in the file.
+  */
   off_t blocks(LinkHandling action = WorkOnLinkTarget) const;
+  /** Get the size of blocks used for the file.
+        @param action defaults to WorkOnLinkTarget, which will return
+     information of the file a link references.
+        @return The size of blocks used for the file.
+  */
   off_t blockSize(LinkHandling action = WorkOnLinkTarget) const;
 
 private:
-  String _path;
+  String _path; ///< The path this object represents
+  /// Get the stats on a file and determine if it exists.
   bool _exists(struct stat &info, LinkHandling action) const;
+  /// List the contents of a directory
   StringList &_list(HavePath havePath, StringList &directoryListing,
                     Depth recursive) const;
+  /// Get the stats on a file
   struct stat &_stat(struct stat &info, LinkHandling action) const;
-  static const char *_separator();
+  /// Get the platform-specific separator between path elements
+  static const char *_separator() { return "/"; }
 };
 
 inline bool Path::endsWithPathSeparator(const String &text) {
@@ -416,7 +603,6 @@ inline Path &Path::operator=(const Path &other) {
   return *this;
 }
 inline bool Path::operator==(const Path &other) { return _path == other._path; }
-inline bool Path::operator!=(const Path &other) { return _path != other._path; }
 inline Path::operator Path::String() const { return _path; }
 inline bool Path::_exists(struct stat &info, LinkHandling action) const {
   try {
@@ -434,7 +620,6 @@ inline struct stat &Path::_stat(struct stat &info, LinkHandling action) const {
   }
   return info;
 }
-inline const char *Path::_separator() { return "/"; }
 inline dev_t Path::device(LinkHandling action) const {
   struct stat info;
 
