@@ -294,7 +294,7 @@ private:
 };
 
 inline bool Path::endsWithPathSeparator(const String &text) {
-  static const char separator = _separator()[0];
+  static const auto separator = _separator()[0];
 
   return (text.length() > 1) && (text[text.length() - 1] == separator);
 }
@@ -353,7 +353,7 @@ inline void Path::remove() const {
     StringList contents;
 
     list(PathAndName, contents);
-    for (StringList::iterator i = contents.begin(); i != contents.end(); ++i) {
+    for (auto i = contents.begin(); i != contents.end(); ++i) {
       Path(*i).remove();
     }
     rmdir();
@@ -376,7 +376,7 @@ inline const Path &Path::mkdirs(unsigned int mode) const {
 inline void Path::rename(const Path &other) const {
   ErrnoOnNegative(::rename(_path.c_str(), other._path.c_str()));
 }
-// todo Test
+/// @todo Test
 const Path &Path::copyContentsTo(const Path &other) const {
   io::File src(_path, io::File::Binary, io::File::ReadOnly);
   io::File dst(other._path, io::File::Binary, io::File::ReadWrite);
@@ -416,10 +416,10 @@ inline Path Path::relativeTo(const Path &other) const {
                           "'");
   }
 
-  String::size_type matchSeparator = String::npos;
-  static const char separator = _separator()[0];
-  const String me = other._path + separator;
-  const String you = _path + separator;
+  auto matchSeparator = String::npos;
+  static const auto separator = _separator()[0];
+  const auto me = other._path + separator;
+  const auto you = _path + separator;
   Path result;
 
   if ((you.length() > me.length()) && (you[me.length() - 1] == separator) &&
@@ -436,8 +436,7 @@ inline Path Path::relativeTo(const Path &other) const {
     }
   }
 
-  for (String::size_type position = matchSeparator + 1; position < me.length();
-       ++position) {
+  for (auto position = matchSeparator + 1; position < me.length(); ++position) {
     if (separator == me[position]) {
       result = result + String("..");
     }
@@ -455,7 +454,7 @@ inline void Path::symlink(const Path &contents) const {
   ErrnoOnNegative(::symlink(contents._path.c_str(), _path.c_str()));
 }
 inline Path Path::parent() const {
-  String::size_type sepPos = _path.rfind(_separator()[0]);
+  auto sepPos = _path.rfind(_separator()[0]);
 
   if (sepPos == String::npos) {
     return Path("");
@@ -466,7 +465,7 @@ inline Path Path::parent() const {
   return _path.substr(0, sepPos);
 }
 inline Path::String Path::name() const {
-  String::size_type sepPos = _path.rfind(_separator()[0]);
+  auto sepPos = _path.rfind(_separator()[0]);
 
   if (sepPos == String::npos) {
     return _path;
@@ -474,7 +473,7 @@ inline Path::String Path::name() const {
   return _path.substr(sepPos + 1);
 }
 inline Path::String Path::extension() const {
-  String::size_type sepPos = _path.rfind('.');
+  auto sepPos = _path.rfind('.');
 
   if (sepPos == String::npos) {
     return "";
@@ -482,8 +481,8 @@ inline Path::String Path::extension() const {
   return _path.substr(sepPos + 1);
 }
 inline Path::String Path::basename() const {
-  String fullname = name();
-  String::size_type sepPos = fullname.rfind('.');
+  auto fullname = name();
+  auto sepPos = fullname.rfind('.');
 
   if (sepPos == String::npos) {
     return fullname;
@@ -535,7 +534,6 @@ inline Path::StringList Path::list(HavePath havePath, Depth recursive) const {
 inline Path::StringList &Path::list(HavePath havePath,
                                     StringList &directoryListing,
                                     Depth recursive) const {
-  directoryListing.clear();
 
   return _list(havePath, directoryListing, recursive);
 }
@@ -602,7 +600,13 @@ inline Path &Path::operator=(const Path &other) {
   _path = other._path;
   return *this;
 }
-inline bool Path::operator==(const Path &other) { return _path == other._path; }
+inline bool Path::operator==(const Path &other) {
+  try {
+    return canonical()._path == other.canonical()._path;
+  } catch (const posix::err::ENOENT_Errno &) {
+    return _path == other._path;
+  }
+}
 inline Path::operator Path::String() const { return _path; }
 inline bool Path::_exists(struct stat &info, LinkHandling action) const {
   try {
