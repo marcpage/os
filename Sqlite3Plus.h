@@ -45,11 +45,12 @@
 */
 namespace Sqlite3 {
 
+/// Noop to support zlib_handle_error macro. Does nothing.
 inline void noop() {}
 
+/// Escapes a value to be passed to sqlite execute
 std::string &escapeValue(std::string &data);
-template <typename Number>
-std::string &toString(Number i, std::string &asString);
+/// Converts a string to a number
 template <typename Number> Number fromString(const std::string &asString);
 
 /// exceptions in Sqlite3
@@ -86,9 +87,9 @@ public:
 /// An Sqlite3 database
 class DB {
 public:
-  typedef std::string String;
-  typedef std::map<String, String> Row;
-  typedef std::vector<Row> Results;
+  typedef std::string String;           ///< Strings used
+  typedef std::map<String, String> Row; ///< A db row
+  typedef std::vector<Row> Results;     ///< Rows that match a query
   /** @brief Opens or Creates a database at the given path
    @throw Sqlite3::Exception	If there is any problem executing the query
    */
@@ -122,8 +123,13 @@ private:
 #include <stdarg.h>
 
 namespace Sqlite3 {
+/**
+        Replaces all apostrophes with double apostrophe.
+        @param data The value to escape. It will be modified
+        @return a reference to data
+*/
 inline std::string &escapeValue(std::string &data) {
-  std::string::size_type tick = data.find('\'');
+  auto tick = data.find('\'');
 
   while (std::string::npos != tick) {
     data.replace(tick, 1, "''");
@@ -131,14 +137,11 @@ inline std::string &escapeValue(std::string &data) {
   }
   return data;
 }
-template <typename Number>
-std::string &toString(Number i, std::string &asString) {
-  std::stringstream ss;
-
-  ss << i;
-  asString = ss.str();
-  return asString;
-}
+/**
+        @param asString the numeric value
+        @return the number of type Number of the string
+        @throws Sqlite3::Exception if the string is not convertible to the type.
+*/
 template <typename Number> Number fromString(const std::string &asString) {
   std::istringstream i(asString);
   Number x;
@@ -193,12 +196,12 @@ inline void DB::exec(const String &command, Results *rows) {
     stepResult = sqlite3_step(statement);
     if (SQLITE_ROW == stepResult) {
       if (NULL != rows) {
-        const int columns = sqlite3_column_count(statement);
+        const auto columns = sqlite3_column_count(statement);
         Row row;
         String key;
 
-        for (int column = 0; (column < columns); ++column) {
-          const int columnSize = sqlite3_column_bytes(statement, column);
+        for (auto column = 0; (column < columns); ++column) {
+          const auto columnSize = sqlite3_column_bytes(statement, column);
 
           key = sqlite3_column_name(statement, column);
           row[key].assign(reinterpret_cast<const char *>(
@@ -218,12 +221,11 @@ void DB::addRow(const String &table, const Row &row) {
   sqlite3_stmt *statement = NULL;
   String command("INSERT INTO `");
   String values;
-  char separator = ' ';
+  auto separator = ' ';
   std::vector<String> keys;
 
   command.append(table).append("` (");
-  for (Row::const_iterator column = row.begin(); (column != row.end());
-       ++column) {
+  for (auto column = row.begin(); (column != row.end()); ++column) {
     command.append(1, separator)
         .append(1, '`')
         .append(column->first)
@@ -237,9 +239,9 @@ void DB::addRow(const String &table, const Row &row) {
                      sqlite3_prepare_v2(_db, command.c_str(), command.length(),
                                         &statement, NULL));
   int valueIndex = 1;
-  for (std::vector<String>::iterator keyPtr = keys.begin();
-       (keyPtr != keys.end()); ++keyPtr, ++valueIndex) {
-    const String &value = row.find(*keyPtr)->second;
+  for (auto keyPtr = keys.begin(); (keyPtr != keys.end());
+       ++keyPtr, ++valueIndex) {
+    const auto &value = row.find(*keyPtr)->second;
 
     sqlite3_bind_blob(statement, valueIndex, value.data(), value.size(),
                       SQLITE_TRANSIENT);

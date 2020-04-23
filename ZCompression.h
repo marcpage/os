@@ -15,9 +15,7 @@
 
 namespace z {
 
-/** Noop to support zlib_handle_error macro.
-        Does nothing.
-*/
+/// Noop to support zlib_handle_error macro. Does nothing.
 inline void noop() {}
 
 /** zlib base exception.

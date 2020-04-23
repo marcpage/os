@@ -51,14 +51,14 @@ int main(int argc, const char *const argv[]) {
     row["created"] = "2010/03/02:10:16:00";
     row["accessed"] = "2010/03/02:10:16:00";
     row["payload"] = "Testing storing a row in the table";
-    row["size"] = Sqlite3::toString(row["payload"].size(), number);
+    row["size"] = std::to_string(row["payload"].size());
     db.addRow("storage", row);
     row["accesses"] = "2";
     row["compressed"] = "1";
     row["created"] = "2011/03/02:10:16:00";
     row["accessed"] = "2011/03/02:10:16:00";
     row["payload"] = "Testing a duplicate sha256";
-    row["size"] = Sqlite3::toString(row["payload"].size(), number);
+    row["size"] = std::to_string(row["payload"].size());
     db.addRow("storage", row);
     db.exec("SELECT * FROM `storage` WHERE `sha256` LIKE '1234567890';",
             &results);
