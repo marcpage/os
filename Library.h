@@ -4,10 +4,6 @@
 /** @file Library.h
         Dynamically Loaded Shared Library API.
         Supports dlopen, CFBundle and HMODULE on the appropriate platforms.
-        @todo Evaluate Windows exception throwing Macros and see if they
-   compile. You can even set it to if !defined(__FUNCTION__) to see if that
-   works.
-        @todo See if __FUNCTION__ or __func__ is the appropriate macro
 */
 
 // --- C++ Headers ---
@@ -119,12 +115,12 @@ inline void noop() {}
 
 // --- Exception Macros for implementation ---
 
-#if defined(__FUNCTION__)
+#if defined(__func__)
   /// Throw an exception if condition isn't met
 #define sysLibraryAssert(condition, message)                                   \
   if (!(condition)) {                                                          \
     throw sys::Library::Exception(std::string(#condition) + (message),         \
-                                  __FILE__, __LINE__, __FUNCTION__);           \
+                                  __FILE__, __LINE__, __func__);               \
   } else                                                                       \
     sys::noop()
   /// Throw an exception if the expression is NULL
@@ -132,7 +128,7 @@ inline void noop() {}
   if (NULL == (variable)) {                                                    \
     throw sys::Library::Exception(std::string(#variable " was NULL:") +        \
                                       message,                                 \
-                                  __FILE__, __LINE__, __FUNCTION__);           \
+                                  __FILE__, __LINE__, __func__);               \
   } else                                                                       \
     sys::noop()
 #else
@@ -160,7 +156,7 @@ namespace sys {
 // --- Library Implementation ---
 
 /** Gets the library at the given path.
-        @param path	The path to the library. <b>Mac OS X</b>: Can also be a
+        @param path	The path to the library. <b>macOS</b>: Can also be a
    bundle identifier.
         @throw Library::Exception	on error
         @todo justAName in 1st if is always true. Test it false.
@@ -410,7 +406,7 @@ inline Library::Exception::Exception(const std::string &message,
    was thrown.
         @param file		pass __FILE__
         @param line		pass __LINE__
-        @param function	pass __FUNCTION__
+        @param function	pass __func__
 */
 inline Library::Exception::Exception(const std::string &message,
                                      const char *file, int line,
@@ -422,12 +418,12 @@ inline Library::Exception::~Exception() throw() {}
 /** Builds up a message about the exception.
         Message will be of the format:
                 (file):(line):[function:][dlerror:](message)
-        <b>Mac OS X and Linux</b>: If there is a dlerror(), it will be used
+        <b>macOS and Linux</b>: If there is a dlerror(), it will be used
    also.
         @param message	The user message about what was going on.
         @param file		__FILE__
         @param line		__LINE__
-        @param function	__FUNCTION__ or NULL
+        @param function	__func__ or NULL
 */
 inline std::string Library::Exception::_buildMessage(const std::string &message,
                                                      const char *file, int line,

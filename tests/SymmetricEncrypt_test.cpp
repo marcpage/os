@@ -14,7 +14,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
 #endif
   for (int i = 0; i < iterations; ++i) {
     try {
-      hash::sha256 keyData("key", 3);
+      hash::sha256 keyData("key");
       std::string key(reinterpret_cast<const char *>(keyData.buffer()),
                       keyData.size());
       crypto::AES256 cryptor(key);

@@ -4,7 +4,6 @@
 /** @file Hash.h
         @todo evaluate the ability to do partial hashes so not all the data
    needs to be in memory.
-        @todo document
         @todo test helper functions (hex)
 */
 
@@ -30,9 +29,9 @@ namespace hash {
 class Hash {
 public:
   /// Default constructor.
-  Hash();
+  Hash() {}
   /// Nothing to do in destructor.
-  virtual ~Hash();
+  virtual ~Hash() {}
   /// Returns the hex value of the hash.
   virtual std::string hex() const {
     std::string tempBuffer;
@@ -53,8 +52,8 @@ public:
     raw.assign(reinterpret_cast<const char *>(buffer()), size());
     return raw;
   }
-  /// Resets the hash and starts hashing a new string.
-  virtual void reset(const char *hash) = 0;
+  /// Resets the hash to a new hex value.s
+  virtual void assignFromHex(const std::string &hex) = 0;
   /// Resets the hash and starts hashing new data.
   virtual void reset(const void *data, size_t count) = 0;
   /// Resets the hash and starts hashing a new string.
@@ -78,8 +77,6 @@ public:
   static SpecificHash<Hasher> fromHex(const std::string &hex);
   /// The default constructor.
   SpecificHash();
-  /// Construct and initialize with hash of a string.
-  explicit SpecificHash(const char *hash);
   /// Construct and initialize with hash of data.
   SpecificHash(const void *data, size_t count);
   /// Construct and initialize with hash of a string.
@@ -87,32 +84,55 @@ public:
   /// Copy another hash's data.
   SpecificHash(const SpecificHash &other);
   /// Nothing to do in destructor.
-  virtual ~SpecificHash();
+  virtual ~SpecificHash() {}
   /// Assign another hasher's data to us.
   SpecificHash &operator=(const SpecificHash &other);
   /// Determine if our current hash is the same as another.
   bool operator==(const SpecificHash &other);
   /// Determine if we are different than another hash.
   bool operator!=(const SpecificHash &other);
+  /// Determine if the hash is valid
   bool valid() const;
+  /// Determine if the hashes represent the same value
   bool same(const SpecificHash &other);
+  /// Determine if the hash is valid
   operator bool() const;
+  /// Get a pointer to the hash data
   uint8_t *buffer();
+  /// Get a const pointer to the hash data
   const uint8_t *buffer() const override;
+  /// Get the number of bytes of hash data
   uint32_t size() const override;
+  /// Get the hex value of the hash
   std::string hex() const override { return Hash::hex(); }
+  /** Get the hex value of the hash.
+        @param value The buffer to fill with the hex value
+        @return reference to value
+  */
   std::string &hex(std::string &value) const override;
-  void reset(const char *hash) override;
+  /** Parse a hex hash value.
+        @param hex string that points to a null-terminated hex value
+  */
+  void assignFromHex(const std::string &hex) override;
+  /** Calculate the hash of the given data.
+        @param data The data to calculate the hash of
+        @param count The number of bytes in data to use to calculate the hash
+  */
   void reset(const void *data, size_t count) override;
+  /** Calculate the hash of the given data.
+        @param data The data to calculate the hash of
+  */
   void reset(const std::string &data) override;
+  /// Get the name of the hasher, ie sha256 or md5
   const char *name() const override;
 
 private:
-  uint8_t _hash[Size];
+  uint8_t _hash[Size]; ///< The hash value binary data
 };
 
 #if OpenSSLAvailable
 
+/// Open SSL version of MD5 Hasher
 struct OpenSLLMD5Hasher {
   enum { Size = MD5_DIGEST_LENGTH };
   static const char *name() { return "md5"; }
@@ -122,6 +142,7 @@ struct OpenSLLMD5Hasher {
   }
 };
 
+/// Open SLL version of SHA256 Hasher
 struct OpenSSLSHA256Hasher {
   enum { Size = SHA256_DIGEST_LENGTH };
   static const char *name() { return "sha256"; }
@@ -171,14 +192,9 @@ struct CommonCryptoSHA256Hasher {
 typedef SpecificHash<CommonCryptoSHA256Hasher> sha256;
 #endif
 
-/**
- */
-inline Hash::Hash() {}
-/**
- */
-inline Hash::~Hash() {}
-
-/**
+/** Copy the raw hash data into the hasher.
+        @param buffer The hash to copy
+        @param size The size of the hash
  */
 template <class Hasher>
 inline SpecificHash<Hasher> SpecificHash<Hasher>::fromData(const void *buffer,
@@ -189,38 +205,40 @@ inline SpecificHash<Hasher> SpecificHash<Hasher>::fromData(const void *buffer,
   memcpy(result._hash, buffer, Size);
   return result;
 }
-/// Create a hash object from raw hash data
+/// Create a hash object from hex string
 template <class Hasher>
 inline SpecificHash<Hasher>
 SpecificHash<Hasher>::fromHex(const std::string &hex) {
   SpecificHash<Hasher> result;
 
-  result.reset(hex.c_str());
+  result.assignFromHex(hex);
   return result;
 }
-/**
+/** Empty hash value.
         @todo TEST!
 */
 template <class Hasher> inline SpecificHash<Hasher>::SpecificHash() : _hash() {
   memset(_hash, 0, sizeof(_hash));
 }
-template <class Hasher>
-inline SpecificHash<Hasher>::SpecificHash(const char *hash) : _hash() {
-  SpecificHash<Hasher>::reset(hash);
-}
+/** Calculates the hash of some data.
+        @param data the data to calculate the hash of.
+        @param count the number of bytes of data to calculate the hash of
+*/
 template <class Hasher>
 inline SpecificHash<Hasher>::SpecificHash(const void *data, size_t count)
     : _hash() {
   Hasher::hash(data, count, _hash);
 }
-/**
+/** Calculates the hash of some data.
+        @param data the data to calculate the hash of.
         @todo TEST!
 */
 template <class Hasher>
 inline SpecificHash<Hasher>::SpecificHash(const std::string &data) : _hash() {
   Hasher::hash(data.data(), data.size(), _hash);
 }
-/**
+/** Copy constructor.
+        @param other other hash to copy the hash value of.
         @todo TEST!
 */
 template <class Hasher>
@@ -228,7 +246,6 @@ inline SpecificHash<Hasher>::SpecificHash(const SpecificHash &other)
     : Hash(other), _hash() {
   memcpy(_hash, other._hash, sizeof(_hash));
 }
-template <class Hasher> inline SpecificHash<Hasher>::~SpecificHash() {}
 template <class Hasher>
 inline SpecificHash<Hasher> &
 SpecificHash<Hasher>::operator=(const SpecificHash<Hasher> &other) {
@@ -302,26 +319,23 @@ inline std::string &SpecificHash<Hasher>::hex(std::string &value) const {
   return value;
 }
 template <class Hasher>
-inline void SpecificHash<Hasher>::reset(const char *hash) {
+inline void SpecificHash<Hasher>::assignFromHex(const std::string &hex) {
   std::string hexDigits("0123456789abcdef");
   bool eosFound = false;
-  AssertMessageException(strlen(hash) == Size * 2);
+  AssertMessageException(hex.size() == Size * 2);
   for (int byte = 0; (byte < static_cast<int>(sizeof(_hash))); ++byte) {
     const int nibble1 = byte * 2 + 1;
-    eosFound = ((eosFound) || (hash[nibble1] == '\0'));
-    std::string::size_type found1 =
-        eosFound ? 0 : hexDigits.find(hash[nibble1]);
+    eosFound = ((eosFound) || (hex[nibble1] == '\0'));
+    std::string::size_type found1 = eosFound ? 0 : hexDigits.find(hex[nibble1]);
 
     const int nibble2 = nibble1 - 1;
-    eosFound = ((eosFound) || (hash[nibble1] == '\0'));
-    std::string::size_type found2 =
-        eosFound ? 0 : hexDigits.find(hash[nibble2]);
+    eosFound = ((eosFound) || (hex[nibble1] == '\0'));
+    std::string::size_type found2 = eosFound ? 0 : hexDigits.find(hex[nibble2]);
 
     AssertMessageException(found1 != std::string::npos);
     AssertMessageException(found2 != std::string::npos);
     _hash[byte] = (found2 << 4) | found1;
   }
-  AssertMessageException(hash[sizeof(_hash) * 2] == '\0');
 }
 /**
         @todo TEST!
