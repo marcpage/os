@@ -31,48 +31,146 @@ inline off_t printResult(off_t t) {
 
 namespace io {
 
-/**
-        @todo Document
-*/
+/// Common file content operations
 class File {
 public:
+  /// Method of reading and writing files, binary or text.
   enum Method { Binary, Text };
-  enum Protection { ReadOnly, ReadWrite, WriteIfPossible };
+  /// How is the file protected, read only, read-write, or write if possible.
+  enum Protection {
+    ReadOnly,
+    ReadWrite,
+    /// Try to open the file with write permissions, but do not fail if we
+    /// cannot
+    WriteIfPossible
+  };
+  /// Where is the offset relative to, from current position, the start, or the
+  /// end.
   enum Relative { FromHere, FromStart, FromEnd };
+  /// Read integers as Big Endian, Little Endian, or native.
   enum Endian { BigEndian, LittleEndian, NativeEndian };
+  /** Create or open a file at a given path.
+        @param path The path to open.
+        @param method The type of file, text or binary
+        @param protection how to access the file, read only, or read-write
+  */
   File(const char *path, Method method, Protection protection);
+  /** Create or open a file at a given path.
+        @param path The path to open.
+        @param method The type of file, text or binary
+        @param protection how to access the file, read only, or read-write
+  */
   File(const std::string &path, Method method, Protection protection);
+  /// destructor.
   virtual ~File();
+  /// Gets the size of the file.
   off_t size() const;
+  /// Flush any pending writes to the file.
   void flush();
+  /// Get the current location in the file.
   off_t location() const;
+  /// Is the file writable?
   bool writable() const;
+  /** Move to a given location for relative operations.
+        @param offset the location to move to
+        @param relative Where is offset relative to?
+  */
   void moveto(off_t offset, Relative relative = FromStart) const;
+  /** Move to a given location for relative operations.
+        alias for move(offset, relative)
+        @param offset the location to move to
+        @param relative Where is offset relative to?
+  */
   void move(off_t offset, Relative relative = FromHere) const;
+  /** Read a portion of the file.
+        @param buffer the buffer to receive the data read from the file.
+        @param bufferSize The number of bytes to read from the file into the
+     buffer.
+        @param offset Where in the file to read the bytes. Defaults to zero
+        @param relative Where is offset measured from. Defaults to FromHere
+  */
   void read(void *buffer, size_t bufferSize, off_t offset = 0,
             Relative relative = FromHere) const;
+  /** Write to a file.
+          @param buffer The data to write to the file
+          @param bufferSize the number of bytes from buffer to write to the
+     file.
+          @param offset Where to write the data to the file. Defaults to 0
+          @param relative Where is offset relative to. Defaults to FromHere
+  */
   void write(const void *buffer, size_t bufferSize, off_t offset = 0,
              Relative relative = FromHere);
+  /** Read a portion of the file.
+        @param buffer the buffer to receive the data read from the file.
+        @param bufferSize The number of bytes to read from the file into the
+     buffer. Defaults to reading the rest of the file.
+        @param offset Where in the file to read the bytes. Defaults to zero
+        @param relative Where is offset measured from. Defaults to FromHere
+  */
   std::string &read(std::string &buffer,
                     size_t bufferSize = static_cast<size_t>(-1),
                     off_t offset = 0, Relative relative = FromHere) const;
+  /** Write to a file.
+          @param buffer The data to write to the file
+          @param offset Where to write the data to the file. Defaults to 0
+          @param relative Where is offset relative to. Defaults to FromHere
+  */
   void write(const std::string &buffer, off_t offset = 0,
              Relative relative = FromHere);
+  /** Reads a binary integer from the file.
+          @param endian The order of bytes in the file
+          @param offset Where to write the data to the file. Defaults to 0
+          @param relative Where is offset relative to. Defaults to FromHere
+          @returns the integer value read from the file.
+  */
   template <class Int>
   Int read(Endian endian, off_t offset = 0, Relative relative = FromHere) const;
+  /** Writes a binary integer to a file.
+        @param number The integer to write to the file
+                @param endian The order of bytes in the file
+                @param offset Where to write the data to the file. Defaults to 0
+                @param relative Where is offset relative to. Defaults to
+     FromHere
+  */
   template <class Int>
   void write(Int number, Endian endian, off_t offset = 0,
              Relative relative = FromHere);
+  /** Read a line of text from the file.
+          Note: The line as well as the end-of-line character(s) are returned.
+          @param buffer The buffer to receive the line of text
+          @param offset Where to write the data to the file. Defaults to 0
+          @param relative Where is offset relative to. Defaults to FromHere
+          @param bufferSize The size of blocks of data to read at a time.
+     Defaults to 4096
+  */
   std::string &readline(std::string &buffer, off_t offset = 0,
                         Relative relative = FromHere,
                         size_t bufferSize = 4096) const;
 
 private:
-  FILE *_file;
-  bool _readOnly;
+  FILE *_file;    ///< The file we are working with
+  bool _readOnly; ///< Is this file read-only?
+  /** Given the enum, calculate the value to pass to the file API.
+        @param relative the relative enum for how to interpret offsets
+        @return the whence value to pass to the underlying file API.
+  */
   static int _whence(Relative relative);
+  /** Makes sure we are at the requested location of the file.
+        @param offset The offset the user is requesting.
+        @param relative What offset is relative to.
+  */
   void _goto(off_t offset, Relative relative) const;
+  /** Ensure endian is either big endian or little endian.
+        @param endian the requested endian
+        @return either big endian or little endian. Native endian is translated
+     to either big or little endian.
+  */
   static Endian _actualEndian(Endian endian);
+  /** Handle the common operations when opening a file.
+        @param path The file path to open.
+        @param method The method used to handle the file, text or binary.
+        @param protection Is this file read-only or read-write.
+  */
   static FILE *_open(const char *path, Method method, Protection protection,
                      bool &readOnly);
   File(const File &);            ///< Mark as unusable
@@ -81,26 +179,25 @@ private:
 
 } // namespace io
 
-#define kReadOnlyText "r"
-#define kOpenReadWriteText "r+"
-#define kCreateReadWriteText "w+"
-#define kReadOnlyBinary "rb"
-#define kOpenReadWriteBinary "r+b"
-#define kCreateReadWriteBinary "w+b"
+#define kReadOnlyText "r" ///< Temporary macro to make this file easier to read
+#define kOpenReadWriteText                                                     \
+  "r+" ///< Temporary macro to make this file easier to read
+#define kCreateReadWriteText                                                   \
+  "w+" ///< Temporary macro to make this file easier to read
+#define kReadOnlyBinary                                                        \
+  "rb" ///< Temporary macro to make this file easier to read
+#define kOpenReadWriteBinary                                                   \
+  "r+b" ///< Temporary macro to make this file easier to read
+#define kCreateReadWriteBinary                                                 \
+  "w+b" ///< Temporary macro to make this file easier to read
 
 namespace io {
 
-/**
-        @todo Test!
-*/
 inline File::File(const char *path, Method method, Protection protection)
     : _file(NULL), _readOnly(ReadOnly == protection) {
   _file = _open(path, method, protection, _readOnly);
   moveto(0);
 }
-/**
-        @todo Test!
-*/
 inline File::File(const std::string &path, Method method, Protection protection)
     : _file(NULL), _readOnly(ReadOnly == protection) {
   _file = _open(path.c_str(), method, protection, _readOnly);
@@ -112,9 +209,6 @@ inline File::~File() {
     _file = NULL;
   }
 }
-/**
-        @todo Test!
-*/
 inline off_t File::size() const {
   off_t here = location();
   off_t end;
@@ -124,35 +218,20 @@ inline off_t File::size() const {
   moveto(here, FromStart);
   return end;
 }
-/**
-        @todo Test!
-*/
 inline void File::flush() { ErrnoOnNegative(fflush(_file)); }
-/**
-        @todo Test!
-*/
 inline off_t File::location() const {
   off_t currentPos;
 
   ErrnoOnNegative(currentPos = ftello(_file));
   return currentPos;
 }
-/**
-        @todo Test!
-*/
 inline bool File::writable() const { return (!_readOnly); }
 inline void File::moveto(off_t offset, Relative relative) const {
   ErrnoOnNegative(fseeko(_file, offset, _whence(relative)));
 }
-/**
-        @todo Test!
-*/
 inline void File::move(off_t offset, Relative relative) const {
   moveto(offset, relative);
 }
-/**
-        @todo Test!
-*/
 inline void File::read(void *buffer, size_t bufferSize, off_t offset,
                        Relative relative) const {
   off_t amount;
@@ -175,28 +254,19 @@ inline void File::write(const void *buffer, size_t bufferSize, off_t offset,
   AssertMessageException(ferror(_file) == 0);
   AssertMessageException(amount == static_cast<off_t>(bufferSize));
 }
-/**
-        @todo Test!
-*/
 inline std::string &File::read(std::string &buffer, size_t bufferSize,
                                off_t offset, Relative relative) const {
   if (static_cast<size_t>(-1) == bufferSize) {
-    bufferSize = size() - offset; // not tested
+    bufferSize = size() - offset;
   }
   buffer.assign(bufferSize, '\0');
   read(const_cast<char *>(buffer.data()), bufferSize, offset, relative);
   return buffer;
 }
-/**
-        @todo Test!
-*/
 inline void File::write(const std::string &buffer, off_t offset,
                         Relative relative) {
   write(buffer.data(), buffer.size(), offset, relative);
 }
-/**
-        @todo Test!
-*/
 template <class Int>
 inline Int File::read(Endian endian, off_t offset, Relative relative) const {
   uint8_t buffer[sizeof(Int)];
@@ -221,9 +291,6 @@ inline Int File::read(Endian endian, off_t offset, Relative relative) const {
   }
   return value;
 }
-/**
-        @todo Test!
-*/
 template <class Int>
 inline void File::write(Int number, Endian endian, off_t offset,
                         Relative relative) {
@@ -271,14 +338,15 @@ inline std::string &File::readline(std::string &buffer, off_t offset,
     if (foundCR && (cr == partial.size() - 1) && (left > 0)) {
       char character;
 
-      read(&character, 1, 0, FromHere); // not tested
-      partial.append(1, character);     // not tested
+      read(&character, 1, 0, FromHere);
+      partial.append(1, character);
+      left -= 1;
     }
     lf = partial.find('\n');
     foundLF = (lf != std::string::npos);
     eol = std::string::npos;
-    if (foundLF && foundCR) {
-      eol = ((cr + 1 == lf) || (lf < cr)) ? lf : cr; // not tested
+    if (foundCR && foundLF) {
+      eol = ((cr + 1 == lf) || (lf < cr)) ? lf : cr;
     } else if (foundLF || foundCR) {
       eol = foundLF ? lf : cr;
     }
@@ -306,9 +374,6 @@ inline void File::_goto(off_t offset, Relative relative) const {
     moveto(offset, relative);
   }
 }
-/**
-        @todo Test!
-*/
 inline File::Endian File::_actualEndian(Endian endian) {
   if (NativeEndian == endian) {
     uint16_t value = 1;
@@ -316,7 +381,7 @@ inline File::Endian File::_actualEndian(Endian endian) {
     if (*reinterpret_cast<uint8_t *>(&value) == 1) {
       return LittleEndian;
     }
-    return BigEndian;
+    return BigEndian; // not possible to test on little endian systems
   }
   return endian;
 }
@@ -330,12 +395,12 @@ inline FILE *File::_open(const char *path, File::Method method,
     opened = fopen(path, Binary == method ? kOpenReadWriteBinary
                                           : kOpenReadWriteText);
   }
-  if ((NULL == opened) && (tryWritable)) {
+  if ((NULL == opened) && tryWritable) {
     opened = fopen(path, Binary == method ? kCreateReadWriteBinary
                                           : kCreateReadWriteText);
   }
   if (ReadWrite == protection) {
-    ErrnoOnNULL(opened);
+    ErrnoOnNULL(opened); // tried to open it as write, but could not
   }
   if (NULL != opened) {
     readOnly = false;
@@ -348,11 +413,11 @@ inline FILE *File::_open(const char *path, File::Method method,
 }
 } // namespace io
 
-#undef kReadOnlyText
-#undef kOpenReadWriteText
-#undef kCreateReadWriteText
-#undef kReadOnlyBinary
-#undef kOpenReadWriteBinary
-#undef kCreateReadWriteBinary
+#undef kReadOnlyText          // This macro is only needed in this file
+#undef kOpenReadWriteText     // This macro is only needed in this file
+#undef kCreateReadWriteText   // This macro is only needed in this file
+#undef kReadOnlyBinary        // This macro is only needed in this file
+#undef kOpenReadWriteBinary   // This macro is only needed in this file
+#undef kCreateReadWriteBinary // This macro is only needed in this file
 
 #endif // __File_h__
