@@ -13,10 +13,10 @@ int main(int /*argc*/, char * /*argv*/[]) {
 #endif
   for (int i = 0; i < iterations; ++i) {
     try {
-      std::string hash;
+      std::string hashValue;
       std::string otherHash;
 
-      hash::sha256 test("test", 4);
+      hash::sha256 test("test", 4), testing("testing");
 
 #if __APPLE_CC__ || __APPLE__
       printf("Testing Mac specific code\n");
@@ -38,15 +38,29 @@ int main(int /*argc*/, char * /*argv*/[]) {
                          "91b7852b855"));
 #endif
       dotest(
-          hash::sha256("", 0).hex(hash) ==
+          hash::sha256("", 0).hex(hashValue) ==
           "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
       dotest(hash::sha256("test", 4) == hash::sha256("test", 4));
       dotest(
-          hash::sha256("test", 4).hex(hash) ==
+          hash::sha256("test", 4).hex(hashValue) ==
           "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08");
-      dotest(hash::sha256("test", 4) == hash::sha256::fromHex(hash));
-      dotest(hash::sha256::fromHex(hash).valid());
+      dotest(hash::sha256("test", 4) == hash::sha256::fromHex(hashValue));
+      dotest(hash::sha256::fromHex(hashValue).valid());
       dotest(hash::sha256("test", 4).valid());
+      dotest(test == hash::sha256("test"));
+      dotest(bool(test));
+      dotest(!bool(hash::sha256()));
+      dotest(test.size() == testing.size());
+      hashValue.assign(reinterpret_cast<const char *>(test.buffer()),
+                       test.size());
+      otherHash.assign(
+          reinterpret_cast<const char *>(hash::sha256("what").buffer()),
+          hash::sha256("what").size());
+      dotest(test != testing);
+      dotest((hash::sha256(test) = hash::sha256("other")) ==
+             hash::sha256("other"));
+      dotest(test == hash::sha256("test"));
+      dotest(test != hash::sha256("other"));
       test = hash::sha256("hello", 5);
       dotest(hash::sha256("hello", 5) == test);
       test.reset("test", 4);

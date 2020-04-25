@@ -4,7 +4,6 @@
 /** @file Hash.h
         @todo evaluate the ability to do partial hashes so not all the data
    needs to be in memory.
-        @todo test helper functions (hex)
 */
 
 #include "Exception.h"
@@ -52,7 +51,7 @@ public:
     raw.assign(reinterpret_cast<const char *>(buffer()), size());
     return raw;
   }
-  /// Resets the hash to a new hex value.s
+  /// Resets the hash to a new hex value.
   virtual void assignFromHex(const std::string &hex) = 0;
   /// Resets the hash and starts hashing new data.
   virtual void reset(const void *data, size_t count) = 0;
@@ -237,15 +236,15 @@ inline SpecificHash<Hasher>::SpecificHash(const std::string &data) : _hash() {
 }
 /** Copy constructor.
         @param other other hash to copy the hash value of.
-        @todo TEST!
 */
 template <class Hasher>
 inline SpecificHash<Hasher>::SpecificHash(const SpecificHash &other)
     : Hash(other), _hash() {
   memcpy(_hash, other._hash, sizeof(_hash));
 }
-/**
-        @todo Document
+/** Assignment operator.
+        @param other hash to copy.
+        @return reference to this
 */
 template <class Hasher>
 inline SpecificHash<Hasher> &
@@ -255,24 +254,28 @@ SpecificHash<Hasher>::operator=(const SpecificHash<Hasher> &other) {
   }
   return *this;
 }
-/**
-        @todo Document
+/** Comparison operator, compares the binary of the hashes.
+        @param other the hash to compare.
+        @return true if the binary representation of each hash is identical.
 */
 template <class Hasher>
 inline bool
 SpecificHash<Hasher>::operator==(const SpecificHash<Hasher> &other) {
-  return (memcmp(_hash, other._hash, sizeof(_hash)) == 0);
+  return same(other);
 }
-/**
-        @todo TEST!
+/** Comparison operator, compares the binary of the hashes.
+        @param other the hash to compare.
+        @return false if the binary representation of each hash is identical.
 */
 template <class Hasher>
 inline bool
 SpecificHash<Hasher>::operator!=(const SpecificHash<Hasher> &other) {
-  return (memcmp(_hash, other._hash, sizeof(_hash)) != 0);
+  return !same(other);
 }
-/**
-        @todo Document
+/** Hash a hash been calculated or assigned, or is this still an invalid,
+   uninitialized hash. Since an uninitialized hash is zeroed out, we check to
+   see if all bytes are zero. If they are, then this is not a hash value.
+        @return true if any of the bytes are non-zero
 */
 template <class Hasher> inline bool SpecificHash<Hasher>::valid() const {
   for (int i = 0; (i < static_cast<int>(sizeof(_hash))); ++i) {
@@ -282,40 +285,41 @@ template <class Hasher> inline bool SpecificHash<Hasher>::valid() const {
   }
   return false;
 }
-/**
-        @todo TEST!
+/** Compares the binary of the hashes.
+        @param other the hash to compare.
+        @return false if the binary representation of each hash is identical.
 */
 template <class Hasher>
 inline bool SpecificHash<Hasher>::same(const SpecificHash<Hasher> &other) {
   return (memcmp(_hash, other._hash, sizeof(_hash)) == 0);
 }
-/**
-        @todo TEST!
+/** Operator typecast to bool, returns true if this hash has been initialized.
+        @return true if a hash value has been calculated or assigned.
 */
 template <class Hasher> inline SpecificHash<Hasher>::operator bool() const {
-  return (valid());
+  return valid();
 }
-/**
-        @todo Document
+/** The pointer to the actual data buffer of this hash.
+        @return the address of the buffer used to store the binary hash.
 */
 template <class Hasher> inline uint8_t *SpecificHash<Hasher>::buffer() {
   return _hash;
 }
-/**
-        @todo TEST!
+/** The pointer to the actual data buffer of this hash.
+        @return the address of the buffer used to store the binary hash.
 */
 template <class Hasher>
 inline const uint8_t *SpecificHash<Hasher>::buffer() const {
   return _hash; // not tested
 }
-/**
-        @todo Document
+/** The size of the hash, in bytes.
+        @return the number of bytes in the buffer().
 */
 template <class Hasher> inline uint32_t SpecificHash<Hasher>::size() const {
   return Hasher::Size;
 }
-/**
-        @todo Document
+/** Get the hex value of the hash.
+        @return a reference to value
 */
 template <class Hasher>
 inline std::string &SpecificHash<Hasher>::hex(std::string &value) const {
@@ -328,9 +332,8 @@ inline std::string &SpecificHash<Hasher>::hex(std::string &value) const {
   }
   return value;
 }
-/**
-        @todo Document
-*/
+/** Make the value of this hash be the given lowercase hex value.
+ */
 template <class Hasher>
 inline void SpecificHash<Hasher>::assignFromHex(const std::string &hex) {
   std::string hexDigits("0123456789abcdef");
@@ -350,22 +353,20 @@ inline void SpecificHash<Hasher>::assignFromHex(const std::string &hex) {
     _hash[byte] = (found2 << 4) | found1;
   }
 }
-/**
-        @todo Document
-*/
+/** Recalculate the hash to be the hash of the given data.
+ */
 template <class Hasher>
 inline void SpecificHash<Hasher>::reset(const void *data, size_t count) {
   Hasher::hash(data, count, _hash);
 }
-/**
-        @todo TEST!
-*/
+/** Recalculate the hash to be the hash of the given data.
+ */
 template <class Hasher>
 inline void SpecificHash<Hasher>::reset(const std::string &data) {
   Hasher::hash(data.data(), data.size(), _hash);
 }
-/**
-        @todo Document
+/** The name of the hashing function used.
+        @return the name from the Hasher, ie sha256, md5, etc.
 */
 template <class Hasher> inline const char *SpecificHash<Hasher>::name() const {
   return Hasher::name();
