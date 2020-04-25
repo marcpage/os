@@ -215,8 +215,7 @@ SpecificHash<Hasher>::fromHex(const std::string &hex) {
   return result;
 }
 /** Empty hash value.
-        @todo TEST!
-*/
+ */
 template <class Hasher> inline SpecificHash<Hasher>::SpecificHash() : _hash() {
   memset(_hash, 0, sizeof(_hash));
 }
@@ -231,7 +230,6 @@ inline SpecificHash<Hasher>::SpecificHash(const void *data, size_t count)
 }
 /** Calculates the hash of some data.
         @param data the data to calculate the hash of.
-        @todo TEST!
 */
 template <class Hasher>
 inline SpecificHash<Hasher>::SpecificHash(const std::string &data) : _hash() {
@@ -246,6 +244,9 @@ inline SpecificHash<Hasher>::SpecificHash(const SpecificHash &other)
     : Hash(other), _hash() {
   memcpy(_hash, other._hash, sizeof(_hash));
 }
+/**
+        @todo Document
+*/
 template <class Hasher>
 inline SpecificHash<Hasher> &
 SpecificHash<Hasher>::operator=(const SpecificHash<Hasher> &other) {
@@ -254,6 +255,9 @@ SpecificHash<Hasher>::operator=(const SpecificHash<Hasher> &other) {
   }
   return *this;
 }
+/**
+        @todo Document
+*/
 template <class Hasher>
 inline bool
 SpecificHash<Hasher>::operator==(const SpecificHash<Hasher> &other) {
@@ -267,6 +271,9 @@ inline bool
 SpecificHash<Hasher>::operator!=(const SpecificHash<Hasher> &other) {
   return (memcmp(_hash, other._hash, sizeof(_hash)) != 0);
 }
+/**
+        @todo Document
+*/
 template <class Hasher> inline bool SpecificHash<Hasher>::valid() const {
   for (int i = 0; (i < static_cast<int>(sizeof(_hash))); ++i) {
     if (_hash[i] != 0) {
@@ -289,7 +296,7 @@ template <class Hasher> inline SpecificHash<Hasher>::operator bool() const {
   return (valid());
 }
 /**
-        @todo TEST!
+        @todo Document
 */
 template <class Hasher> inline uint8_t *SpecificHash<Hasher>::buffer() {
   return _hash;
@@ -302,11 +309,14 @@ inline const uint8_t *SpecificHash<Hasher>::buffer() const {
   return _hash; // not tested
 }
 /**
-        @todo TEST!
+        @todo Document
 */
 template <class Hasher> inline uint32_t SpecificHash<Hasher>::size() const {
   return Hasher::Size;
 }
+/**
+        @todo Document
+*/
 template <class Hasher>
 inline std::string &SpecificHash<Hasher>::hex(std::string &value) const {
   const char *const hexDigits = "0123456789abcdef";
@@ -318,6 +328,9 @@ inline std::string &SpecificHash<Hasher>::hex(std::string &value) const {
   }
   return value;
 }
+/**
+        @todo Document
+*/
 template <class Hasher>
 inline void SpecificHash<Hasher>::assignFromHex(const std::string &hex) {
   std::string hexDigits("0123456789abcdef");
@@ -338,7 +351,7 @@ inline void SpecificHash<Hasher>::assignFromHex(const std::string &hex) {
   }
 }
 /**
-        @todo TEST!
+        @todo Document
 */
 template <class Hasher>
 inline void SpecificHash<Hasher>::reset(const void *data, size_t count) {
@@ -352,7 +365,7 @@ inline void SpecificHash<Hasher>::reset(const std::string &data) {
   Hasher::hash(data.data(), data.size(), _hash);
 }
 /**
-        @todo TEST!
+        @todo Document
 */
 template <class Hasher> inline const char *SpecificHash<Hasher>::name() const {
   return Hasher::name();
