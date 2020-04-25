@@ -151,12 +151,13 @@ struct OpenSSLSHA256Hasher {
   }
 };
 
-#if __APPLE_CC__ || __APPLE__
 typedef SpecificHash<OpenSSLSHA256Hasher> openssl_sha256;
 typedef SpecificHash<OpenSLLMD5Hasher> openssl_md5;
-#else
+typedef SpecificHash<OpenSLLMD5Hasher>
+    md5; ///< Apple doesn't support md5 anymore
+
+#if !(__APPLE_CC__ || __APPLE__)
 typedef SpecificHash<OpenSSLSHA256Hasher> sha256;
-typedef SpecificHash<OpenSLLMD5Hasher> md5;
 #endif
 
 #endif

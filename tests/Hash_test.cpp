@@ -6,6 +6,16 @@
     fprintf(stderr, "FAIL(%s:%d): %s\n", __FILE__, __LINE__, #condition);      \
   }
 
+template <class T>
+void testConstness(const T &hash, const std::string &valueToHash) {
+  std::string rawHash(reinterpret_cast<const char *>(hash.buffer()),
+                      hash.size());
+  T valueHash(valueToHash);
+  std::string valueHashRaw(reinterpret_cast<const char *>(valueHash.buffer()),
+                           valueHash.size());
+  dotest(rawHash == valueHashRaw);
+}
+
 int main(int /*argc*/, char * /*argv*/[]) {
   int iterations = 50000;
 #ifdef __Tracer_h__
@@ -18,6 +28,8 @@ int main(int /*argc*/, char * /*argv*/[]) {
 
       hash::sha256 test("test", 4), testing("testing");
 
+      testConstness(test, "test");
+      testConstness(testing, "testing");
 #if __APPLE_CC__ || __APPLE__
       printf("Testing Mac specific code\n");
       dotest(std::string("sha256") == hash::CommonCryptoSHA256Hasher().name());
