@@ -42,11 +42,11 @@ public:
   virtual uint32_t size() const = 0;
   /// Returns the pointer to the internal hash buffer.
   virtual const uint8_t *buffer() const = 0;
-  /// Returns the contents of the binary hash
+  /// Returns the contents of the binary hash @todo test
   std::string data() {
     return std::string(reinterpret_cast<const char *>(buffer()), size());
   }
-  /// Returns the contents of the binary hash in raw
+  /// Returns the contents of the binary hash in raw @todo test
   std::string &data(std::string &raw) {
     raw.assign(reinterpret_cast<const char *>(buffer()), size());
     return raw;
@@ -135,7 +135,8 @@ private:
 struct OpenSLLMD5Hasher {
   enum { Size = MD5_DIGEST_LENGTH };
   static const char *name() { return "md5"; }
-  static void hash(const void *data, size_t dataSize, void *hash) {
+  static void hash(const void *data, size_t dataSize,
+                   void *hash) { /// @too test
     MD5(reinterpret_cast<const unsigned char *>(data), dataSize,
         reinterpret_cast<unsigned char *>(hash));
   }
@@ -311,7 +312,7 @@ template <class Hasher> inline uint8_t *SpecificHash<Hasher>::buffer() {
 */
 template <class Hasher>
 inline const uint8_t *SpecificHash<Hasher>::buffer() const {
-  return _hash; // not tested
+  return _hash;
 }
 /** The size of the hash, in bytes.
         @return the number of bytes in the buffer().
