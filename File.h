@@ -170,6 +170,8 @@ private:
         @param path The file path to open.
         @param method The method used to handle the file, text or binary.
         @param protection Is this file read-only or read-write.
+        @param readOnly Set to true if we did not open this file with write
+     permissions, false otherwise
   */
   static FILE *_open(const char *path, Method method, Protection protection,
                      bool &readOnly);
