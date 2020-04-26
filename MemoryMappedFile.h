@@ -6,6 +6,7 @@
 #include <string>
 #include <sys/mman.h> // mmap
 
+// TODO: Add integer read and write
 namespace io {
 
 /// Memory mapped file for crash-resistance and faster access
@@ -40,7 +41,7 @@ public:
   /// Get the memory address the file is mapped to
   operator void *();
   /// Get the size in bytes of the mapped portion of the file
-  size_t size();
+  size_t size() { return _size; }
   /// Get the address of the file and treat it as a specific data type
   template <class T> T *address();
   /// Get the number of items of the given data type that fit in the space.
@@ -60,18 +61,12 @@ private:
 } // namespace io
 
 namespace io {
-/**
-        @todo Test!
-*/
 inline MemoryMappedFile::MemoryMappedFile(const FileDescriptor &file,
                                           size_t size, size_t offset,
                                           int protections, int flags)
     : _size(size > 0 ? size : (file.size() - offset)),
       _address(ErrnoOnNULL(
           ::mmap(nullptr, _size, protections, flags, file, offset))) {}
-/**
-        @todo Test!
-*/
 inline MemoryMappedFile::MemoryMappedFile(const std::string &file, size_t size,
                                           size_t offset, int protections,
                                           int flags)
@@ -82,22 +77,12 @@ inline MemoryMappedFile::MemoryMappedFile(const std::string &file, size_t size,
   _address =
       ErrnoOnNULL(::mmap(nullptr, _size, protections, flags, fd, offset));
 }
-/**
-        @todo Test!
-*/
 inline MemoryMappedFile::operator void *() {
   if (nullptr == _address) {
     ThrowMessageException("Memory Mapped File already closed"); // not tested
   }
   return _address;
 }
-/**
-        @todo Test!
-*/
-size_t MemoryMappedFile::size() { return _size; }
-/**
-        @todo Test!
-*/
 void MemoryMappedFile::close() {
   if (nullptr != _address) {
     ErrnoOnNegative(::munmap(_address, _size));
@@ -105,9 +90,6 @@ void MemoryMappedFile::close() {
   _address = nullptr;
   _size = 0;
 }
-/**
-        @todo Test!
-*/
 template <class T> inline T *MemoryMappedFile::address() {
   if (nullptr == _address) {
     ThrowMessageException("Memory Mapped File already closed"); // not tested
