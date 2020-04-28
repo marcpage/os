@@ -4,6 +4,7 @@
 /** @file SymmetricEncrypt.h
         @todo document
         @todo genericize like Hash to move Mac specific code into platform
+        @todo implement Mac api
    isolcation
 */
 
