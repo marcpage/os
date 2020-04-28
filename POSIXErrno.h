@@ -33,12 +33,10 @@
   } else                                                                       \
     posix::err::Errno::_noop()
 
-/**
-        @todo Test!
-*/
 namespace posix {
 namespace err {
 
+/// @todo Test
 class Errno : public msg::Exception {
 public:
   /// tell us what the error is
@@ -146,7 +144,7 @@ ErrnoException(ENOLCK);
 ErrnoException(ENOLINK);
 ErrnoException(ENOMEM);
 ErrnoException(ENOMSG);
-ErrnoException(ENOPOLICY);
+ErrnoException(ENOPOLICY); // Not tested
 ErrnoException(ENOPROTOOPT);
 ErrnoException(ENOSPC);
 ErrnoException(ENOSR);
@@ -188,7 +186,7 @@ ErrnoException(ETIMEDOUT);
 ErrnoException(ETOOMANYREFS);
 ErrnoException(ETXTBSY);
 ErrnoException(EUSERS);
-ErrnoException(EWOULDBLOCK);
+ErrnoException(EWOULDBLOCK); // not  tested
 ErrnoException(EXDEV);
 #if 0
 	ErrnoException(ENOTRECOVERABLE);
@@ -197,22 +195,22 @@ ErrnoException(EXDEV);
 #undef ErrnoException
 
 inline Errno::Errno(int value, const char *errnoName, const char *file,
-                    int line) throw()
+                    int line) throw() // not tested
     : msg::Exception(_init("", errnoName, value), file, line), _errno(value) {}
 inline Errno::Errno(const std::string &message, int value,
                     const char *errnoName, const char *file, int line) throw()
     : msg::Exception(_init(message, errnoName, value), file, line),
       _errno(value) {}
-inline Errno::Errno(const Errno &other)
+inline Errno::Errno(const Errno &other) // not tested
     : msg::Exception(other), _errno(other._errno) {}
-inline Errno &Errno::operator=(const Errno &other) {
+inline Errno &Errno::operator=(const Errno &other) { // not tested
   *reinterpret_cast<msg::Exception *>(this) = other;
   _errno = other._errno;
   return *this;
 }
 inline Errno::~Errno() throw() {}
 inline const char *Errno::name() const { return "[Unknown]"; }
-inline int Errno::code() const throw() { return _errno; }
+inline int Errno::code() const throw() { return _errno; } // not tested
 inline void Errno::_throw(int errnoCode, const std::string &message,
                           const char *file, int line) {
   if (0 != errnoCode) {

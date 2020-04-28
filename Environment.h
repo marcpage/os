@@ -39,7 +39,7 @@ Dictionary &list(Dictionary &env) {
     String::size_type equalPos = field.find('=');
 
     if (String::npos == equalPos) {
-      env[field] = "";
+      env[field] = ""; // not tested
     } else {
       env[field.substr(0, equalPos)] = field.substr(equalPos + 1);
     }

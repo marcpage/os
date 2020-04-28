@@ -40,9 +40,6 @@
   else                                                                         \
     noop()
 
-/**
-        @todo Test!
-*/
 namespace Sqlite3 {
 
 /// Noop to support zlib_handle_error macro. Does nothing.
@@ -161,7 +158,7 @@ inline Exception::Exception(const char *file, int line)
     : msg::Exception("Error", file, line) {}
 inline Exception::Exception(const char *file, int line, int errorCode)
     : msg::Exception("Error #" + std::to_string(errorCode), file, line) {}
-inline Exception::Exception(const char *file, int line,
+inline Exception::Exception(const char *file, int line, // not tested
                             const std::string &errorString)
     : msg::Exception("Error " + errorString, file, line) {} // not tested
 inline Exception::~Exception() throw() {}                   // not tested

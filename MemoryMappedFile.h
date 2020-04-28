@@ -95,9 +95,8 @@ template <class T> inline T *MemoryMappedFile::address() {
     ThrowMessageException("Memory Mapped File already closed"); // not tested
   }
   if (sizeof(T) > _size) {
-    ThrowMessageException(
-        "Memory Mapped File is not big enough for requested type"); // not
-                                                                    // tested
+    ThrowMessageException( // not tested
+        "Memory Mapped File is not big enough for requested type");
   }
   return reinterpret_cast<T *>(_address);
 }

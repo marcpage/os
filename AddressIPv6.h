@@ -9,9 +9,6 @@
 #include <string.h>
 #include <string>
 
-/**
-        @todo Test!
-*/
 namespace net {
 
 /** An IPv6 Internet Address (AF_INET6, sockaddr_in6).
@@ -39,6 +36,7 @@ private:
   struct sockaddr_in6 _address;
 };
 
+/// @todo Test
 inline AddressIPv6::AddressIPv6(const void *address, socklen_t size)
     : Address(), _address() {
   AssertMessageException(NULL != address);
@@ -63,6 +61,7 @@ inline AddressIPv6::AddressIPv6(in_port_t port, const struct in6_addr &address)
 /**
         @param address	The address to listen on or connect to.
         @param port		The port to listen on or connect to.
+        @todo test
 */
 inline AddressIPv6::AddressIPv6(const std::string &address, in_port_t port)
     : Address(), _address() {
