@@ -15,7 +15,9 @@ namespace net {
 */
 class SocketGeneric {
 public:
-  /// @brief The socket descriptor.
+  /** The socket descriptor.
+	  @return The socket descriptor returned by a call to <code>socket</code>.
+  */
   int descriptor();
   /// @brief Closes the socket.
   void close();
@@ -40,7 +42,7 @@ protected:
   friend class SocketServer; ///< For <code>assign()</code>
 };
 
-/** @return The socket descriptor returned by a call to <code>socket</code>. */
+/// @todo Test
 inline int SocketGeneric::descriptor() { return _socket; }
 /** After closing the socket, it is made invalid.
  */
@@ -50,6 +52,7 @@ inline void SocketGeneric::close() {
   }
   _socket = -1;
 }
+/// @todo Test
 inline void SocketGeneric::setOption(int name, bool value, int level) {
   int enable = value ? 1 : 0;
 
@@ -81,13 +84,19 @@ inline SocketGeneric::~SocketGeneric() {
 inline void SocketGeneric::assign(int socketDescriptor) {
   _socket = socketDescriptor;
 }
-/** @todo Document*/
+/**  When enabled, datagram sockets
+              are allowed to send packets to a broadcast address.  This
+              option has no effect on stream-oriented sockets.
+              @param cast if true, the socket is set for broadcast.
+              @todo Test
+*/
 inline void SocketGeneric::broadcast(bool cast) {
   setOption(SO_BROADCAST, cast);
 }
 /**
         @param address	The address to listen for connections
         @todo Test bind fails
+        @todo Test
 */
 inline void SocketGeneric::bind(Address &address) {
   ErrnoOnNegative(::bind(_socket, address, address.size()));

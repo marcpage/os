@@ -115,6 +115,7 @@ inline size_t Socket::write(const std::string &buffer, size_t bytes,
   ErrnoOnNegative(amount = ::write(_socket, buffer.data() + offset, toWrite));
   return amount;
 }
+/// @todo Test
 inline size_t Socket::sendTo(const Address &address, const std::string &buffer,
                              size_t bytes, size_t offset, RoutingOptions route,
                              OutOfBandDataOptions outOfBand) {
