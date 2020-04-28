@@ -16,7 +16,8 @@ namespace net {
 class SocketGeneric {
 public:
   /** The socket descriptor.
-	  @return The socket descriptor returned by a call to <code>socket</code>.
+          @return The socket descriptor returned by a call to
+     <code>socket</code>.
   */
   int descriptor();
   /// @brief Closes the socket.

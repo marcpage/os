@@ -14,7 +14,6 @@
 #include <vector>
 
 /**
-        @todo Document
         @todo chmod
 */
 namespace io {
