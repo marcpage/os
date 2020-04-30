@@ -20,7 +20,7 @@ class AsymmetricPublicKey {
 public:
   AsymmetricPublicKey() {}
   virtual ~AsymmetricPublicKey() {}
-  virtual std::string &serialize(std::string &buffer) = 0;
+  virtual std::string &serialize(std::string &buffer) const = 0;
   virtual bool verify(const std::string &text,
                       const std::string &signature) = 0;
   virtual std::string &encrypt(const std::string &source,
@@ -36,7 +36,7 @@ public:
   AsymmetricPrivateKey() {}
   virtual ~AsymmetricPrivateKey() {}
   virtual AsymmetricPublicKey *publicKey() = 0;
-  virtual std::string &serialize(std::string &buffer) = 0;
+  virtual std::string &serialize(std::string &buffer) const = 0;
   virtual std::string &decrypt(const std::string &source,
                                std::string &decrypted) = 0;
   virtual std::string &sign(const std::string &text,
@@ -234,7 +234,12 @@ public:
   explicit OpenSSLRSAAES256PublicKey(const std::string &serialized)
       : _rsa(serialized, PEM_read_bio_RSAPublicKey) {}
   virtual ~OpenSSLRSAAES256PublicKey() {}
-  std::string &serialize(std::string &buffer) override {
+  std::string serialize() const {
+  	std::string buffer;
+
+  	return serialize(buffer);
+  }
+  std::string &serialize(std::string &buffer) const override {
     return _rsa.serializePublic(buffer);
   }
   bool verify(const std::string &text, const std::string &signature) override {
@@ -269,7 +274,12 @@ public:
     return *this;
   }
   virtual ~OpenSSLRSAAES256PrivateKey() {}
-  std::string &serialize(std::string &buffer) override {
+  std::string serialize() const {
+  	std::string buffer;
+
+  	return serialize(buffer);
+  }
+  std::string &serialize(std::string &buffer) const override {
     return _rsa.serializePrivate(buffer);
   }
   std::string &sign(const std::string &text, std::string &signature) override {
