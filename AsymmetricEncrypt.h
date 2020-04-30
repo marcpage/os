@@ -235,9 +235,9 @@ public:
       : _rsa(serialized, PEM_read_bio_RSAPublicKey) {}
   virtual ~OpenSSLRSAAES256PublicKey() {}
   std::string serialize() const {
-  	std::string buffer;
+    std::string buffer;
 
-  	return serialize(buffer);
+    return serialize(buffer);
   }
   std::string &serialize(std::string &buffer) const override {
     return _rsa.serializePublic(buffer);
@@ -275,9 +275,9 @@ public:
   }
   virtual ~OpenSSLRSAAES256PrivateKey() {}
   std::string serialize() const {
-  	std::string buffer;
+    std::string buffer;
 
-  	return serialize(buffer);
+    return serialize(buffer);
   }
   std::string &serialize(std::string &buffer) const override {
     return _rsa.serializePrivate(buffer);
