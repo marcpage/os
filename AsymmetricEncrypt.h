@@ -280,6 +280,11 @@ public:
     return _rsa.crypt(source, decrypted, RSA_private_decrypt, 0,
                       RSA_PKCS1_OAEP_PADDING);
   }
+  OpenSSLRSAAES256PublicKey getPublicKey() {
+    std::string buffer;
+
+    return OpenSSLRSAAES256PublicKey(_rsa.serializePublic(buffer));
+  }
   AsymmetricPublicKey *publicKey() override {
     std::string buffer;
 
