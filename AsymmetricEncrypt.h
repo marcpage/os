@@ -55,6 +55,7 @@ public:
   operator T *() const { return data; }
   T *operator->() const { return data; }
   AutoClean<T> &operator=(const AutoClean<T> &other) {
+    dispose();
     data = other.data;
     return *this;
   }
@@ -79,25 +80,39 @@ template <> inline void AutoClean<EVP_PKEY>::dispose() { EVP_PKEY_free(data); }
 
 class OpenSSLRSA {
 public:
-  explicit OpenSSLRSA(const int keySize, const unsigned long publicExponent =
-                                             RSA_F4) // publicExponent = RSA_3
-      : _rsa(__crypto_OSSLHandle(RSA_new())) {
-    AutoClean<BIGNUM> bigPublicExponent(__crypto_OSSLHandle(BN_new()));
-
-    __crypto_OSSLHandle(BN_set_word(bigPublicExponent, publicExponent));
-    __crypto_OSSLHandle(
-        RSA_generate_key_ex(_rsa.data, keySize, bigPublicExponent, nullptr));
+  OpenSSLRSA() : _rsa(nullptr) {}
+  OpenSSLRSA(const OpenSSLRSA &other) : _rsa(nullptr) { *this = other; }
+  explicit OpenSSLRSA(const int keySize,
+                      const unsigned long publicExponent = RSA_F4)
+      : _rsa(nullptr) {
+    init(keySize, publicExponent);
   }
   typedef RSA *(*KeyReader)(
       BIO *, RSA **, pem_password_cb *,
       void *); // PEM_read_bio_RSAPublicKey or PEM_read_bio_RSAPrivateKey
   OpenSSLRSA(const std::string &serialized, KeyReader keyReader)
       : _rsa(nullptr) {
+    init(serialized, keyReader);
+  }
+  OpenSSLRSA &init(const std::string &serialized, KeyReader keyReader) {
+    _rsa.dispose();
     AutoClean<BIO> memory(__crypto_OSSLHandle(
         BIO_new_mem_buf(serialized.data(), serialized.size())));
 
     _rsa.data =
         __crypto_OSSLHandle(keyReader(memory, nullptr, nullptr, nullptr));
+    return *this;
+  }
+  OpenSSLRSA &init(const int keySize,
+                   const unsigned long publicExponent = RSA_F4) {
+    _rsa.dispose();
+    _rsa.data = __crypto_OSSLHandle(RSA_new());
+    AutoClean<BIGNUM> bigPublicExponent(__crypto_OSSLHandle(BN_new()));
+
+    __crypto_OSSLHandle(BN_set_word(bigPublicExponent, publicExponent));
+    __crypto_OSSLHandle(
+        RSA_generate_key_ex(_rsa.data, keySize, bigPublicExponent, nullptr));
+    return *this;
   }
   typedef int (*Cryptor)(
       int flen, const unsigned char *from, unsigned char *to, RSA *rsa,
@@ -105,6 +120,7 @@ public:
   std::string &crypt(const std::string &source, std::string &output,
                      Cryptor cryptor, int overheadSize = 41,
                      int padding = RSA_PKCS1_OAEP_PADDING) {
+    AssertMessageException(_rsa.data != nullptr);
     const int keyBytes = RSA_size(_rsa);
     int dataSize;
 
@@ -123,12 +139,12 @@ public:
     output.erase(dataSize);
     return output;
   }
-  std::string &serializePrivate(std::string &buffer) {
-    serializeKey(buffer, _writePrivate);
+  std::string &serializePrivate(std::string &buffer) const {
+    _serializeKey(buffer, _writePrivate);
     return buffer;
   }
-  std::string &serializePublic(std::string &buffer) {
-    serializeKey(buffer, _writePublic);
+  std::string &serializePublic(std::string &buffer) const {
+    _serializeKey(buffer, _writePublic);
     return buffer;
   }
   typedef const EVP_MD *(*MessageDigestType)(void);
@@ -138,6 +154,7 @@ public:
     AutoClean<EVP_PKEY> key(__crypto_OSSLHandle(EVP_PKEY_new()));
     size_t signatureSize = 0;
 
+    AssertMessageException(_rsa.data != nullptr);
     __crypto_OSSLHandle(EVP_PKEY_set1_RSA(key, _rsa));
     __crypto_OSSLHandle(
         EVP_DigestSignInit(signer, nullptr, messageDigestType(), nullptr, key));
@@ -156,6 +173,7 @@ public:
     AutoClean<EVP_PKEY> key(__crypto_OSSLHandle(EVP_PKEY_new()));
     int status = -1;
 
+    AssertMessageException(_rsa.data != nullptr);
     __crypto_OSSLHandle(EVP_PKEY_set1_RSA(key, _rsa));
     __crypto_OSSLHandle(EVP_DigestVerifyInit(
         verifier, nullptr, messageDigestType(), nullptr, key));
@@ -185,8 +203,11 @@ private:
   static int _writePublic(BIO *b, RSA *r) {
     return PEM_write_bio_RSAPublicKey(b, r);
   }
-  void serializeKey(std::string &buffer, KeyTypeSerializer keytypeSerializer) {
+  void _serializeKey(std::string &buffer,
+                     KeyTypeSerializer keytypeSerializer) const {
     AutoClean<BIO> memory(__crypto_OSSLHandle(BIO_new(BIO_s_mem())));
+
+    AssertMessageException(_rsa.data != nullptr);
     __crypto_OSSLHandle(keytypeSerializer(memory, _rsa));
 
     const int dataSize = BIO_pending(memory);
@@ -195,63 +216,82 @@ private:
     __crypto_OSSLHandle(
         BIO_read(memory, const_cast<char *>(buffer.data()), dataSize));
   }
-  OpenSSLRSA(const OpenSSLRSA &);
-  OpenSSLRSA &operator=(const OpenSSLRSA &);
+  OpenSSLRSA &operator=(const OpenSSLRSA &other);
 };
 
 class OpenSSLRSAAES256PublicKey : public AsymmetricPublicKey {
 public:
+  OpenSSLRSAAES256PublicKey() : _rsa() {}
+  OpenSSLRSAAES256PublicKey(const OpenSSLRSAAES256PublicKey &other) : _rsa() {
+    *this = other;
+  }
+  OpenSSLRSAAES256PublicKey &operator=(const OpenSSLRSAAES256PublicKey &other) {
+    std::string buffer;
+
+    _rsa.init(other._rsa.serializePublic(buffer), PEM_read_bio_RSAPublicKey);
+    return *this;
+  }
   explicit OpenSSLRSAAES256PublicKey(const std::string &serialized)
-      : rsa(serialized, PEM_read_bio_RSAPublicKey) {}
+      : _rsa(serialized, PEM_read_bio_RSAPublicKey) {}
   virtual ~OpenSSLRSAAES256PublicKey() {}
   std::string &serialize(std::string &buffer) override {
-    return rsa.serializePublic(buffer);
+    return _rsa.serializePublic(buffer);
   }
   bool verify(const std::string &text, const std::string &signature) override {
-    return rsa.verify(text, signature, EVP_sha256);
+    return _rsa.verify(text, signature, EVP_sha256);
   }
   std::string &encrypt(const std::string &source,
                        std::string &encrypted) override {
-    return rsa.crypt(source, encrypted, RSA_public_encrypt, 41,
-                     RSA_PKCS1_OAEP_PADDING);
+    return _rsa.crypt(source, encrypted, RSA_public_encrypt, 41,
+                      RSA_PKCS1_OAEP_PADDING);
   }
 
 private:
-  OpenSSLRSA rsa;
-  OpenSSLRSAAES256PublicKey(const OpenSSLRSAAES256PublicKey &);
-  OpenSSLRSAAES256PublicKey &operator=(const OpenSSLRSAAES256PublicKey &);
+  OpenSSLRSA _rsa;
 };
 
 class OpenSSLRSAAES256PrivateKey : public AsymmetricPrivateKey {
 public:
+  OpenSSLRSAAES256PrivateKey() : _rsa() {}
   explicit OpenSSLRSAAES256PrivateKey(const int keySize,
                                       const unsigned long publicExponent = 3)
-      : rsa(keySize, publicExponent) {}
+      : _rsa(keySize, publicExponent) {}
   explicit OpenSSLRSAAES256PrivateKey(const std::string &serialized)
-      : rsa(serialized, PEM_read_bio_RSAPrivateKey) {}
+      : _rsa(serialized, PEM_read_bio_RSAPrivateKey) {}
+  OpenSSLRSAAES256PrivateKey(const OpenSSLRSAAES256PrivateKey &other) {
+    *this = other;
+  }
+  OpenSSLRSAAES256PrivateKey &
+  operator=(const OpenSSLRSAAES256PrivateKey &other) {
+    std::string buffer;
+
+    _rsa.init(other._rsa.serializePrivate(buffer), PEM_read_bio_RSAPrivateKey);
+    return *this;
+  }
   virtual ~OpenSSLRSAAES256PrivateKey() {}
   std::string &serialize(std::string &buffer) override {
-    return rsa.serializePrivate(buffer);
+    return _rsa.serializePrivate(buffer);
   }
   std::string &sign(const std::string &text, std::string &signature) override {
-    return rsa.sign(text, signature, EVP_sha256);
+    return _rsa.sign(text, signature, EVP_sha256);
   }
   std::string &decrypt(const std::string &source,
                        std::string &decrypted) override {
-    return rsa.crypt(source, decrypted, RSA_private_decrypt, 0,
-                     RSA_PKCS1_OAEP_PADDING);
+    return _rsa.crypt(source, decrypted, RSA_private_decrypt, 0,
+                      RSA_PKCS1_OAEP_PADDING);
   }
   AsymmetricPublicKey *publicKey() override {
     std::string buffer;
 
-    return new OpenSSLRSAAES256PublicKey(rsa.serializePublic(buffer));
+    return new OpenSSLRSAAES256PublicKey(_rsa.serializePublic(buffer));
   }
 
 private:
-  OpenSSLRSA rsa;
-  OpenSSLRSAAES256PrivateKey(const OpenSSLRSAAES256PrivateKey &);
-  OpenSSLRSAAES256PrivateKey &operator=(const OpenSSLRSAAES256PrivateKey &);
+  OpenSSLRSA _rsa;
 };
+
+typedef OpenSSLRSAAES256PublicKey RSAAES256PublicKey;
+typedef OpenSSLRSAAES256PrivateKey RSAAES256PrivateKey;
 
 #endif // OpenSSLAvailable
 
