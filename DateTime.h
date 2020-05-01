@@ -9,13 +9,17 @@
 #include <time.h>
 
 #define AddToConvertToAppleCocoaEpoch                                          \
-  (dt::DateTime(2001, dt::DateTime::Jan, 1) - dt::DateTime(0.0))
+  (dt::DateTime(2001, dt::DateTime::Jan, 1, dt::DateTime::GMT) -               \
+   dt::DateTime(0.0))
 #define AddToConvertToDOSEpoch                                                 \
-  (dt::DateTime(1980, dt::DateTime::Jan, 1) - dt::DateTime(0.0))
+  (dt::DateTime(1980, dt::DateTime::Jan, 1, dt::DateTime::GMT) -               \
+   dt::DateTime(0.0))
 #define AddToConvertToUNIXEpoch                                                \
-  (dt::DateTime(1970, dt::DateTime::Jan, 1) - dt::DateTime(0.0))
+  (dt::DateTime(1970, dt::DateTime::Jan, 1, dt::DateTime::GMT) -               \
+   dt::DateTime(0.0))
 #define AddToConvertToAppleMacEpoch                                            \
-  (dt::DateTime(1904, dt::DateTime::Jan, 1) - dt::DateTime(0.0))
+  (dt::DateTime(1904, dt::DateTime::Jan, 1, dt::DateTime::GMT) -               \
+   dt::DateTime(0.0))
 
 namespace dt {
 
@@ -51,18 +55,19 @@ public:
     December = Dec,
   };
   enum CivilianHour { AM, PM };
+  enum Location { GMT, Local };
   typedef std::string String;
   DateTime();
   DateTime(const DateTime &time);
   explicit DateTime(const time_t &time);
   explicit DateTime(const timeval &time);
   explicit DateTime(const timespec &time);
-  explicit DateTime(tm &time);
+  explicit DateTime(tm &time, Location location = Local);
   explicit DateTime(const double &time);
   DateTime(int year, Month month, int day, int hour24 = 0, int minutes = 0,
-           double seconds = 0.0);
+           double seconds = 0.0, Location location = Local);
   DateTime(int year, Month month, int day, int hour, CivilianHour ampm,
-           int minutes = 0, double seconds = 0.0);
+           int minutes = 0, double seconds = 0.0, Location location = Local);
   ~DateTime();
   operator time_t() const;
   operator timeval() const;
@@ -82,7 +87,7 @@ public:
   bool operator>=(const DateTime &other) const;
   double seconds() const;
   DateTime &add(double value, Span span = Seconds);
-  tm &utc(tm &time) const;
+  tm &gmt(tm &time) const;
   tm &local(tm &time) const;
   timeval &value(timeval &tv) const;
   timespec &value(timespec &ts) const;
@@ -91,9 +96,9 @@ public:
 
 private:
   timespec _time;
-  void _init(tm &time, double fractionalSeconds = 0.0);
+  void _init(tm &time, double fractionalSeconds, Location location);
   void _init(int year, Month month, int day, int hour24, int minutes,
-             double seconds);
+             double seconds, Location location);
 };
 /**
         @todo look at using mach_absolute_time/mach_timebase_info
@@ -107,26 +112,31 @@ inline DateTime::DateTime() : _time() {
   _time.tv_sec = timeValue.tv_sec;
   _time.tv_nsec = static_cast<long>(timeValue.tv_usec) * 1000UL;
 }
+/// @todo Test
 inline DateTime::DateTime(const DateTime &time) : _time(time._time) { ; }
+/// @todo Test
 inline DateTime::DateTime(const time_t &time) : _time() {
   ;
   _time.tv_sec = time;
   _time.tv_nsec = 0UL;
 }
+/// @todo Test
 inline DateTime::DateTime(const timeval &time) : _time() {
   ;
   _time.tv_sec = time.tv_sec;
   _time.tv_nsec = static_cast<long>(time.tv_usec) * 1000UL;
 }
 inline DateTime::DateTime(const timespec &time) : _time(time) {}
-inline void DateTime::_init(tm &time, double fractionalSeconds) {
-  _time.tv_sec = mktime(&time);
+inline void DateTime::_init(tm &time, double fractionalSeconds,
+                            Location location) {
+  _time.tv_sec = location == GMT ? timegm(&time) : mktime(&time);
   _time.tv_nsec = static_cast<long>(fractionalSeconds * 1000000000.0);
   AssertMessageException(_time.tv_sec != static_cast<time_t>(-1));
 }
-inline DateTime::DateTime(tm &time) : _time() {
+/// @todo Test
+inline DateTime::DateTime(tm &time, Location location) : _time() {
   ;
-  _init(time);
+  _init(time, 0.0, location);
 }
 inline DateTime::DateTime(const double &time) : _time() {
   ;
@@ -136,7 +146,7 @@ inline DateTime::DateTime(const double &time) : _time() {
   _time.tv_nsec = static_cast<long>(1000000000.0 * (time - wholeSeconds));
 }
 inline void DateTime::_init(int year, Month month, int day, int hour24,
-                            int minutes, double secs) {
+                            int minutes, double secs, Location location) {
   struct tm date;
   double wholeSeconds = floor(secs);
 
@@ -146,15 +156,17 @@ inline void DateTime::_init(int year, Month month, int day, int hour24,
   date.tm_hour = hour24;
   date.tm_min = minutes;
   date.tm_sec = static_cast<int>(wholeSeconds);
-  _init(date, secs - wholeSeconds);
+  _init(date, secs - wholeSeconds, location);
 }
 inline DateTime::DateTime(int year, Month month, int day, int hour24,
-                          int minutes, double secs)
+                          int minutes, double secs, Location location)
     : _time() {
-  _init(year, month, day, hour24, minutes, secs);
+  _init(year, month, day, hour24, minutes, secs, location);
 }
+/// @todo Test
 inline DateTime::DateTime(int year, Month month, int day, int hour,
-                          CivilianHour ampm, int minutes, double secs)
+                          CivilianHour ampm, int minutes, double secs,
+                          Location location)
     : _time() {
   if (12 == hour) {
     if (AM == ampm) {
@@ -163,38 +175,46 @@ inline DateTime::DateTime(int year, Month month, int day, int hour,
   } else if (PM == ampm) {
     hour += 12;
   }
-  _init(year, month, day, hour, minutes, secs);
+  _init(year, month, day, hour, minutes, secs, location);
 }
 inline DateTime::~DateTime() { ; }
+/// @todo Test
 inline DateTime::operator time_t() const {
   ;
   return _time.tv_sec;
 }
+/// @todo Test
 inline DateTime::operator timeval() const {
   ;
   struct timeval timeValue;
   value(timeValue);
   return timeValue;
 }
+/// @todo Test
 inline DateTime::operator const timespec() const { return _time; }
+/// @todo Test
 inline DateTime::operator double() const {
   ;
   return seconds();
 }
+/// @todo Test
 inline DateTime &DateTime::operator+=(double secs) {
   ;
   *this = *this + secs;
   return *this;
 }
+/// @todo Test
 inline DateTime DateTime::operator+(double secs) const {
   ;
   return DateTime(seconds() + secs);
 }
+/// @todo Test
 inline DateTime &DateTime::operator-=(double secs) {
   ;
   *this = *this - secs;
   return *this;
 }
+/// @todo Test
 inline DateTime DateTime::operator-(double secs) const {
   ;
   return DateTime(seconds() - secs);
@@ -208,16 +228,19 @@ inline DateTime &DateTime::operator=(const DateTime &other) {
   _time = other._time;
   return *this;
 }
+/// @todo Test
 inline bool DateTime::operator==(const DateTime &other) const {
   ;
   return (_time.tv_sec == other._time.tv_sec) &&
          (_time.tv_nsec == other._time.tv_nsec);
 }
+/// @todo Test
 inline bool DateTime::operator!=(const DateTime &other) const {
   ;
   return (_time.tv_sec != other._time.tv_sec) ||
          (_time.tv_nsec != other._time.tv_nsec);
 }
+/// @todo Test
 inline bool DateTime::operator<(const DateTime &other) const {
   ;
   if (_time.tv_sec == other._time.tv_sec) {
@@ -225,6 +248,7 @@ inline bool DateTime::operator<(const DateTime &other) const {
   }
   return _time.tv_sec < other._time.tv_sec;
 }
+/// @todo Test
 inline bool DateTime::operator>(const DateTime &other) const {
   ;
   if (_time.tv_sec == other._time.tv_sec) {
@@ -232,6 +256,7 @@ inline bool DateTime::operator>(const DateTime &other) const {
   }
   return _time.tv_sec > other._time.tv_sec;
 }
+/// @todo Test
 inline bool DateTime::operator<=(const DateTime &other) const {
   ;
   if (_time.tv_sec == other._time.tv_sec) {
@@ -239,6 +264,7 @@ inline bool DateTime::operator<=(const DateTime &other) const {
   }
   return _time.tv_sec <= other._time.tv_sec;
 }
+/// @todo Test
 inline bool DateTime::operator>=(const DateTime &other) const {
   ;
   if (_time.tv_sec == other._time.tv_sec) {
@@ -251,6 +277,7 @@ inline double DateTime::seconds() const {
   return static_cast<double>(_time.tv_sec) +
          static_cast<double>(_time.tv_nsec) / 1000000000.0;
 }
+/// @todo Test
 inline DateTime &DateTime::add(double amount, Span span) {
   ;
   switch (span) {
@@ -269,19 +296,20 @@ inline DateTime &DateTime::add(double amount, Span span) {
   }
   return *this += amount;
 }
-inline tm &DateTime::utc(tm &time) const {
-  ;
-  return *::localtime_r(&_time.tv_sec, &time);
-}
-inline tm &DateTime::local(tm &time) const {
-  ;
+/// @todo Test
+inline tm &DateTime::gmt(tm &time) const {
   return *::gmtime_r(&_time.tv_sec, &time);
 }
+inline tm &DateTime::local(tm &time) const {
+  return *::localtime_r(&_time.tv_sec, &time);
+}
+/// @todo Test
 inline timeval &DateTime::value(timeval &tv) const {
   tv.tv_sec = _time.tv_sec;
   tv.tv_usec = static_cast<suseconds_t>(_time.tv_nsec / 1000UL);
   return tv;
 }
+/// @todo Test
 inline timespec &DateTime::value(timespec &ts) const {
   ts = _time;
   return ts;
@@ -298,6 +326,7 @@ inline DateTime::String &DateTime::format(const String &format,
   buffer.erase(size);
   return buffer;
 }
+/// @todo Test
 inline DateTime::String DateTime::format(const String &fmt) const {
   String buffer;
 
