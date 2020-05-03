@@ -106,21 +106,17 @@ private:
                         http://developer.apple.com/library/mac/#qa/qa1398/_index.html
 */
 inline DateTime::DateTime() : _time() {
-  ;
   struct timeval timeValue;
   ErrnoOnNegative(::gettimeofday(&timeValue, NULL));
   _time.tv_sec = timeValue.tv_sec;
   _time.tv_nsec = static_cast<long>(timeValue.tv_usec) * 1000UL;
 }
-/// @todo Test
 inline DateTime::DateTime(const DateTime &time) : _time(time._time) { ; }
-/// @todo Test
 inline DateTime::DateTime(const time_t &time) : _time() {
   ;
   _time.tv_sec = time;
   _time.tv_nsec = 0UL;
 }
-/// @todo Test
 inline DateTime::DateTime(const timeval &time) : _time() {
   ;
   _time.tv_sec = time.tv_sec;
@@ -133,7 +129,6 @@ inline void DateTime::_init(tm &time, double fractionalSeconds,
   _time.tv_nsec = static_cast<long>(fractionalSeconds * 1000000000.0);
   AssertMessageException(_time.tv_sec != static_cast<time_t>(-1));
 }
-/// @todo Test
 inline DateTime::DateTime(tm &time, Location location) : _time() {
   ;
   _init(time, 0.0, location);
@@ -163,14 +158,13 @@ inline DateTime::DateTime(int year, Month month, int day, int hour24,
     : _time() {
   _init(year, month, day, hour24, minutes, secs, location);
 }
-/// @todo Test
 inline DateTime::DateTime(int year, Month month, int day, int hour,
                           CivilianHour ampm, int minutes, double secs,
                           Location location)
     : _time() {
   if (12 == hour) {
-    if (AM == ampm) {
-      hour = 0;
+    if (AM == ampm) { // not tested
+      hour = 0;       // not tested
     }
   } else if (PM == ampm) {
     hour += 12;
@@ -197,24 +191,20 @@ inline DateTime::operator double() const {
   ;
   return seconds();
 }
-/// @todo Test
 inline DateTime &DateTime::operator+=(double secs) {
   ;
   *this = *this + secs;
   return *this;
 }
-/// @todo Test
 inline DateTime DateTime::operator+(double secs) const {
   ;
   return DateTime(seconds() + secs);
 }
-/// @todo Test
 inline DateTime &DateTime::operator-=(double secs) {
   ;
   *this = *this - secs;
   return *this;
 }
-/// @todo Test
 inline DateTime DateTime::operator-(double secs) const {
   ;
   return DateTime(seconds() - secs);
@@ -228,35 +218,30 @@ inline DateTime &DateTime::operator=(const DateTime &other) {
   _time = other._time;
   return *this;
 }
-/// @todo Test
 inline bool DateTime::operator==(const DateTime &other) const {
   ;
   return (_time.tv_sec == other._time.tv_sec) &&
          (_time.tv_nsec == other._time.tv_nsec);
 }
-/// @todo Test
 inline bool DateTime::operator!=(const DateTime &other) const {
   ;
   return (_time.tv_sec != other._time.tv_sec) ||
          (_time.tv_nsec != other._time.tv_nsec);
 }
-/// @todo Test
 inline bool DateTime::operator<(const DateTime &other) const {
   ;
   if (_time.tv_sec == other._time.tv_sec) {
-    return _time.tv_nsec < other._time.tv_nsec;
+    return _time.tv_nsec < other._time.tv_nsec; // not tested
   }
   return _time.tv_sec < other._time.tv_sec;
 }
-/// @todo Test
 inline bool DateTime::operator>(const DateTime &other) const {
   ;
   if (_time.tv_sec == other._time.tv_sec) {
-    return _time.tv_nsec > other._time.tv_nsec;
+    return _time.tv_nsec > other._time.tv_nsec; // not tested
   }
   return _time.tv_sec > other._time.tv_sec;
 }
-/// @todo Test
 inline bool DateTime::operator<=(const DateTime &other) const {
   ;
   if (_time.tv_sec == other._time.tv_sec) {
@@ -264,11 +249,10 @@ inline bool DateTime::operator<=(const DateTime &other) const {
   }
   return _time.tv_sec <= other._time.tv_sec;
 }
-/// @todo Test
 inline bool DateTime::operator>=(const DateTime &other) const {
   ;
   if (_time.tv_sec == other._time.tv_sec) {
-    return _time.tv_nsec >= other._time.tv_nsec;
+    return _time.tv_nsec >= other._time.tv_nsec; // not tested
   }
   return _time.tv_sec >= other._time.tv_sec;
 }
@@ -277,7 +261,6 @@ inline double DateTime::seconds() const {
   return static_cast<double>(_time.tv_sec) +
          static_cast<double>(_time.tv_nsec) / 1000000000.0;
 }
-/// @todo Test
 inline DateTime &DateTime::add(double amount, Span span) {
   ;
   switch (span) {
@@ -292,7 +275,7 @@ inline DateTime &DateTime::add(double amount, Span span) {
   case Seconds:
     break;
   default:
-    break;
+    break; // not tested
   }
   return *this += amount;
 }
@@ -326,7 +309,6 @@ inline DateTime::String &DateTime::format(const String &format,
   buffer.erase(size);
   return buffer;
 }
-/// @todo Test
 inline DateTime::String DateTime::format(const String &fmt) const {
   String buffer;
 
