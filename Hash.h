@@ -7,6 +7,7 @@
 */
 
 #include "Exception.h"
+#include "Text.h"
 #include <ctype.h>
 #include <string.h>
 #include <string>
@@ -325,35 +326,18 @@ template <class Hasher> inline uint32_t SpecificHash<Hasher>::size() const {
 */
 template <class Hasher>
 inline std::string &SpecificHash<Hasher>::hex(std::string &value) const {
-  const char *const hexDigits = "0123456789abcdef";
-
   value.clear();
-  for (int i = 0; (i < static_cast<int>(sizeof(_hash))); ++i) {
-    value.append(1, hexDigits[_hash[i] >> 4]);
-    value.append(1, hexDigits[_hash[i] & 0x0F]);
-  }
-  return value;
+  return text::toHex(
+      std::string(reinterpret_cast<const char *>(_hash), sizeof(_hash)), value);
 }
 /** Make the value of this hash be the given lowercase hex value.
  */
 template <class Hasher>
 inline void SpecificHash<Hasher>::assignFromHex(const std::string &hex) {
-  std::string hexDigits("0123456789abcdef");
-  bool eosFound = false;
-  AssertMessageException(hex.size() == Size * 2);
-  for (int byte = 0; (byte < static_cast<int>(sizeof(_hash))); ++byte) {
-    const int nibble1 = byte * 2 + 1;
-    eosFound = ((eosFound) || (hex[nibble1] == '\0'));
-    std::string::size_type found1 = eosFound ? 0 : hexDigits.find(hex[nibble1]);
-
-    const int nibble2 = nibble1 - 1;
-    eosFound = ((eosFound) || (hex[nibble1] == '\0'));
-    std::string::size_type found2 = eosFound ? 0 : hexDigits.find(hex[nibble2]);
-
-    AssertMessageException(found1 != std::string::npos);
-    AssertMessageException(found2 != std::string::npos);
-    _hash[byte] = (found2 << 4) | found1;
-  }
+  std::string buffer;
+  text::fromHex(hex, buffer)
+      .copy(reinterpret_cast<char *>(_hash), sizeof(_hash));
+  AssertMessageException(buffer.size() == sizeof(_hash));
 }
 /** Recalculate the hash to be the hash of the given data.
  */
