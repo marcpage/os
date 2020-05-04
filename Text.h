@@ -62,6 +62,12 @@ inline std::string &toHex(const std::string &binary, std::string &hex) {
   return hex;
 }
 
+inline std::string &toHex(const std::string &binary) {
+  std::string buffer;
+
+  return toHex(binary, buffer);
+}
+
 inline std::string &fromHex(const std::string &hex, std::string &binary) {
   std::string hexDigits("0123456789abcdef");
 
@@ -78,6 +84,12 @@ inline std::string &fromHex(const std::string &hex, std::string &binary) {
     binary.append(1, (found2 << 4) | found1);
   }
   return binary;
+}
+
+inline std::string &fromHex(const std::string &hex) {
+  std::string buffer;
+
+  return fromHex(hex, buffer);
 }
 
 } // namespace text
