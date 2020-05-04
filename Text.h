@@ -270,10 +270,10 @@ inline std::string &base64Decode(const std::string &base64, std::string &binary,
   for (auto i = 0; i < size; i += 4) {
     const auto c1 = _find(source[i], characters, urlCharacters);
     const auto c2 = _find(source[i + 1], characters, urlCharacters);
-    const auto c3 = _find(source[i + 2], characters, urlCharacters);
-    const auto c3p = std::string::npos != padding.find(c3);
-    const auto c4 = _find(source[i + 3], characters, urlCharacters);
-    const auto c4p = std::string::npos != padding.find(c4);
+    const auto c3p = std::string::npos != padding.find(source[i + 2]);
+    const auto c3 = c3p ? 0 : _find(source[i + 2], characters, urlCharacters);
+    const auto c4p = std::string::npos != padding.find(source[i + 3]);
+    const auto c4 = c4p ? 0 : _find(source[i + 3], characters, urlCharacters);
 
     binary.append(1, (c1 << 2) | ((c2 & 0x30) >> 4));
 
