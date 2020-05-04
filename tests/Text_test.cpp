@@ -7,7 +7,7 @@
   }
 
 int main(const int /*argc*/, const char *const /*argv*/[]) {
-  int iterations = 500;
+  int iterations = 2;
 #ifdef __Tracer_h__
   iterations = 1;
 #endif
@@ -55,15 +55,63 @@ int main(const int /*argc*/, const char *const /*argv*/[]) {
       "\xce\xa3", "\xcf\x83", // utf8
       "\xc6\x90", "\xc9\x9b", // utf8
   };
+  const struct {
+    const char *text;
+    text::Base64Style style;
+    int split;
+    const char *eol;
+    const char *expected;
+  } encode64[] = {
+      {"te", text::Base64, 0, "", "dGU="},                       // bug
+      {">>>???", text::Base64, 0, "", "Pj4+Pz8/"},               // url special
+      {">>>???", text::Base64URL, 0, "", "Pj4-Pz8_"},            // url special
+      {"Test", text::Base64, 0, "", "VGVzdA=="},                 // two padding
+      {"Run", text::Base64, 0, "", "UnVu"},                      // no padding
+      {"Waste", text::Base64, 0, "", "V2FzdGU="},                // one padding
+      {"Test", text::Base64URL, 0, "", "VGVzdA.."},              // two padding
+      {"Run", text::Base64URL, 0, "", "UnVu"},                   // no padding
+      {"Waste", text::Base64URL, 0, "", "V2FzdGU."},             // one padding
+      {"Test", text::Base64, 3, "\r\n", "VGV\r\nzdA\r\n=="},     // two padding
+      {"Run", text::Base64, 3, "\r\n", "UnV\r\nu"},              // no padding
+      {"Waste", text::Base64, 3, "\r\n", "V2F\r\nzdG\r\nU="},    // one padding
+      {"Test", text::Base64URL, 3, "\r\n", "VGV\r\nzdA\r\n.."},  // two padding
+      {"Run", text::Base64URL, 3, "\r\n", "UnV\r\nu"},           // no padding
+      {"Waste", text::Base64URL, 3, "\r\n", "V2F\r\nzdG\r\nU."}, // one padding
+      {"Test", text::Base64, 3, "\n", "VGV\nzdA\n=="},           // two padding
+      {"Run", text::Base64, 3, "\n", "UnV\nu"},                  // no padding
+      {"Waste", text::Base64, 3, "\n", "V2F\nzdG\nU="},          // one padding
+      {"Test", text::Base64URL, 3, "\n", "VGV\nzdA\n.."},        // two padding
+      {"Run", text::Base64URL, 3, "\n", "UnV\nu"},               // no padding
+      {"Waste", text::Base64URL, 3, "\n", "V2F\nzdG\nU."},       // one padding
+  };
   for (int i = 0; i < iterations; ++i) {
-    for (int j = 0; j < int(sizeof(strings) / sizeof(strings[0]) / 2); ++j) {
-      std::string mixed = strings[2 * j];
-      std::string lower = strings[2 * j + 1];
+    try {
+      for (int j = 0; j < int(sizeof(strings) / sizeof(strings[0]) / 2); ++j) {
+        std::string mixed = strings[2 * j];
+        std::string lower = strings[2 * j + 1];
 
-      if (text::tolower(mixed) != lower) {
-        printf("FAIL: '%s' -> '%s' but got '%s'\n", mixed.c_str(),
-               lower.c_str(), text::tolower(mixed).c_str());
+        if (text::tolower(mixed) != lower) {
+          printf("FAIL: '%s' -> '%s' but got '%s'\n", mixed.c_str(),
+                 lower.c_str(), text::tolower(mixed).c_str());
+        }
       }
+      for (int j = 0; j < int(sizeof(encode64) / sizeof(encode64[0])); ++j) {
+        const auto &entry = encode64[j];
+        std::string encoded =
+            text::base64Encode(entry.text, entry.style, entry.split, entry.eol);
+        std::string decoded = text::base64Decode(encoded);
+
+        if (encoded != entry.expected) {
+          printf("FAIL: '%s' -> '%s' but got '%s'\n", entry.text,
+                 entry.expected, encoded.c_str());
+        }
+        if (decoded != entry.text) {
+          printf("FAIL: '%s' <- '%s' but got '%s'\n", entry.text,
+                 entry.expected, decoded.c_str());
+        }
+      }
+    } catch (const std::exception &exception) {
+      printf("FAIL: Exception not caught: %s\n", exception.what());
     }
   }
   return 0;

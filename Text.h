@@ -11,6 +11,7 @@
         @todo Test lowercase on 3 and 4 byte utf8 sequences
         @todo test base64
         @todo Test to/from Hex
+        @todo be able to handle missing padding
 */
 namespace text {
 
@@ -164,8 +165,8 @@ inline std::string &base64Encode(const std::string &binary, Base64Style style,
     const unsigned char c1 = ((b1 & 0xfc) >> 2);
     const unsigned char c1_2 = ((b1 & 0x03) << 4);
     const unsigned char c2 = ((b1 & 0x03) << 4) | ((b2 & 0xf0) >> 4);
-    const unsigned char c2_2 = ((b1 & 0x0f) << 2);
-    const unsigned char c3 = ((b2 & 0x03) << 2) | ((b3 & 0xf0) >> 6);
+    const unsigned char c2_2 = ((b2 & 0x0f) << 2);
+    const unsigned char c3 = ((b2 & 0x0f) << 2) | ((b3 & 0xc0) >> 6);
     const unsigned char c4 = (b3 & 0x3f);
 
     base64.append(1, characters[c1]);
@@ -209,14 +210,18 @@ inline std::string base64Encode(const std::string &binary,
   return base64Encode(binary, style, buffer, split, eol, AppendToOutput);
 }
 
-inline unsigned char _find(char c, const std::string &s1,
-                           const std::string &s2) {
+inline unsigned char _find(char c, const std::string &s1, const std::string &s2,
+                           const std::string &p) {
   const auto f1 = s1.find(c);
 
   if (f1 == std::string::npos) {
     const auto f2 = s2.find(c);
 
-    AssertMessageException(f2 != std::string::npos);
+    if (f2 == std::string::npos) {
+      AssertMessageException(p.find(c) != std::string::npos);
+
+      return 0;
+    }
     return f2;
   }
 
@@ -228,7 +233,7 @@ _findWhitespace(const std::string &s, std::string::size_type offset = 0) {
   while ((offset < s.size()) && !std::isspace(s[offset])) {
     offset += 1;
   }
-  return offset;
+  return offset < s.size() ? offset : std::string::npos;
 }
 
 inline const std::string &_stripWhitespace(const std::string &s,
@@ -257,8 +262,7 @@ inline std::string &base64Decode(const std::string &base64, std::string &binary,
       __base_64_base_characters __base_64_standard_extension);
   const std::string urlCharacters(
       __base_64_base_characters __base_64_url_extension);
-  const std::string padding(
-      __base_64_standard_extension __base_64_url_extension);
+  const std::string padding(__base_64_standard_trailer __base_64_url_trailer);
 
   if (ClearOutputFirst == clear) {
     binary.clear();
@@ -268,12 +272,14 @@ inline std::string &base64Decode(const std::string &base64, std::string &binary,
   binary.reserve(size / 4 * 3);
 
   for (auto i = 0; i < size; i += 4) {
-    const auto c1 = _find(source[i], characters, urlCharacters);
-    const auto c2 = _find(source[i + 1], characters, urlCharacters);
+    const auto c1 = _find(source[i], characters, urlCharacters, padding);
+    const auto c2 = _find(source[i + 1], characters, urlCharacters, padding);
     const auto c3p = std::string::npos != padding.find(source[i + 2]);
-    const auto c3 = c3p ? 0 : _find(source[i + 2], characters, urlCharacters);
+    const auto c3 =
+        c3p ? 0 : _find(source[i + 2], characters, urlCharacters, padding);
     const auto c4p = std::string::npos != padding.find(source[i + 3]);
-    const auto c4 = c4p ? 0 : _find(source[i + 3], characters, urlCharacters);
+    const auto c4 =
+        c4p ? 0 : _find(source[i + 3], characters, urlCharacters, padding);
 
     binary.append(1, (c1 << 2) | ((c2 & 0x30) >> 4));
 
