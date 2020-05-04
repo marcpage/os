@@ -9,7 +9,7 @@
 /**
         @todo document
         @todo Test lowercase on 3 and 4 byte utf8 sequences
-        @todo add base64
+        @todo test base64
         @todo Test to/from Hex
 */
 namespace text {
