@@ -6,44 +6,8 @@
     fprintf(stderr, "FAIL(%s:%d): %s\n", __FILE__, __LINE__, #condition);      \
   }
 
-/*
-d0 ac 20 d1 8c
-d0 ad 20 d1 8d
-d0 ae 20 d1 8e
-d0 af 20 d1 8f
-d1 a0 20 d1 a1
-d1 a2 20 d1 a3
-d1 a4 20 d1 a5
-d1 a6 20 d1 a7
-d1 a8 20 d1 a9
-d1 aa 20 d1 ab
-d1 ac 20 d1 ad
-d1 ae 20 d1 af
-d1 b0 20 d1 b1
-d1 b2 20 d1 b3
-d1 b4 20 d1 b5
-d1 b6 20 d1 b7
-d1 b8 20 d1 b9
-d1 ba 20 d1 bb
-d1 bc 20 d1 bd
-d1 be 20 d1 bf
-d2 80 20 d2 81
-d2 8a 20 d2 8b
-d2 8c 20 d2 8d
-d2 8e 20 d2 8f
-d2 90 20 d2 91
-d2 92 20 d2 93
-d2 94 20 d2 95
-d2 96 20 d2 97
-d2 98 20 d2 99
-d2 9a 20 d2 9b
-d2 9c 20 d2 9d
-d2 9e 20 d2 9f
-d2 a0 20 d2 a1
-d2 a2 20 d2 a3
-*/
 int main(const int /*argc*/, const char *const /*argv*/[]) {
-  int iterations = 2;
+  int iterations = 500;
 #ifdef __Tracer_h__
   iterations = 1;
 #endif
@@ -51,7 +15,45 @@ int main(const int /*argc*/, const char *const /*argv*/[]) {
       "test",     "test",     // no change
       "Test",     "test",     // first character
       "TEST",     "test",     // all characters
-      //"\xd0\xac", "\xd1\x8c", // utf8
+      "\xd0\xac", "\xd1\x8c", // utf8
+      "\xd0\xad", "\xd1\x8d", // utf8
+      "\xd0\xae", "\xd1\x8e", // utf8
+      "\xd0\xaf", "\xd1\x8f", // utf8
+      "\xd1\xa0", "\xd1\xa1", // utf8
+      "\xd1\xa2", "\xd1\xa3", // utf8
+      "\xd1\xa4", "\xd1\xa5", // utf8
+      "\xd1\xa6", "\xd1\xa7", // utf8
+      "\xd1\xa8", "\xd1\xa9", // utf8
+      "\xd1\xaa", "\xd1\xab", // utf8
+      "\xd1\xac", "\xd1\xad", // utf8
+      "\xd1\xae", "\xd1\xaf", // utf8
+      "\xd1\xb0", "\xd1\xb1", // utf8
+      "\xd1\xb2", "\xd1\xb3", // utf8
+      "\xd1\xb4", "\xd1\xb5", // utf8
+      "\xd1\xb6", "\xd1\xb7", // utf8
+      "\xd1\xb8", "\xd1\xb9", // utf8
+      "\xd1\xba", "\xd1\xbb", // utf8
+      "\xd1\xbc", "\xd1\xbd", // utf8
+      "\xd1\xbe", "\xd1\xbf", // utf8
+      "\xd2\x80", "\xd2\x81", // utf8
+      "\xd2\x8a", "\xd2\x8b", // utf8
+      "\xd2\x8c", "\xd2\x8d", // utf8
+      "\xd2\x8e", "\xd2\x8f", // utf8
+      "\xd2\x90", "\xd2\x91", // utf8
+      "\xd2\x92", "\xd2\x93", // utf8
+      "\xd2\x94", "\xd2\x95", // utf8
+      "\xd2\x96", "\xd2\x97", // utf8
+      "\xd2\x98", "\xd2\x99", // utf8
+      "\xd2\x9a", "\xd2\x9b", // utf8
+      "\xd2\x9c", "\xd2\x9d", // utf8
+      "\xd2\x9e", "\xd2\x9f", // utf8
+      "\xd2\xa0", "\xd2\xa1", // utf8
+      "\xd2\xa2", "\xd2\xa3", // utf8
+      "\xc3\x93", "\xc3\xb3", // utf8
+      "\xc3\x89", "\xc3\xa9", // utf8
+      "\xc3\x9c", "\xc3\xbc", // utf8
+      "\xce\xa3", "\xcf\x83", // utf8
+      "\xc6\x90", "\xc9\x9b", // utf8
   };
   for (int i = 0; i < iterations; ++i) {
     for (int j = 0; j < int(sizeof(strings) / sizeof(strings[0]) / 2); ++j) {

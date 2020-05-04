@@ -2,13 +2,12 @@
 #define __Text_h__
 
 #include <codecvt>
-#include <iostream>
 #include <locale>
-#include <sstream>
 #include <string>
 
 /**
-	@todo Get it to work for non-Roman letters
+        @todo document
+        @todo Test 3 and 4 byte utf8 sequences
 */
 namespace text {
 
@@ -27,9 +26,11 @@ inline std::string &convert(const std::wstring &wide, std::string &utf8) {
 }
 
 inline std::wstring &tolower(const std::wstring &mixed, std::wstring &lower) {
+  std::locale utf8Locale("en_US.UTF-8");
+
   lower.reserve(lower.size() + mixed.size());
   for (auto c = mixed.begin(); c != mixed.end(); ++c) {
-    lower.append(1, towlower(*c));
+    lower.append(1, std::tolower(*c, utf8Locale));
   }
   return lower;
 }
