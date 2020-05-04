@@ -10,26 +10,36 @@
         @todo document
         @todo Test lowercase on 3 and 4 byte utf8 sequences
         @todo add base64
+        @todo Test to/from Hex
 */
 namespace text {
 
-inline std::wstring &convert(const std::string &utf8, std::wstring &wide) {
+inline std::wstring &convert(const std::string &utf8, std::wstring &wide, bool clear=true) {
   std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> wideconv;
 
+	if (clear) {
+		wide.clear();
+	}
   wide = wideconv.from_bytes(utf8);
   return wide;
 }
 
-inline std::string &convert(const std::wstring &wide, std::string &utf8) {
+inline std::string &convert(const std::wstring &wide, std::string &utf8, bool clear=true) {
   std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> wideconv;
 
+	if (clear) {
+		utf8.clear();
+	}
   utf8 = wideconv.to_bytes(wide);
   return utf8;
 }
 
-inline std::wstring &tolower(const std::wstring &mixed, std::wstring &lower) {
+inline std::wstring &tolower(const std::wstring &mixed, std::wstring &lower, bool clear=true) {
   std::locale utf8Locale("en_US.UTF-8");
 
+	if (clear) {
+		lower.clear();
+	}
   lower.reserve(lower.size() + mixed.size());
   for (auto c = mixed.begin(); c != mixed.end(); ++c) {
     lower.append(1, std::tolower(*c, utf8Locale));
@@ -37,21 +47,24 @@ inline std::wstring &tolower(const std::wstring &mixed, std::wstring &lower) {
   return lower;
 }
 
-inline std::string &tolower(const std::string &mixed, std::string &lower) {
+inline std::string &tolower(const std::string &mixed, std::string &lower, bool clear=true) {
   std::wstring wmixed, wlower;
 
-  return convert(tolower(convert(mixed, wmixed), wlower), lower);
+  return convert(tolower(convert(mixed, wmixed, false), wlower, false), lower, clear);
 }
 
 inline std::string tolower(const std::string &mixed) {
   std::string buffer;
 
-  return tolower(mixed, buffer);
+  return tolower(mixed, buffer, false);
 }
 
-inline std::string &toHex(const std::string &binary, std::string &hex) {
+inline std::string &toHex(const std::string &binary, std::string &hex, bool clear=true) {
   const char *const hexDigits = "0123456789abcdef";
 
+	if (clear) {
+		hex.clear();
+	}
   for (int i = 0; (i < static_cast<int>(binary.size())); ++i) {
     const int lowerIndex = (binary[i] >> 4) & 0x0F;
     const int upperIndex = binary[i] & 0x0F;
@@ -62,15 +75,18 @@ inline std::string &toHex(const std::string &binary, std::string &hex) {
   return hex;
 }
 
-inline std::string &toHex(const std::string &binary) {
+inline std::string toHex(const std::string &binary) {
   std::string buffer;
 
-  return toHex(binary, buffer);
+  return toHex(binary, buffer, false);
 }
 
-inline std::string &fromHex(const std::string &hex, std::string &binary) {
+inline std::string &fromHex(const std::string &hex, std::string &binary, bool clear=true) {
   std::string hexDigits("0123456789abcdef");
 
+	if (clear) {
+		binary.clear();
+	}
   AssertMessageException(hex.size() % 2 == 0);
   for (int byte = 0; byte < static_cast<int>(hex.size() / 2); ++byte) {
     const int nibble1 = byte * 2 + 1;
@@ -86,10 +102,10 @@ inline std::string &fromHex(const std::string &hex, std::string &binary) {
   return binary;
 }
 
-inline std::string &fromHex(const std::string &hex) {
+inline std::string fromHex(const std::string &hex) {
   std::string buffer;
 
-  return fromHex(hex, buffer);
+  return fromHex(hex, buffer, false);
 }
 
 } // namespace text
