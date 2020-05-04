@@ -9,9 +9,7 @@
 /**
         @todo document
         @todo Test lowercase on 3 and 4 byte utf8 sequences
-        @todo test base64
         @todo Test to/from Hex
-        @todo be able to handle missing padding
 */
 namespace text {
 
