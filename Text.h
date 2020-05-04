@@ -268,16 +268,21 @@ inline std::string &base64Decode(const std::string &base64, std::string &binary,
     binary.clear();
   }
 
-  AssertMessageException(size % 4 == 0);
   binary.reserve(size / 4 * 3);
 
   for (auto i = 0; i < size; i += 4) {
+    const auto has2 = i + 1 < size;
+    const auto has3 = i + 2 < size;
+    const auto has4 = i + 3 < size;
     const auto c1 = _find(source[i], characters, urlCharacters, padding);
-    const auto c2 = _find(source[i + 1], characters, urlCharacters, padding);
-    const auto c3p = std::string::npos != padding.find(source[i + 2]);
+    const auto c2 =
+        has2 ? _find(source[i + 1], characters, urlCharacters, padding) : 0;
+    const auto c3p =
+        has3 ? std::string::npos != padding.find(source[i + 2]) : true;
     const auto c3 =
         c3p ? 0 : _find(source[i + 2], characters, urlCharacters, padding);
-    const auto c4p = std::string::npos != padding.find(source[i + 3]);
+    const auto c4p =
+        has4 ? std::string::npos != padding.find(source[i + 3]) : true;
     const auto c4 =
         c4p ? 0 : _find(source[i + 3], characters, urlCharacters, padding);
 

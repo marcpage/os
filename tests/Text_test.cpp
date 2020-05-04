@@ -7,7 +7,7 @@
   }
 
 int main(const int /*argc*/, const char *const /*argv*/[]) {
-  int iterations = 2;
+  int iterations = 20;
 #ifdef __Tracer_h__
   iterations = 1;
 #endif
@@ -84,6 +84,30 @@ int main(const int /*argc*/, const char *const /*argv*/[]) {
       {"Run", text::Base64URL, 3, "\n", "UnV\nu"},               // no padding
       {"Waste", text::Base64URL, 3, "\n", "V2F\nzdG\nU."},       // one padding
   };
+  const char *base64[] = {
+      "dGU=",
+      "te", // single padding
+      "dGU",
+      "te", // missing single padding
+      "VGVzdA==",
+      "Test", // double padding
+      "VGVzdA=",
+      "Test", // double padding, missing one
+      "VGVzdA",
+      "Test", // double padding, missing both
+      "dGU.",
+      "te", // single padding
+      "VGVzdA..",
+      "Test", // double padding
+      "VGVzdA.=",
+      "Test", // double padding
+      "VGVzdA=.",
+      "Test", // double padding
+      "VGVzdA.",
+      "Test", // double padding, missing one
+      "V G\rV\tz\nd  A =\t=   ",
+      "Test", // whitespace
+  };
   for (int i = 0; i < iterations; ++i) {
     try {
       for (int j = 0; j < int(sizeof(strings) / sizeof(strings[0]) / 2); ++j) {
@@ -110,6 +134,16 @@ int main(const int /*argc*/, const char *const /*argv*/[]) {
                  entry.expected, decoded.c_str());
         }
       }
+      for (int j = 0; j < int(sizeof(base64) / sizeof(base64[0]) / 2); ++j) {
+        std::string b64 = base64[2 * j];
+        std::string value = base64[2 * j + 1];
+
+        if (text::base64Decode(b64) != value) {
+          printf("FAIL: '%s' -> '%s' but got '%s'\n", b64.c_str(),
+                 value.c_str(), text::base64Decode(b64).c_str());
+        }
+      }
+
     } catch (const std::exception &exception) {
       printf("FAIL: Exception not caught: %s\n", exception.what());
     }
