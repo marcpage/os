@@ -14,32 +14,37 @@
 */
 namespace text {
 
-inline std::wstring &convert(const std::string &utf8, std::wstring &wide, bool clear=true) {
+enum ClearFirst { AppendToOutput, ClearOutputFirst };
+
+inline std::wstring &convert(const std::string &utf8, std::wstring &wide,
+                             ClearFirst clear = ClearOutputFirst) {
   std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> wideconv;
 
-	if (clear) {
-		wide.clear();
-	}
+  if (ClearOutputFirst == clear) {
+    wide.clear();
+  }
   wide = wideconv.from_bytes(utf8);
   return wide;
 }
 
-inline std::string &convert(const std::wstring &wide, std::string &utf8, bool clear=true) {
+inline std::string &convert(const std::wstring &wide, std::string &utf8,
+                            ClearFirst clear = ClearOutputFirst) {
   std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> wideconv;
 
-	if (clear) {
-		utf8.clear();
-	}
+  if (ClearOutputFirst == clear) {
+    utf8.clear();
+  }
   utf8 = wideconv.to_bytes(wide);
   return utf8;
 }
 
-inline std::wstring &tolower(const std::wstring &mixed, std::wstring &lower, bool clear=true) {
+inline std::wstring &tolower(const std::wstring &mixed, std::wstring &lower,
+                             ClearFirst clear = ClearOutputFirst) {
   std::locale utf8Locale("en_US.UTF-8");
 
-	if (clear) {
-		lower.clear();
-	}
+  if (ClearOutputFirst == clear) {
+    lower.clear();
+  }
   lower.reserve(lower.size() + mixed.size());
   for (auto c = mixed.begin(); c != mixed.end(); ++c) {
     lower.append(1, std::tolower(*c, utf8Locale));
@@ -47,24 +52,28 @@ inline std::wstring &tolower(const std::wstring &mixed, std::wstring &lower, boo
   return lower;
 }
 
-inline std::string &tolower(const std::string &mixed, std::string &lower, bool clear=true) {
+inline std::string &tolower(const std::string &mixed, std::string &lower,
+                            ClearFirst clear = ClearOutputFirst) {
   std::wstring wmixed, wlower;
 
-  return convert(tolower(convert(mixed, wmixed, false), wlower, false), lower, clear);
+  return convert(
+      tolower(convert(mixed, wmixed, AppendToOutput), wlower, AppendToOutput),
+      lower, clear);
 }
 
 inline std::string tolower(const std::string &mixed) {
   std::string buffer;
 
-  return tolower(mixed, buffer, false);
+  return tolower(mixed, buffer, AppendToOutput);
 }
 
-inline std::string &toHex(const std::string &binary, std::string &hex, bool clear=true) {
+inline std::string &toHex(const std::string &binary, std::string &hex,
+                          ClearFirst clear = ClearOutputFirst) {
   const char *const hexDigits = "0123456789abcdef";
 
-	if (clear) {
-		hex.clear();
-	}
+  if (ClearOutputFirst == clear) {
+    hex.clear();
+  }
   for (int i = 0; (i < static_cast<int>(binary.size())); ++i) {
     const int lowerIndex = (binary[i] >> 4) & 0x0F;
     const int upperIndex = binary[i] & 0x0F;
@@ -78,15 +87,16 @@ inline std::string &toHex(const std::string &binary, std::string &hex, bool clea
 inline std::string toHex(const std::string &binary) {
   std::string buffer;
 
-  return toHex(binary, buffer, false);
+  return toHex(binary, buffer, AppendToOutput);
 }
 
-inline std::string &fromHex(const std::string &hex, std::string &binary, bool clear=true) {
+inline std::string &fromHex(const std::string &hex, std::string &binary,
+                            ClearFirst clear = ClearOutputFirst) {
   std::string hexDigits("0123456789abcdef");
 
-	if (clear) {
-		binary.clear();
-	}
+  if (ClearOutputFirst == clear) {
+    binary.clear();
+  }
   AssertMessageException(hex.size() % 2 == 0);
   for (int byte = 0; byte < static_cast<int>(hex.size() / 2); ++byte) {
     const int nibble1 = byte * 2 + 1;
@@ -105,8 +115,190 @@ inline std::string &fromHex(const std::string &hex, std::string &binary, bool cl
 inline std::string fromHex(const std::string &hex) {
   std::string buffer;
 
-  return fromHex(hex, buffer, false);
+  return fromHex(hex, buffer, AppendToOutput);
 }
+
+#define __base_64_base_characters                                              \
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+#define __base_64_standard_extension "+/"
+#define __base_64_url_extension "-_"
+#define __base_64_standard_trailer "="
+#define __base_64_url_trailer "."
+
+enum Base64Style {
+  Base64,
+  Base64URL
+
+};
+enum CommonSplits {
+  DoNotSplitBase64 = 0,
+  SplitBase64ForPEM = 64,
+  SplitBase64ForMIME = 76
+};
+
+inline std::string &base64Encode(const std::string &binary, Base64Style style,
+                                 std::string &base64,
+                                 int split = DoNotSplitBase64,
+                                 const std::string &eol = "\n",
+                                 ClearFirst clear = ClearOutputFirst) {
+  const bool urlStyle = Base64URL == style;
+  const std::string characters(
+      urlStyle ? __base_64_base_characters __base_64_url_extension
+               : __base_64_base_characters __base_64_standard_extension);
+  const char padding =
+      (urlStyle ? __base_64_url_trailer : __base_64_standard_trailer)[0];
+  const int size = binary.size();
+
+  if (ClearOutputFirst == clear) {
+    base64.clear();
+  }
+
+  base64.reserve(base64.size() + (size + 2) / 3 * 4);
+
+  for (int i = 0; i < size; i += 3) {
+    const auto twoOrMoreBytes = i + 1 < size;
+    const auto threeBytes = i + 2 < size;
+    const unsigned char b1 = binary[i];
+    const unsigned char b2 = twoOrMoreBytes ? binary[i + 1] : 0;
+    const unsigned char b3 = threeBytes ? binary[i + 2] : 0;
+    const unsigned char c1 = ((b1 & 0xfc) >> 2);
+    const unsigned char c1_2 = ((b1 & 0x03) << 4);
+    const unsigned char c2 = ((b1 & 0x03) << 4) | ((b2 & 0xf0) >> 4);
+    const unsigned char c2_2 = ((b1 & 0x0f) << 2);
+    const unsigned char c3 = ((b2 & 0x03) << 2) | ((b3 & 0xf0) >> 6);
+    const unsigned char c4 = (b3 & 0x3f);
+
+    base64.append(1, characters[c1]);
+
+    if (twoOrMoreBytes) {
+      base64.append(1, characters[c2]);
+
+      if (threeBytes) {
+        base64.append(1, characters[c3]);
+        base64.append(1, characters[c4]);
+      } else {
+        base64.append(1, characters[c2_2]);
+        base64.append(1, padding);
+      }
+
+    } else {
+      base64.append(1, characters[c1_2]);
+      base64.append(1, padding);
+      base64.append(1, padding);
+    }
+  }
+
+  if ((split > 0) && (eol.size() > 0)) {
+    std::string::size_type offset = split;
+
+    while (offset < base64.size()) {
+      base64.insert(offset, eol);
+      offset += split + eol.size();
+    }
+  }
+
+  return base64;
+}
+
+inline std::string base64Encode(const std::string &binary,
+                                Base64Style style = Base64,
+                                int split = DoNotSplitBase64,
+                                const std::string &eol = "\n") {
+  std::string buffer;
+
+  return base64Encode(binary, style, buffer, split, eol, AppendToOutput);
+}
+
+inline unsigned char _find(char c, const std::string &s1,
+                           const std::string &s2) {
+  const auto f1 = s1.find(c);
+
+  if (f1 == std::string::npos) {
+    const auto f2 = s2.find(c);
+
+    AssertMessageException(f2 != std::string::npos);
+    return f2;
+  }
+
+  return f1;
+}
+
+inline std::string::size_type
+_findWhitespace(const std::string &s, std::string::size_type offset = 0) {
+  while ((offset < s.size()) && !std::isspace(s[offset])) {
+    offset += 1;
+  }
+  return offset;
+}
+
+inline const std::string &_stripWhitespace(const std::string &s,
+                                           std::string &buffer) {
+  std::string::size_type offset = _findWhitespace(s);
+
+  if (std::string::npos == offset) {
+    return s;
+  }
+
+  buffer = s;
+
+  do {
+    buffer.erase(offset, 1);
+  } while (std::string::npos != (offset = _findWhitespace(buffer, offset)));
+
+  return buffer;
+}
+
+inline std::string &base64Decode(const std::string &base64, std::string &binary,
+                                 ClearFirst clear = ClearOutputFirst) {
+  std::string buffer;
+  const auto &source = _stripWhitespace(base64, buffer);
+  const int size = source.size();
+  const std::string characters(
+      __base_64_base_characters __base_64_standard_extension);
+  const std::string urlCharacters(
+      __base_64_base_characters __base_64_url_extension);
+  const std::string padding(
+      __base_64_standard_extension __base_64_url_extension);
+
+  if (ClearOutputFirst == clear) {
+    binary.clear();
+  }
+
+  AssertMessageException(size % 4 == 0);
+  binary.reserve(size / 4 * 3);
+
+  for (auto i = 0; i < size; i += 4) {
+    const auto c1 = _find(source[i], characters, urlCharacters);
+    const auto c2 = _find(source[i + 1], characters, urlCharacters);
+    const auto c3 = _find(source[i + 2], characters, urlCharacters);
+    const auto c3p = std::string::npos != padding.find(c3);
+    const auto c4 = _find(source[i + 3], characters, urlCharacters);
+    const auto c4p = std::string::npos != padding.find(c4);
+
+    binary.append(1, (c1 << 2) | ((c2 & 0x30) >> 4));
+
+    if (!c3p) {
+      binary.append(1, ((c2 & 0x0f) << 4) | ((c3 & 0x3c) >> 2));
+
+      if (!c4p) {
+        binary.append(1, ((c3 & 0x03) << 6) | c4);
+      }
+    }
+  }
+  return binary;
+}
+
+inline std::string base64Decode(const std::string &base64) {
+  std::string buffer;
+
+  return base64Decode(base64, buffer, AppendToOutput);
+}
+
+#undef __base_64_base_characters
+#undef __base_64_standard_extension
+#undef __base_64_url_extension
+#undef __base_64_standard_trailer
+#undef __base_64_url_trailer
 
 } // namespace text
 
