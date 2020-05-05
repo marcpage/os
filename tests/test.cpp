@@ -39,6 +39,10 @@ const char *const gCompilerFlags =
     "-I.. -MMD -std=c++11"
     " -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings"
     " -lz -lsqlite3 -framework CoreFoundation";
+const char *const gDebugFlags =
+    " -g -fsanitize=address -fsanitize-address-use-after-scope"
+    " -fno-optimize-sibling-calls -O1 -fsanitize=undefined ";
+
 const uint32_t gMinimumPercentCodeCoverage = 70;
 const String gCompilerList = "clang++,g++,llvm-g++";
 Dictionary gCompilerLocations;
@@ -297,10 +301,9 @@ void updateCompilerTimesIfNeeded(
       double minBuild = std::numeric_limits<double>::max();
       double minRun = std::numeric_limits<double>::max();
 
-      for (auto compilerAndTimes = compilerTimes.begin();
-           compilerAndTimes != compilerTimes.end(); ++compilerAndTimes) {
-        double buildTime = math::mean(compilerAndTimes->second.first);
-        double runTime = math::mean(compilerAndTimes->second.second);
+      for (auto compilerAndTimes : compilerTimes) {
+        double buildTime = math::mean(compilerAndTimes.second.first);
+        double runTime = math::mean(compilerAndTimes.second.second);
 
         if (buildTime < minBuild) {
           minBuild = buildTime;
@@ -309,20 +312,19 @@ void updateCompilerTimesIfNeeded(
           minRun = runTime;
         }
       }
-      for (auto compilerAndTimes = compilerTimes.begin();
-           compilerAndTimes != compilerTimes.end(); ++compilerAndTimes) {
-        double buildTime = math::mean(compilerAndTimes->second.first);
-        double runTime = math::mean(compilerAndTimes->second.second);
+      for (auto compilerAndTimes : compilerTimes) {
+        double buildTime = math::mean(compilerAndTimes.second.first);
+        double runTime = math::mean(compilerAndTimes.second.second);
 
         printf("%s build %7.10f%% %7.10fs min %7.10fs\n",
-               compilerAndTimes->first.c_str(), 100 * buildTime / minBuild,
+               compilerAndTimes.first.c_str(), 100 * buildTime / minBuild,
                buildTime, minBuild);
         printf("%s run   %7.10f%% %7.10fs min %7.10fs\n",
-               compilerAndTimes->first.c_str(), 100 * runTime / minRun, runTime,
+               compilerAndTimes.first.c_str(), 100 * runTime / minRun, runTime,
                minRun);
-        compilerDifferences[compilerAndTimes->first].first.push_back(buildTime /
+        compilerDifferences[compilerAndTimes.first].first.push_back(buildTime /
                                                                      minBuild);
-        compilerDifferences[compilerAndTimes->first].second.push_back(runTime /
+        compilerDifferences[compilerAndTimes.first].second.push_back(runTime /
                                                                       minRun);
       }
     }
@@ -349,13 +351,13 @@ void dumpCompilerStats(Sqlite3::DB &db) {
           ";",
           &results);
 
-  for (auto row = results.begin(); row != results.end(); ++row) {
+  for (auto row : results) {
     updateCompilerTimesIfNeeded(compilerTimes, compilerDifferences,
-                                (*row)["compiler"], (*row)["source_identifier"],
+                                row["compiler"], row["source_identifier"],
                                 currentCompiler, currentSource, buildSum,
                                 runSum, count);
-    buildSum += mystod((*row)["build_time"]);
-    runSum += mystod((*row)["run_time"]);
+    buildSum += mystod(row["build_time"]);
+    runSum += mystod(row["run_time"]);
     count += 1;
   }
 
@@ -364,25 +366,23 @@ void dumpCompilerStats(Sqlite3::DB &db) {
                               count);
 
   printf("Build Times\n");
-  for (auto compilerAndLists = compilerDifferences.begin();
-       compilerAndLists != compilerDifferences.end(); ++compilerAndLists) {
-    double mean = math::mean(compilerAndLists->second.first);
-    double stddev = math::stddev(compilerAndLists->second.first);
+  for (auto compilerAndLists : compilerDifferences) {
+    double mean = math::mean(compilerAndLists.second.first);
+    double stddev = math::stddev(compilerAndLists.second.first);
 
     printf("\t"
            "%s %7.10fs +/- %7.10fs\n",
-           compilerAndLists->first.c_str(), mean, stddev);
+           compilerAndLists.first.c_str(), mean, stddev);
   }
 
   printf("Run Times\n");
-  for (auto compilerAndLists = compilerDifferences.begin();
-       compilerAndLists != compilerDifferences.end(); ++compilerAndLists) {
-    double mean = math::mean(compilerAndLists->second.second);
-    double stddev = math::stddev(compilerAndLists->second.second);
+  for (auto compilerAndLists : compilerDifferences) {
+    double mean = math::mean(compilerAndLists.second.second);
+    double stddev = math::stddev(compilerAndLists.second.second);
 
     printf("\t"
            "%s %7.10fs +/- %7.10fs\n",
-           compilerAndLists->first.c_str(), mean, stddev);
+           compilerAndLists.first.c_str(), mean, stddev);
   }
 }
 
@@ -448,8 +448,8 @@ void getTestStats(const String &name, const String &options,
           &results);
 
   if (results.size() >= 2) {
-    for (auto row = results.begin(); row != results.end(); ++row) {
-      times.push_back(mystod((*row)["run_time"]));
+    for (auto row : results) {
+      times.push_back(mystod(row["run_time"]));
     }
     timeStddev = math::stddev(times);
   } else if (results.size() >= 1) {
@@ -532,7 +532,7 @@ void runTest(const String &name, const std::string::size_type maxNameSize,
     runLogName = executableName + "_run.log";
     executablePath = "bin/tests/" + executableName;
     command += " -o " + executablePath + " " + testSourcePath + " " +
-               (gDebugging ? " -g " : "") + gCompilerFlags + otherFlags +
+               (gDebugging ? gDebugFlags : "") + gCompilerFlags + otherFlags +
                " &> bin/logs/" + logName;
     if (gVerbose) {
       printf("EXECUTING: %s\n", command.c_str());
@@ -561,8 +561,7 @@ void runTest(const String &name, const std::string::size_type maxNameSize,
     executablePath = "bin/tests/" + executableName;
     command =
         gCompilerLocations[compiler] + " -o " + executablePath + " tests/" +
-        name + "_test.cpp " + (gDebugging ? " -g " : "") + gCompilerFlags +
-        otherFlags +
+        name + "_test.cpp " + gDebugFlags + gCompilerFlags + otherFlags +
         " -D__Tracer_h__ -fprofile-arcs -ftest-coverage -g -O0 &> bin/logs/" +
         logName;
     if (gVerbose) {
@@ -707,9 +706,8 @@ void runTest(const String &name, const std::string::size_type maxNameSize,
 void runTest(const String &name, const StringList &compilers,
              const std::string::size_type maxNameSize, const io::Path &openssl,
              Sqlite3::DB &db) {
-  for (auto compiler = compilers.begin(); compiler != compilers.end();
-       ++compiler) {
-    runTest(name, maxNameSize, *compiler, openssl, db);
+  for (auto compiler : compilers) {
+    runTest(name, maxNameSize, compiler, openssl, db);
   }
 }
 
@@ -733,8 +731,8 @@ void findFileCoverage(const String &file, const String &options,
   split(results, '\n', lines);
 
   if (strip(results).length() > 0) {
-    for (auto line = lines.begin(); line != lines.end(); ++line) {
-      split(*line, ':', parts);
+    for (auto line : lines) {
+      split(line, ':', parts);
 
       if (parts.size() < 2) {
         continue; // not a validate source line
@@ -758,8 +756,8 @@ void findFileCoverage(const String &file, const String &options,
         uncovered += 1;
       }
     }
-    for (auto line = lines.begin(); line != lines.end(); ++line) {
-      split(*line, ':', parts);
+    for (auto line : lines) {
+      split(line, ':', parts);
 
       if (parts.size() < 2) {
         continue;
@@ -772,7 +770,7 @@ void findFileCoverage(const String &file, const String &options,
       int lineNumber = std::stoi(strip(parts[1]));
 
       if (!coveredLines[lineNumber]) {
-        uncoveredLines.push_back(*line);
+        uncoveredLines.push_back(line);
         coveredLines[lineNumber] = true;
       }
     }
@@ -819,8 +817,8 @@ int main(int argc, const char *const argv[]) {
     if (String("debug") == argv[arg]) {
       gDebugging = true;
     } else if (String("list") == argv[arg]) {
-      for (auto test = testsToRun.begin(); test != testsToRun.end(); ++test) {
-        printf("%s\n", test->c_str());
+      for (auto test : testsToRun) {
+        printf("%s\n", test.c_str());
       }
       testsToRun.clear();
     } else if (String("verbose") == argv[arg]) {
@@ -900,17 +898,17 @@ int main(int argc, const char *const argv[]) {
              results.c_str());
     }
     std::string::size_type maxNameSize = 0;
-    for (auto test = testsToRun.begin(); test != testsToRun.end(); ++test) {
-      if (test->size() > maxNameSize) {
-        maxNameSize = test->size();
+    for (auto test : testsToRun) {
+      if (test.size() > maxNameSize) {
+        maxNameSize = test.size();
       }
     }
     if (compilersToRun.size() == 0) {
       split(gCompilerList, ',', compilersToRun);
     }
-    for (auto test = testsToRun.begin(); test != testsToRun.end(); ++test) {
-      runTest(*test, compilersToRun, maxNameSize, openssl, db);
-      testNames = testNames + testNamePrefix + *test;
+    for (auto test : testsToRun) {
+      runTest(test, compilersToRun, maxNameSize, openssl, db);
+      testNames = testNames + testNamePrefix + test;
       if (testNamePrefix.length() == 0) {
         testNamePrefix = ",";
       }
@@ -919,18 +917,18 @@ int main(int argc, const char *const argv[]) {
       printf("Examining overall coverage ...\n");
       exec::execute("ls *.h", results);
       split(results, '\n', headers);
-      for (auto header = headers.begin(); header != headers.end(); ++header) {
+      for (auto header : headers) {
         uint32_t coverage;
         uint32_t uncovered;
         StringList uncoveredLines;
         int expectedLinesRun = 0, expectedLinesNotRun = 0, bestCoverage;
         std::string headerHash;
 
-        hashFile(*header, headerHash);
-        getHeaderStats(db, *header, headerHash,
+        hashFile(header, headerHash);
+        getHeaderStats(db, header, headerHash,
                        openssl.isEmpty() ? "" : "openssl", expectedLinesRun,
                        expectedLinesNotRun, testNames, bestCoverage);
-        findFileCoverage(*header, openssl.isEmpty() ? "" : "openssl", coverage,
+        findFileCoverage(header, openssl.isEmpty() ? "" : "openssl", coverage,
                          uncovered, uncoveredLines, testNames, db);
 
         const bool hasExpectations =
@@ -947,26 +945,24 @@ int main(int argc, const char *const argv[]) {
             (unexpectedCoverage || unexpectedLines)) {
           printf(WarningTextFormatStart "%s coverage changed %d/%d -> %d/%d "
                                         "(%d%% -> %d%%)" ClearTextFormat "\n",
-                 header->c_str(), expectedLinesRun,
+                 header.c_str(), expectedLinesRun,
                  expectedLinesRun + expectedLinesNotRun, coverage,
                  coverage + uncovered,
                  hasExpectations ? 100 * expectedLinesRun /
                                        (expectedLinesRun + expectedLinesNotRun)
                                  : 0,
                  coverageRate);
-          for (auto i = uncoveredLines.begin(); i != uncoveredLines.end();
-               ++i) {
-            printf("%s\n", i->c_str());
+          for (auto i : uncoveredLines) {
+            printf("%s\n", i.c_str());
           }
         }
         if (coverageRate < bestCoverage) {
           printf(ErrorTextFormatStart "%s coverage is lower than best %d/%d "
                                       "(%d%%) < %d%%" ClearTextFormat "\n",
-                 header->c_str(), coverage, coverage + uncovered, coverageRate,
+                 header.c_str(), coverage, coverage + uncovered, coverageRate,
                  bestCoverage);
-          for (auto i = uncoveredLines.begin(); i != uncoveredLines.end();
-               ++i) {
-            printf("%s\n", i->c_str());
+          for (auto i : uncoveredLines) {
+            printf("%s\n", i.c_str());
           }
         }
       }
