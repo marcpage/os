@@ -46,9 +46,15 @@ bin/logs/clang-format.txt:tests/*.cpp *.h
 	@mkdir -p bin/logs/
 	@clang-format --verbose -i *.h tests/*.cpp 2> bin/logs/clang-format.txt
 
+# -fsanitize=memory
+# -fsanitize=thread
+# -flto -fsanitize=cfi
+# -fsanitize=leak
+# -fsanitize=safe-stack
+# -D_LIBCPP_DEBUG=1
 bin/test:tests/test.cpp *.h
 	@mkdir -p bin
-	@clang++ tests/test.cpp -o $@ -I..  -std=c++11 -lsqlite3 -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings
+	@clang++ tests/test.cpp -o $@ -I.. -std=c++11 -lsqlite3 -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -fsanitize=address -fsanitize-address-use-after-scope -fno-optimize-sibling-calls -O1 -fsanitize=undefined
 
 clean:
 	@rm -Rf documentation bin/coverage bin/test bin/tests bin/logs/*.log bin/logs/*.txt
