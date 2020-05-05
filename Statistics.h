@@ -2,6 +2,7 @@
 #define __Statistics_h__
 
 #include <math.h>
+#include <numeric>
 #include <string>
 #include <vector>
 
@@ -14,13 +15,7 @@ typedef std::vector<double>
         @return the sum of the numbers
 */
 inline double sum(const List &numbers) {
-  double sum = 0.0;
-
-  for (auto n : numbers) {
-    sum += n;
-  }
-
-  return sum;
+  return std::accumulate(numbers.begin(), numbers.end(), 0);
 }
 
 /** Get the mean (or average) of a list of numbers.
@@ -61,9 +56,10 @@ inline void statistics(const List &numbers, double &mean, double &sum,
   mean = sum / double(numbers.size());
 
   for (auto n : numbers) {
+    // Consider using std::accumulate algorithm instead of a raw loop
+    // cppcheck-suppress useStlAlgorithm
     distanceSquaredSum += (n - mean) * (n - mean);
   }
-
   variance = distanceSquaredSum / double(numbers.size() - 1);
   standardDeviation = sqrt(variance);
 }
