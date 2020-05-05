@@ -45,8 +45,8 @@ inline std::wstring &tolower(const std::wstring &mixed, std::wstring &lower,
     lower.clear();
   }
   lower.reserve(lower.size() + mixed.size());
-  for (auto c = mixed.begin(); c != mixed.end(); ++c) {
-    lower.append(1, std::tolower(*c, utf8Locale));
+  for (auto c : mixed) {
+    lower.append(1, std::tolower(c, utf8Locale));
   }
   return lower;
 }

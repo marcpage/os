@@ -222,13 +222,13 @@ void DB::addRow(const String &table, const Row &row) {
   std::vector<String> keys;
 
   command.append(table).append("` (");
-  for (auto column = row.begin(); (column != row.end()); ++column) {
+  for (auto column : row) {
     command.append(1, separator)
         .append(1, '`')
-        .append(column->first)
+        .append(column.first)
         .append(1, '`');
     values.append(1, separator).append(1, '?');
-    keys.push_back(column->first);
+    keys.push_back(column.first);
     separator = ',';
   }
   command.append(") VALUES (").append(values).append(");");

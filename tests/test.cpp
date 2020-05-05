@@ -323,9 +323,9 @@ void updateCompilerTimesIfNeeded(
                compilerAndTimes.first.c_str(), 100 * runTime / minRun, runTime,
                minRun);
         compilerDifferences[compilerAndTimes.first].first.push_back(buildTime /
-                                                                     minBuild);
+                                                                    minBuild);
         compilerDifferences[compilerAndTimes.first].second.push_back(runTime /
-                                                                      minRun);
+                                                                     minRun);
       }
     }
 

@@ -92,8 +92,8 @@ inline StringList stack(int maxDepth = 4096) {
 inline void print(int maxDepth = 4096) {
   StringList names = stack(maxDepth);
 
-  for (StringList::iterator i = names.begin(); i != names.end(); ++i) {
-    printf("%s\n", i->c_str());
+  for (auto i : names) {
+    printf("%s\n", i.c_str());
   }
 }
 } // namespace trace

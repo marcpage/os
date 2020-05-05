@@ -16,8 +16,8 @@ typedef std::vector<double>
 inline double sum(const List &numbers) {
   double sum = 0.0;
 
-  for (List::const_iterator n = numbers.begin(); n != numbers.end(); ++n) {
-    sum += *n;
+  for (auto n : numbers) {
+    sum += n;
   }
 
   return sum;
@@ -60,8 +60,8 @@ inline void statistics(const List &numbers, double &mean, double &sum,
   sum = math::sum(numbers);
   mean = sum / double(numbers.size());
 
-  for (List::const_iterator n = numbers.begin(); n != numbers.end(); ++n) {
-    distanceSquaredSum += (*n - mean) * (*n - mean);
+  for (auto n : numbers) {
+    distanceSquaredSum += (n - mean) * (n - mean);
   }
 
   variance = distanceSquaredSum / double(numbers.size() - 1);

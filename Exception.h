@@ -169,9 +169,8 @@ inline std::string *Exception::_init(S message, const char *file, int line) {
     if (NULL != file) {
       messagePtr->append(" File: ").append(file).append(" Line: ").append(
           std::to_string(line));
-      for (trace::StringList::iterator i = stack.begin(); i != stack.end();
-           ++i) {
-        messagePtr->append("\n" + *i);
+      for (auto i : stack) {
+        messagePtr->append("\n" + i);
       }
     }
   } catch (const std::exception &) {

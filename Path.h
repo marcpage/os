@@ -352,8 +352,8 @@ inline void Path::remove() const {
     StringList contents;
 
     list(PathAndName, contents);
-    for (auto i = contents.begin(); i != contents.end(); ++i) {
-      Path(*i).remove();
+    for (auto i : contents) {
+      Path(i).remove();
     }
     rmdir();
   } else {
@@ -584,9 +584,8 @@ inline Path::StringList &Path::_list(HavePath havePath,
 
   ErrnoOnNegative(::closedir(dp));
 
-  for (auto directory = directories.begin(); directory != directories.end();
-       ++directory) {
-    Path(*directory)._list(havePath, directoryListing, recursive);
+  for (auto directory : directories) {
+    Path(directory)._list(havePath, directoryListing, recursive);
   }
 
   return directoryListing;
