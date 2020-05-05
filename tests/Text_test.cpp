@@ -87,24 +87,34 @@ int main(const int /*argc*/, const char *const /*argv*/[]) {
   const char *base64[] = {
       "dGU=",
       "te", // single padding
+
       "dGU",
       "te", // missing single padding
+
       "VGVzdA==",
       "Test", // double padding
+
       "VGVzdA=",
       "Test", // double padding, missing one
+
       "VGVzdA",
       "Test", // double padding, missing both
+
       "dGU.",
       "te", // single padding
+
       "VGVzdA..",
       "Test", // double padding
+
       "VGVzdA.=",
       "Test", // double padding
+
       "VGVzdA=.",
       "Test", // double padding
+
       "VGVzdA.",
       "Test", // double padding, missing one
+
       "V G\rV\tz\nd  A =\t=   ",
       "Test", // whitespace
   };
