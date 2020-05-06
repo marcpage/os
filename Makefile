@@ -54,7 +54,7 @@ bin/logs/clang-format.txt:tests/*.cpp *.h
 # -D_LIBCPP_DEBUG=1
 bin/test:tests/test.cpp *.h
 	@mkdir -p bin
-	@clang++ tests/test.cpp -o $@ -I.. -std=c++11 -lsqlite3 -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -fsanitize=address -fsanitize-address-use-after-scope -fno-optimize-sibling-calls -O1 -fsanitize=undefined
+	@clang++ tests/test.cpp -o $@ -I.. -std=c++11 -lsqlite3 -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -fsanitize=address -fsanitize-address-use-after-scope -fno-optimize-sibling-calls -O1 -fsanitize=undefined -g
 
 clean:
 	@rm -Rf documentation bin/coverage bin/test bin/tests bin/logs/*.log bin/logs/*.txt
