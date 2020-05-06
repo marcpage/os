@@ -170,8 +170,9 @@ void getHeaderStats(Sqlite3::DB &db, const String &name,
               options + "' ORDER BY timestamp DESC;",
           &results);
   if (results.size() > 0) {
-    linesRun = mystoi(results[0]["lines_run"]);
-    linesNotRun = mystoi(results[0]["code_lines"]) - linesRun;
+    linesRun = results[0]("lines_run", Sqlite3::IntegerType).integer();
+    linesNotRun =
+        results[0]("code_lines", Sqlite3::IntegerType).integer() - linesRun;
   } else {
     linesRun = 0;
     linesNotRun = 0;
@@ -181,8 +182,8 @@ void getHeaderStats(Sqlite3::DB &db, const String &name,
               name + "' AND tests like '" + testNames + "' AND hash LIKE '" +
               headerHash + "';",
           &results);
-  if ((results.size() > 0) && (results[0]["coverage"].length() > 0)) {
-    bestPercent = mystoi(results[0]["coverage"]);
+  if (results.size() > 0) {
+    bestPercent = results[0]("coverage", Sqlite3::IntegerType).integer();
   } else {
     bestPercent = 0;
   }
@@ -191,7 +192,7 @@ void getHeaderStats(Sqlite3::DB &db, const String &name,
 void updateHeaderStats(Sqlite3::DB &db, const String &name,
                        const String &options, int linesRun, int linesNotRun,
                        const std::string &testNames) {
-  Sqlite3::DB::Row row;
+  Sqlite3::Row row;
   String buffer;
 
   row["name"] = name;
@@ -210,7 +211,7 @@ void updateRunStats(Sqlite3::DB &db, const String &name,
                     double traceBuildTime, double traceRunTime,
                     double buildTime, double runTime, const String &options,
                     const String &sourceIdentifier) {
-  Sqlite3::DB::Row row;
+  Sqlite3::Row row;
   String buffer;
 
   row["name"] = name;
@@ -352,12 +353,13 @@ void dumpCompilerStats(Sqlite3::DB &db) {
           &results);
 
   for (auto row : results) {
-    updateCompilerTimesIfNeeded(compilerTimes, compilerDifferences,
-                                row["compiler"], row["source_identifier"],
-                                currentCompiler, currentSource, buildSum,
-                                runSum, count);
-    buildSum += mystod(row["build_time"]);
-    runSum += mystod(row["run_time"]);
+    updateCompilerTimesIfNeeded(
+        compilerTimes, compilerDifferences,
+        row("compiler", Sqlite3::TextType).text(),
+        row("source_identifier", Sqlite3::TextType).text(), currentCompiler,
+        currentSource, buildSum, runSum, count);
+    buildSum += row("build_time", Sqlite3::RealType).real();
+    runSum += row("run_time", Sqlite3::RealType).real();
     count += 1;
   }
 
@@ -416,10 +418,12 @@ void getTestStats(const String &name, const String &options,
           &results);
 
   if (results.size() > 0) {
-    testedLines = mystoi(results[0]["testedLines"]);
-    durationInSeconds = mystod(results[0]["durationInSeconds"]);
-    totalTimeInSeconds = mystod(results[0]["totalTimeInSeconds"]);
-    meanInSeconds = mystod(results[0]["averageTime"]);
+    testedLines = results[0]("testedLines", Sqlite3::IntegerType).integer();
+    durationInSeconds =
+        results[0]("durationInSeconds", Sqlite3::RealType).real();
+    totalTimeInSeconds =
+        results[0]("totalTimeInSeconds", Sqlite3::RealType).real();
+    meanInSeconds = results[0]("averageTime", Sqlite3::RealType).real();
     slowTimeInSeconds = durationInSeconds > 0.0
                             ? (meanInSeconds + durationInSeconds) / 2.0
                             : 0.0;
@@ -449,11 +453,11 @@ void getTestStats(const String &name, const String &options,
 
   if (results.size() >= 2) {
     for (auto row : results) {
-      times.push_back(mystod(row["run_time"]));
+      times.push_back(row("run_time", Sqlite3::RealType).real());
     }
     timeStddev = math::stddev(times);
   } else if (results.size() >= 1) {
-    timeStddev = mystod(results[0]["run_time"]);
+    timeStddev = results[0]("run_time", Sqlite3::RealType).real();
   } else {
     timeStddev = -1.0;
   }

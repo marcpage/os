@@ -26,6 +26,9 @@
     throw Sqlite3::Exception(__FILE__, __LINE__, error);                       \
   else                                                                         \
     noop()
+/// Throws an Sqlite3::Exception with a message
+#define Sql3ThrowMessage(message)                                              \
+  throw Sqlite3::Exception(__FILE__, __LINE__, message);
 /// Throws an Sqlite3::Exception if a sqlite3 return code is an error, throws
 /// the error string from sqlite3 for the db
 #define Sql3ThrowIfDbError(db, returnCode)                                     \
@@ -81,10 +84,8 @@ public:
   Exception &operator=(const Exception &exception);
 };
 
-// TODO: Have a multi-type object instead of string for values
+/// @todo Document
 enum Type { NullType, TextType, IntegerType, RealType, BlobType };
-
-class Row;
 
 class Value {
 public:
@@ -97,23 +98,18 @@ public:
       : _value(_load(statement, column)),
         _name(sqlite3_column_name(statement, column)) {}
   explicit Value(int value, const std::string &name = "")
-      : _value(_create(IntegerType)), _name(name) {
-    *this = value;
-  }
+      : _value(new Integer(value)), _name(name) {}
   explicit Value(int64_t value, const std::string &name = "")
-      : _value(_create(IntegerType)), _name(name) {
-    *this = value;
-  }
+      : _value(new Integer(value)), _name(name) {}
   explicit Value(const std::string &value, const std::string &name = "")
-      : _value(_create(TextType)), _name(name) {
-    *this = value;
-  }
+      : _value(new Text(value)), _name(name) {}
   explicit Value(double value, const std::string &name = "")
-      : _value(_create(RealType)), _name(name) {
-    *this = value;
-  }
+      : _value(new Real(value)), _name(name) {}
+  // cppcheck-suppress copyCtorPointerCopying
   Value(const Value &other) : _value(other._value), _name(other._name) {
-    _value = other._value->clone();
+    if (nullptr != other._value) {
+      _value = other._value->clone();
+    }
   }
   ~Value() { delete _value; }
   Value convertTo(Type t) const {
@@ -144,7 +140,7 @@ public:
   }
   bool is(Type t) const { return type() == t; }
   Type type() const { return nullptr == _value ? NullType : _value->type(); }
-  Value &bind(sqlite3 *db, sqlite3_stmt *statement, int column) {
+  const Value &bind(sqlite3 *db, sqlite3_stmt *statement, int column) const {
     if (nullptr == _value) {
       Sql3ThrowIfDbError(db, sqlite3_bind_null(statement, column));
     } else {
@@ -160,7 +156,7 @@ public:
   double real() const {
     Sql3Assert(is(RealType));
 
-    return _value->integer();
+    return _value->real();
   }
   const std::string &text() const {
     Sql3Assert(is(TextType));
@@ -172,16 +168,7 @@ public:
 
     return _value->data();
   }
-  Value &blob(const void *data, size_t bytes) {
-    if (is(BlobType)) {
-      _value->data() = std::string(reinterpret_cast<const char *>(data), bytes);
-    } else {
-      delete _value;
-      _value =
-          new Blob(std::string(reinterpret_cast<const char *>(data), bytes));
-    }
-    return *this;
-  }
+  Value &blob(const void *data, size_t bytes);
   Value &blob(const std::string &data) {
     return blob(data.data(), data.size());
   }
@@ -190,8 +177,13 @@ public:
       return *this;
     }
 
-    _value = other._value->clone();
-    _name = other._name;
+    delete _value;
+    _value = nullptr == other._value ? nullptr : other._value->clone();
+
+    if (other._name.size() > 0) {
+      _name = other._name;
+    }
+
     return *this;
   }
   Value &operator=(int value) {
@@ -201,7 +193,7 @@ public:
   Value &operator=(int64_t value);
   Value &operator=(double value);
   Value &operator=(const std::string &textOrData);
-  Value &operator=(const char *text);
+  Value &operator=(const char *text) { return operator=(std::string(text)); }
 
 private:
   class Instance {
@@ -212,9 +204,13 @@ private:
     virtual Instance *clone() = 0;
     virtual void bind(sqlite3 *db, sqlite3_stmt *statement, int column) = 0;
     virtual Instance *convertTo(Type t) = 0;
-    virtual std::string &data() { Sql3ThrowIfError("Wrong Type"); }
-    virtual double &real() { Sql3ThrowIfError("Wrong Type"); }
-    virtual int64_t &integer() { Sql3ThrowIfError("Wrong Type"); }
+    virtual std::string &data() {                              // cannot reach
+      Sql3ThrowMessage("Wrong Type");                          // cannot reach
+    }                                                          // cannot reach
+    virtual double &real() { Sql3ThrowMessage("Wrong Type"); } // cannot reach
+    virtual int64_t &integer() {                               // cannot reach
+      Sql3ThrowMessage("Wrong Type");                          // cannot reach
+    }                                                          // cannot reach
   };
   class Text : public Instance {
   public:
@@ -241,7 +237,7 @@ private:
       case NullType:
       case TextType:
       default:
-        break;
+        break; // unreachable
       }
       Sql3Throw(); // we should not get here
       return nullptr;
@@ -253,38 +249,35 @@ private:
   };
   class Blob : public Text {
   public:
-    Blob(const std::string &value = "") : _value(value) {}
+    Blob(const std::string &value = "") : Text(value) {}
     Blob(sqlite3_stmt *statement, int column)
-        : _value(
+        : Text(std::string(
               static_cast<const char *>(sqlite3_column_blob(statement, column)),
-              sqlite3_column_bytes(statement, column)) {}
+              sqlite3_column_bytes(statement, column))) {}
     virtual ~Blob() {}
     Type type() override { return BlobType; }
-    Instance *clone() override { return new Blob(_value); }
+    Instance *clone() override { return new Blob(data()); }
     void bind(sqlite3 *db, sqlite3_stmt *statement, int column) override {
       Sql3ThrowIfDbError(db,
-                         sqlite3_bind_blob64(statement, column, _value.data(),
-                                             _value.size(), SQLITE_TRANSIENT));
+                         sqlite3_bind_blob64(statement, column, data().data(),
+                                             data().size(), SQLITE_TRANSIENT));
     }
     Instance *convertTo(Type t) override {
       switch (t) {
       case IntegerType:
-        return new Integer(::atol(_value.c_str()));
+        return new Integer(::atol(data().c_str()));
       case RealType:
-        return new Real(::atof(_value.c_str()));
+        return new Real(::atof(data().c_str()));
       case TextType:
-        return new Text(_value);
+        return new Text(data());
       case NullType:
       case BlobType:
       default:
-        break;
+        break; // unreachable
       }
       Sql3Throw(); // we should not get here
       return nullptr;
     }
-
-  private:
-    std::string _value;
   };
   class Integer : public Instance {
   public:
@@ -309,7 +302,7 @@ private:
       case IntegerType:
       case NullType:
       default:
-        break;
+        break; // unreachable
       }
       Sql3Throw(); // we should not get here
       return nullptr;
@@ -320,7 +313,7 @@ private:
   };
   class Real : public Instance {
   public:
-    Real(int64_t value = 0) : _value(value) {}
+    Real(double value = 0) : _value(value) {}
     Real(sqlite3_stmt *statement, int column)
         : _value(sqlite3_column_double(statement, column)) {}
     virtual ~Real() {}
@@ -335,13 +328,13 @@ private:
       case BlobType:
         return new Blob(std::to_string(_value));
       case IntegerType:
-        return new Real(int64_t(_value));
+        return new Integer(int64_t(_value));
       case TextType:
         return new Text(std::to_string(_value));
       case RealType:
       case NullType:
       default:
-        break;
+        break; // unreachable
       }
       Sql3Throw(); // we should not get here
       return nullptr;
@@ -372,9 +365,10 @@ private:
     return nullptr;
   }
   static Instance *_load(sqlite3_stmt *statement, int column) {
-    const int type = sqlite3_column_type(statement, column);
+    const int columnType = sqlite3_column_type(statement, column);
+    Instance *blobValue;
 
-    switch (type) {
+    switch (columnType) {
     case SQLITE_INTEGER:
       return new Integer(statement, column);
     case SQLITE_FLOAT:
@@ -384,12 +378,31 @@ private:
     case SQLITE_TEXT:
       return new Text(statement, column);
     case SQLITE_NULL:
-    default:
+      blobValue = new Blob(statement, column);
+
+      if (blobValue->data().size() == 0) {
+        delete blobValue;
+      } else {
+        return blobValue;
+      }
+
       break;
+    default:
+      break; // unreachable
     }
     return nullptr;
   }
 };
+
+inline Value &Value::blob(const void *data, size_t bytes) {
+  if (is(BlobType)) {
+    _value->data() = std::string(reinterpret_cast<const char *>(data), bytes);
+  } else {
+    delete _value;
+    _value = new Blob(std::string(reinterpret_cast<const char *>(data), bytes));
+  }
+  return *this;
+}
 
 inline Value &Value::operator=(int64_t value) {
   if (is(IntegerType)) {
@@ -418,21 +431,15 @@ inline Value &Value::operator=(const std::string &textOrData) {
   }
   return *this;
 }
-inline Value &Value::operator=(const char *text) {
-  if (is(TextType)) {
-    _value->data() = text;
-  } else {
-    delete _value;
-    _value = new Text(text);
-  }
-  return *this;
-}
 
 class Row : public std::vector<Value> {
 public:
   Row() : std::vector<Value>() {}
-  Row(const Value &value) : std::vector<Value>() { push_back(value); }
+  explicit Row(const Value &value) : std::vector<Value>() { push_back(value); }
   ~Row() {}
+  Value &operator()(const std::string &name, Type t) {
+    return (*this)[name].make(t);
+  }
   Value &operator[](const std::string &name) {
     for (auto v = begin(); v != end(); ++v) {
       if (v->name() == name) {
@@ -448,7 +455,7 @@ public:
         return *v;
       }
     }
-    Sql3ThrowIfError("Key not found");
+    Sql3ThrowMessage("Key not found");
     return std::vector<Value>::operator[](0);
   }
   Row &erase(const std::string &name) {
@@ -473,9 +480,8 @@ inline Row operator<<(const Value &v1, const Value &v2) {
 /// An Sqlite3 database
 class DB {
 public:
-  typedef std::string String;           ///< Strings used
-  typedef std::map<String, String> Row; ///< A db row
-  typedef std::vector<Row> Results;     ///< Rows that match a query
+  typedef std::string String;       ///< Strings used
+  typedef std::vector<Row> Results; ///< Rows that match a query
   /** @brief Opens or Creates a database at the given path
    @throw Sqlite3::Exception	If there is any problem executing the query
    */
@@ -584,15 +590,9 @@ inline void DB::exec(const String &command, Results *rows) {
       if (NULL != rows) {
         const auto columns = sqlite3_column_count(statement);
         Row row;
-        String key;
 
         for (auto column = 0; (column < columns); ++column) {
-          const auto columnSize = sqlite3_column_bytes(statement, column);
-
-          key = sqlite3_column_name(statement, column);
-          row[key].assign(reinterpret_cast<const char *>(
-                              sqlite3_column_blob(statement, column)),
-                          columnSize);
+          row << Value(statement, column);
         }
         rows->push_back(row);
       }
@@ -608,16 +608,14 @@ void DB::addRow(const String &table, const Row &row) {
   String command("INSERT INTO `");
   String values;
   auto separator = ' ';
-  std::vector<String> keys;
 
   command.append(table).append("` (");
   for (auto column : row) {
     command.append(1, separator)
         .append(1, '`')
-        .append(column.first)
+        .append(column.name())
         .append(1, '`');
     values.append(1, separator).append(1, '?');
-    keys.push_back(column.first);
     separator = ',';
   }
   command.append(") VALUES (").append(values).append(");");
@@ -625,13 +623,9 @@ void DB::addRow(const String &table, const Row &row) {
                      sqlite3_prepare_v2(_db, command.c_str(), command.length(),
                                         &statement, NULL));
   int valueIndex = 1;
-  for (auto keyPtr = keys.begin(); (keyPtr != keys.end());
-       ++keyPtr, ++valueIndex) {
-    const auto &value = row.find(*keyPtr)->second;
-
-    Sql3ThrowIfDbError(_db,
-                       sqlite3_bind_blob(statement, valueIndex, value.data(),
-                                         value.size(), SQLITE_TRANSIENT));
+  for (auto column = row.begin(); column != row.end(); ++column) {
+    column->bind(_db, statement, valueIndex);
+    ++valueIndex;
   }
   Sql3Assert(SQLITE_DONE == sqlite3_step(statement));
   Sql3ThrowIfDbError(_db, sqlite3_finalize(statement));
