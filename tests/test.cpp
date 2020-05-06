@@ -169,6 +169,7 @@ void getHeaderStats(Sqlite3::DB &db, const String &name,
               name + "' AND tests LIKE '" + testNames + "' AND options LIKE '" +
               options + "' ORDER BY timestamp DESC;",
           &results);
+  printf("getHeaderStats results=%ld\n", results.size());
   if (results.size() > 0) {
     linesRun = results[0]("lines_run", Sqlite3::IntegerType).integer();
     linesNotRun =

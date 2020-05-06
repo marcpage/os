@@ -610,6 +610,7 @@ void DB::addRow(const String &table, const Row &row) {
   auto separator = ' ';
 
   command.append(table).append("` (");
+
   for (auto column : row) {
     command.append(1, separator)
         .append(1, '`')
@@ -618,6 +619,7 @@ void DB::addRow(const String &table, const Row &row) {
     values.append(1, separator).append(1, '?');
     separator = ',';
   }
+
   command.append(") VALUES (").append(values).append(");");
   Sql3ThrowIfDbError(_db,
                      sqlite3_prepare_v2(_db, command.c_str(), command.length(),
