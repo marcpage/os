@@ -77,6 +77,14 @@ int main(int argc, const char *const argv[]) {
       printf("FAIL: convert(4) -> '4'\n");
     }
 
+    if (Sqlite3::Value(Sqlite3::BlobType).blob("test", 4).blob() != "test") {
+      printf("FAIL: 'test' -> blob\n");
+    }
+
+    if ((Sqlite3::Value(Sqlite3::RealType) = 4.5).real() != 4.5) {
+      printf("FAIL: 4.5 -> 4.5\n");
+    }
+
     if (Sqlite3::Value(4).convertTo(Sqlite3::BlobType).blob() != "4") {
       printf("FAIL: convert(4) -> Blob '4' vs '%s'\n",
              Sqlite3::Value(4).convertTo(Sqlite3::BlobType).blob().c_str());

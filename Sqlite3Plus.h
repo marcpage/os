@@ -11,8 +11,6 @@
 // http://shellbt.wordpress.com/2009/07/14/sqlite3-blob-cecia-ucaauua/
 // blob and sqlite3
 
-/// Throws an Sqlite3::Exception for the given line
-#define Sql3Throw() throw Sqlite3::Exception(__FILE__, __LINE__)
 /// Throws an Sqlite3::Exception if a pointer is NULL
 #define Sql3ThrowIfNull(ptr, message)                                          \
   if (NULL == (ptr))                                                           \
@@ -58,11 +56,6 @@ class Exception : public msg::Exception {
 public:
   /// copy constructor
   Exception(const Exception &exception) throw();
-  /** @brief construct an exception for the given file and line number
-   @param file	The file in which the exception occurred
-   @param line	The line number at which the exception occurred
-   */
-  Exception(const char *file, int line);
   /** @brief construct an exception for the given file, line number and an error
    code
    @param file		The file in which the exception occurred
@@ -239,7 +232,7 @@ private:
       default:
         break; // unreachable
       }
-      Sql3Throw(); // we should not get here
+      Sql3ThrowMessage("Should not be able to get here");
       return nullptr;
     }
     std::string &data() override { return _value; }
@@ -275,7 +268,7 @@ private:
       default:
         break; // unreachable
       }
-      Sql3Throw(); // we should not get here
+      Sql3ThrowMessage("Should not be able to get here");
       return nullptr;
     }
   };
@@ -304,7 +297,7 @@ private:
       default:
         break; // unreachable
       }
-      Sql3Throw(); // we should not get here
+      Sql3ThrowMessage("Should not be able to get here");
       return nullptr;
     }
 
@@ -336,7 +329,7 @@ private:
       default:
         break; // unreachable
       }
-      Sql3Throw(); // we should not get here
+      Sql3ThrowMessage("Should not be able to get here");
       return nullptr;
     }
 
@@ -383,7 +376,7 @@ private:
       if (blobValue->data().size() == 0) {
         delete blobValue;
       } else {
-        return blobValue;
+        return blobValue; // null value actually had a value?
       }
 
       break;
@@ -413,6 +406,7 @@ inline Value &Value::operator=(int64_t value) {
   }
   return *this;
 }
+
 inline Value &Value::operator=(double value) {
   if (is(RealType)) {
     _value->real() = value;
@@ -422,6 +416,7 @@ inline Value &Value::operator=(double value) {
   }
   return *this;
 }
+
 inline Value &Value::operator=(const std::string &textOrData) {
   if (is(BlobType) || is(TextType)) {
     _value->data() = textOrData;
@@ -549,8 +544,6 @@ template <typename Number> Number fromString(const std::string &asString) {
 
 inline Exception::Exception(const Exception &exceptionToCopy) throw()
     : msg::Exception(exceptionToCopy) {}
-inline Exception::Exception(const char *file, int line)
-    : msg::Exception("Error", file, line) {}
 inline Exception::Exception(const char *file, int line, int errorCode)
     : msg::Exception("Error #" + std::to_string(errorCode), file, line) {}
 inline Exception::Exception(const char *file, int line, // not tested
