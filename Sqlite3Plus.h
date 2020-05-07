@@ -438,7 +438,7 @@ public:
   explicit Row(const Value &value) : std::vector<Value>() { push_back(value); }
   ~Row() {}
   Value &operator()(const std::string &name, Type t) {
-    return (*this)[name].make(t);
+    return (*this)[name] = (*this)[name].convertTo(t);
   }
   Value &operator[](const std::string &name) {
     for (auto v = begin(); v != end(); ++v) {
