@@ -71,6 +71,36 @@ int main(const int /*argc*/, const char *const /*argv*/[]) {
       "\xce\xa7", "\xcf\x87", // utf8
       "\xce\xa8", "\xcf\x88", // utf8
       "\xce\xa9", "\xcf\x89", // utf8
+      "\xd0\x81", "\xd1\x91", // utf8
+      "\xd0\x86", "\xd1\x96", // utf8
+      "\xd0\x90", "\xd0\xb0", // utf8
+      "\xd0\x91", "\xd0\xb1", // utf8
+      "\xd0\x92", "\xd0\xb2", // utf8
+      "\xd0\x93", "\xd0\xb3", // utf8
+      "\xd0\x94", "\xd0\xb4", // utf8
+      "\xd0\x95", "\xd0\xb5", // utf8
+      "\xd0\x96", "\xd0\xb6", // utf8
+      "\xd0\x97", "\xd0\xb7", // utf8
+      "\xd0\x98", "\xd0\xb8", // utf8
+      "\xd0\x99", "\xd0\xb9", // utf8
+      "\xd0\x9a", "\xd0\xba", // utf8
+      "\xd0\x9b", "\xd0\xbb", // utf8
+      "\xd0\x9c", "\xd0\xbc", // utf8
+      "\xd0\x9d", "\xd0\xbd", // utf8
+      "\xd0\x9e", "\xd0\xbe", // utf8
+      "\xd0\x9f", "\xd0\xbf", // utf8
+      "\xd0\xa0", "\xd1\x80", // utf8
+      "\xd0\xa1", "\xd1\x81", // utf8
+      "\xd0\xa2", "\xd1\x82", // utf8
+      "\xd0\xa3", "\xd1\x83", // utf8
+      "\xd0\xa4", "\xd1\x84", // utf8
+      "\xd0\xa5", "\xd1\x85", // utf8
+      "\xd0\xa6", "\xd1\x86", // utf8
+      "\xd0\xa7", "\xd1\x87", // utf8
+      "\xd0\xa8", "\xd1\x88", // utf8
+      "\xd0\xa9", "\xd1\x89", // utf8
+      "\xd0\xaa", "\xd1\x8a", // utf8
+      "\xd0\xab", "\xd1\x8b", // utf8
       "\xd0\xac", "\xd1\x8c", // utf8
       "\xd0\xad", "\xd1\x8d", // utf8
       "\xd0\xae", "\xd1\x8e", // utf8
