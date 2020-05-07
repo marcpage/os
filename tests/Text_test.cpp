@@ -15,6 +15,62 @@ int main(const int /*argc*/, const char *const /*argv*/[]) {
       "test",     "test",     // no change
       "Test",     "test",     // first character
       "TEST",     "test",     // all characters
+      "\x41",     "\x61",     // ascii
+      "\x42",     "\x62",     // ascii
+      "\x43",     "\x63",     // ascii
+      "\x44",     "\x64",     // ascii
+      "\x45",     "\x65",     // ascii
+      "\x46",     "\x66",     // ascii
+      "\x47",     "\x67",     // ascii
+      "\x48",     "\x68",     // ascii
+      "\x49",     "\x69",     // ascii
+      "\x4a",     "\x6a",     // ascii
+      "\x4b",     "\x6b",     // ascii
+      "\x4c",     "\x6c",     // ascii
+      "\x4d",     "\x6d",     // ascii
+      "\x4e",     "\x6e",     // ascii
+      "\x4f",     "\x6f",     // ascii
+      "\x50",     "\x70",     // ascii
+      "\x51",     "\x71",     // ascii
+      "\x52",     "\x72",     // ascii
+      "\x53",     "\x73",     // ascii
+      "\x54",     "\x74",     // ascii
+      "\x55",     "\x75",     // ascii
+      "\x56",     "\x76",     // ascii
+      "\x57",     "\x77",     // ascii
+      "\x58",     "\x78",     // ascii
+      "\x59",     "\x79",     // ascii
+      "\x5a",     "\x7a",     // ascii
+      "\xc3\x84", "\xc3\xa4", // utf8
+      "\xc3\x89", "\xc3\xa9", // utf8
+      "\xc3\x93", "\xc3\xb3", // utf8
+      "\xc3\x96", "\xc3\xb6", // utf8
+      "\xc3\x9c", "\xc3\xbc", // utf8
+      "\xc6\x90", "\xc9\x9b", // utf8
+      "\xce\x91", "\xce\xb1", // utf8
+      "\xce\x92", "\xce\xb2", // utf8
+      "\xce\x93", "\xce\xb3", // utf8
+      "\xce\x94", "\xce\xb4", // utf8
+      "\xce\x95", "\xce\xb5", // utf8
+      "\xce\x96", "\xce\xb6", // utf8
+      "\xce\x97", "\xce\xb7", // utf8
+      "\xce\x98", "\xce\xb8", // utf8
+      "\xce\x99", "\xce\xb9", // utf8
+      "\xce\x9a", "\xce\xba", // utf8
+      "\xce\x9b", "\xce\xbb", // utf8
+      "\xce\x9c", "\xce\xbc", // utf8
+      "\xce\x9d", "\xce\xbd", // utf8
+      "\xce\x9e", "\xce\xbe", // utf8
+      "\xce\x9f", "\xce\xbf", // utf8
+      "\xce\xa0", "\xcf\x80", // utf8
+      "\xce\xa1", "\xcf\x81", // utf8
+      "\xce\xa3", "\xcf\x83", // utf8
+      "\xce\xa4", "\xcf\x84", // utf8
+      "\xce\xa5", "\xcf\x85", // utf8
+      "\xce\xa6", "\xcf\x86", // utf8
+      "\xce\xa7", "\xcf\x87", // utf8
+      "\xce\xa8", "\xcf\x88", // utf8
+      "\xce\xa9", "\xcf\x89", // utf8
       "\xd0\xac", "\xd1\x8c", // utf8
       "\xd0\xad", "\xd1\x8d", // utf8
       "\xd0\xae", "\xd1\x8e", // utf8
@@ -49,11 +105,6 @@ int main(const int /*argc*/, const char *const /*argv*/[]) {
       "\xd2\x9e", "\xd2\x9f", // utf8
       "\xd2\xa0", "\xd2\xa1", // utf8
       "\xd2\xa2", "\xd2\xa3", // utf8
-      "\xc3\x93", "\xc3\xb3", // utf8
-      "\xc3\x89", "\xc3\xa9", // utf8
-      "\xc3\x9c", "\xc3\xbc", // utf8
-      "\xce\xa3", "\xcf\x83", // utf8
-      "\xc6\x90", "\xc9\x9b", // utf8
   };
   const struct {
     const char *text;
