@@ -303,6 +303,27 @@ inline std::string base64Decode(const std::string &base64) {
   return base64Decode(base64, buffer, AppendToOutput);
 }
 
+inline int matching(const std::string &s1, const std::string &s2) {
+  const int shorterLength = int(std::min(s1.size(), s2.size()));
+
+  for (int i = 0; i < shorterLength; ++i) {
+    if (s1[i] != s2[i]) {
+      return i;
+    }
+  }
+  return int(shorterLength);
+}
+
+inline std::string &trim(std::string &s, char c=' ') {
+	while( (s.size() > 0) && (s[0] == c) ) {
+		s.erase(0, 1);
+	}
+	while( (s.size() > 0) && (s[s.size() - 1] == c) ) {
+		s.erase(s.size() - 1);
+	}
+	return s;
+}
+
 #undef __base_64_base_characters
 #undef __base_64_standard_extension
 #undef __base_64_url_extension
