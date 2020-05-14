@@ -314,14 +314,14 @@ inline int matching(const std::string &s1, const std::string &s2) {
   return int(shorterLength);
 }
 
-inline std::string &trim(std::string &s, char c=' ') {
-	while( (s.size() > 0) && (s[0] == c) ) {
-		s.erase(0, 1);
-	}
-	while( (s.size() > 0) && (s[s.size() - 1] == c) ) {
-		s.erase(s.size() - 1);
-	}
-	return s;
+inline std::string &trim(std::string &s, char c = ' ') {
+  while ((s.size() > 0) && (s[0] == c)) {
+    s.erase(0, 1);
+  }
+  while ((s.size() > 0) && (s[s.size() - 1] == c)) {
+    s.erase(s.size() - 1);
+  }
+  return s;
 }
 
 #undef __base_64_base_characters
