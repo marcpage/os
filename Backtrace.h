@@ -3,7 +3,6 @@
 
 /** @file Backtrace.h
         @todo document
-        @todo Unmangle using abi::__cxa_demangle
 */
 
 #include <cxxabi.h> // abi::__cxa_demangle
@@ -62,7 +61,7 @@ inline std::string demangleLine(const std::string &line) {
    + 112
 */
 inline std::string stripPrefix(const std::string &line) {
-  std::string::size_type zeroEx = line.find("0x");
+  auto zeroEx = line.find("0x");
 
   if (std::string::npos != zeroEx) {
     return line.substr(zeroEx + 2);
@@ -70,8 +69,8 @@ inline std::string stripPrefix(const std::string &line) {
   return line; // not tested
 }
 inline StringList &stack(StringList &list, int maxDepth = 4096) {
-  const int skipStackFrames =
-      4; // trace::stack() call, std::string, and Exception x 2
+  // trace::stack() call, std::string, and Exception x 2
+  const int skipStackFrames = 4;
   void **frames = new void *[maxDepth];
   int count = ::backtrace(frames, maxDepth);
   char **names = ::backtrace_symbols(frames, count);
@@ -90,10 +89,10 @@ inline StringList stack(int maxDepth = 4096) {
   return stack(list, maxDepth);
 }
 inline void print(int maxDepth = 4096) {
-  StringList names = stack(maxDepth);
+  auto names = stack(maxDepth);
 
-  for (auto i : names) {
-    printf("%s\n", i.c_str());
+  for (auto name : names) {
+    printf("%s\n", name.c_str());
   }
 }
 } // namespace trace
