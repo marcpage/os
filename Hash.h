@@ -40,14 +40,15 @@ public:
   /// Fills <code>value</code> with the hex value of the hash.
   virtual std::string &hex(std::string &value) const = 0;
   /// Returns the base64 value of the hash.
-  virtual std::string base64(text::Base64Style style = text::Base64URL) const {
+  virtual std::string
+  base64(text::Base64Style style = text::Base64URLNoPadding) const {
     std::string tempBuffer;
     return base64(tempBuffer, style);
   }
   /// Fills <code>value</code> with the base64 value of the hash.
   virtual std::string &
   base64(std::string &value,
-         text::Base64Style style = text::Base64URL) const = 0;
+         text::Base64Style style = text::Base64URLNoPadding) const = 0;
   /// Returns the number of bytes in the hash.
   virtual uint32_t size() const = 0;
   /// Returns the pointer to the internal hash buffer.
@@ -124,14 +125,16 @@ public:
   */
   std::string &hex(std::string &value) const override;
   /// Get the base64 value of the hash
-  std::string base64(text::Base64Style style = text::Base64URL) const override {
+  std::string
+  base64(text::Base64Style style = text::Base64URLNoPadding) const override {
     return Hash::base64(style);
   }
   /**
   @todo document
   */
-  std::string &base64(std::string &value,
-                      text::Base64Style style = text::Base64URL) const override;
+  std::string &
+  base64(std::string &value,
+         text::Base64Style style = text::Base64URLNoPadding) const override;
   /** Parse a hex hash value.
         @param hex string that points to a null-terminated hex value
   */

@@ -184,8 +184,10 @@ inline std::string fromHex(const std::string &hex) {
 
 /// @brief Which style of bas64 to generate
 enum Base64Style {
-  Base64,   ///< Standard base64 encoding
-  Base64URL ///< URL-safe base64 encoding
+  Base64,            ///< Standard base64 encoding
+  Base64URL,         ///< URL-safe base64 encoding
+  Base64NoPadding,   ///< Standard base64 encoding but no zero padding
+  Base64URLNoPadding ///< URL-safe base64 encoding but no zero padding
 
 };
 
@@ -212,7 +214,8 @@ inline std::string &base64Encode(const std::string &binary, std::string &base64,
                                  int split = DoNotSplitBase64,
                                  const std::string &eol = "\n",
                                  ClearFirst clear = ClearOutputFirst) {
-  const bool urlStyle = Base64URL == style;
+  const bool urlStyle = (Base64URL == style) || (Base64URLNoPadding == style);
+  const bool addPadding = (Base64 == style) || (Base64URL == style);
   const std::string characters(
       urlStyle ? __base_64_base_characters __base_64_url_extension
                : __base_64_base_characters __base_64_standard_extension);
@@ -249,13 +252,17 @@ inline std::string &base64Encode(const std::string &binary, std::string &base64,
         base64.append(1, characters[c4]);
       } else {
         base64.append(1, characters[c2_2]);
-        base64.append(1, padding);
+        if (addPadding) {
+          base64.append(1, padding);
+        }
       }
 
     } else {
       base64.append(1, characters[c1_2]);
-      base64.append(1, padding);
-      base64.append(1, padding);
+      if (addPadding) {
+        base64.append(1, padding);
+        base64.append(1, padding);
+      }
     }
   }
 
