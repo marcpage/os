@@ -799,29 +799,34 @@ void reportRun(const std::string &reason, const std::string test,
   testRunsWithOtherSource.erase(testRunsWithOtherSource.begin() +
                                     (testRuns.size() - sourceRuns.size()),
                                 testRunsWithOtherSource.end());
-  if (testRuns.size() >= 2) {
-    math::statistics(testRuns, testMean, sumValue, varianceValue, testStdDev);
-  } else {
-    testMean = math::mean(testRuns);
-  }
+	if (testRunsWithOtherSource.size() == 0) {
+		return;
+	}
 
   if (testRunsWithOtherSource.size() >= 2) {
-    math::statistics(testRunsWithOtherSource, sourceMean, sumValue,
-                     varianceValue, sourceStdDev);
+    math::statistics(testRunsWithOtherSource, testMean, sumValue, varianceValue, testStdDev);
   } else {
-    sourceMean = math::mean(testRunsWithOtherSource);
+    testMean = math::mean(testRunsWithOtherSource);
   }
 
-  printf("%s: test last changed %s source last changed %s as of %s\n"
+  if (sourceRuns.size() >= 2) {
+    math::statistics(sourceRuns, sourceMean, sumValue,
+                     varianceValue, sourceStdDev);
+  } else {
+    sourceMean = math::mean(sourceRuns);
+  }
+
+  printf("%s\n"
+  		 "\t test last changed %s source last changed %s as of %s\n"
          "\t average test   run %4ld times run time = %5.1f "
          "seconds (%5.1f - %5.1f)\n"
          "\t average source run %4ld times run time = %5.1f "
          "seconds (%5.1f - %5.1f)\n",
-         test.c_str(), // test name
-         startTest.c_str(), startSource.c_str(), end.c_str(),  // dates
+         test.c_str(),                                          // test name
+         startTest.c_str(), startSource.c_str(), end.c_str(),   // dates
          testRuns.size(), testMean,                             // test stats
          testMean - testStdDev, testMean + testStdDev,          // test range
-         testRunsWithOtherSource.size(), sourceMean,            // source stats
+         sourceRuns.size(), sourceMean,            // source stats
          sourceMean - sourceStdDev, sourceMean + sourceStdDev); // source range
 }
 
