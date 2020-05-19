@@ -39,6 +39,15 @@ public:
   }
   /// Fills <code>value</code> with the hex value of the hash.
   virtual std::string &hex(std::string &value) const = 0;
+  /// Returns the base64 value of the hash.
+  virtual std::string base64(text::Base64Style style = text::Base64URL) const {
+    std::string tempBuffer;
+    return base64(tempBuffer, style);
+  }
+  /// Fills <code>value</code> with the base64 value of the hash.
+  virtual std::string &
+  base64(std::string &value,
+         text::Base64Style style = text::Base64URL) const = 0;
   /// Returns the number of bytes in the hash.
   virtual uint32_t size() const = 0;
   /// Returns the pointer to the internal hash buffer.
@@ -54,6 +63,8 @@ public:
   }
   /// Resets the hash to a new hex value.
   virtual void assignFromHex(const std::string &hex) = 0;
+  /// Resets the hash to a new base64 value.
+  virtual void assignFromBase64(const std::string &base64) = 0;
   /// Resets the hash and starts hashing new data.
   virtual void reset(const void *data, size_t count) = 0;
   /// Resets the hash and starts hashing a new string.
@@ -75,6 +86,8 @@ public:
   static SpecificHash<Hasher> fromData(const void *buffer, uint32_t size);
   /// Create a hash object from hex hash
   static SpecificHash<Hasher> fromHex(const std::string &hex);
+  /// Create a hash object from base64 hash
+  static SpecificHash<Hasher> fromBase64(const std::string &base64);
   /// The default constructor.
   SpecificHash();
   /// Construct and initialize with hash of data.
@@ -110,10 +123,23 @@ public:
         @return reference to value
   */
   std::string &hex(std::string &value) const override;
+  /// Get the base64 value of the hash
+  std::string base64(text::Base64Style style = text::Base64URL) const override {
+    return Hash::base64(style);
+  }
+  /**
+  @todo document
+  */
+  std::string &base64(std::string &value,
+                      text::Base64Style style = text::Base64URL) const override;
   /** Parse a hex hash value.
         @param hex string that points to a null-terminated hex value
   */
   void assignFromHex(const std::string &hex) override;
+  /**
+        @todo test
+  */
+  void assignFromBase64(const std::string &base64) override;
   /** Calculate the hash of the given data.
         @param data The data to calculate the hash of
         @param count The number of bytes in data to use to calculate the hash
@@ -214,6 +240,14 @@ SpecificHash<Hasher>::fromHex(const std::string &hex) {
   SpecificHash<Hasher> result;
 
   result.assignFromHex(hex);
+  return result;
+}
+template <class Hasher>
+inline SpecificHash<Hasher>
+SpecificHash<Hasher>::fromBase64(const std::string &base64) {
+  SpecificHash<Hasher> result;
+
+  result.assignFromBase64(base64);
   return result;
 }
 /** Empty hash value.
@@ -330,12 +364,28 @@ inline std::string &SpecificHash<Hasher>::hex(std::string &value) const {
   return text::toHex(
       std::string(reinterpret_cast<const char *>(_hash), sizeof(_hash)), value);
 }
+template <class Hasher>
+inline std::string &
+SpecificHash<Hasher>::base64(std::string &value,
+                             text::Base64Style style) const {
+  value.clear();
+  return text::base64Encode(
+      std::string(reinterpret_cast<const char *>(_hash), sizeof(_hash)), value,
+      style);
+}
 /** Make the value of this hash be the given lowercase hex value.
  */
 template <class Hasher>
 inline void SpecificHash<Hasher>::assignFromHex(const std::string &hex) {
   std::string buffer;
   text::fromHex(hex, buffer)
+      .copy(reinterpret_cast<char *>(_hash), sizeof(_hash));
+  AssertMessageException(buffer.size() == sizeof(_hash));
+}
+template <class Hasher>
+inline void SpecificHash<Hasher>::assignFromBase64(const std::string &base64) {
+  std::string buffer;
+  text::base64Decode(base64, buffer)
       .copy(reinterpret_cast<char *>(_hash), sizeof(_hash));
   AssertMessageException(buffer.size() == sizeof(_hash));
 }

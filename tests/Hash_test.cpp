@@ -48,6 +48,9 @@ int main(int /*argc*/, char * /*argv*/[]) {
       dotest(hash::openssl_sha256("", 0).hex() ==
              std::string("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca4959"
                          "91b7852b855"));
+      dotest(hash::openssl_sha256("", 0).base64() ==
+             std::string("47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU."));
+
 #endif
       dotest(
           hash::sha256("", 0).hex(hashValue) ==
@@ -58,6 +61,10 @@ int main(int /*argc*/, char * /*argv*/[]) {
           "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08");
       dotest(hash::sha256("test", 4) == hash::sha256::fromHex(hashValue));
       dotest(hash::sha256::fromHex(hashValue).valid());
+      dotest(hash::sha256("test", 4).base64(hashValue) ==
+             "n4bQgYhMfWWaL-qgxVrQFaO_TxsrC4Is0V1sFbDwCgg.");
+      dotest(hash::sha256("test", 4) == hash::sha256::fromBase64(hashValue));
+      dotest(hash::sha256::fromBase64(hashValue).valid());
       dotest(hash::sha256("test", 4).valid());
       dotest(test == hash::sha256("test"));
       dotest(bool(test));
