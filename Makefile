@@ -23,6 +23,7 @@ bin/logs/lint.txt: *.h
 	@-cat $@ | grep error: || true
 	@grep -rniw todo *.h
 	@echo `grep -rniw todo *.h | wc -l` TODO items
+	@cat bin/coverage/*/*.gcov | grep -E '[0-9]+:' | grep -ve -: | grep -v "#####" > bin/logs/all_code_coverage.txt
 
 documentation/index.html:
 	@mkdir -p documentation
