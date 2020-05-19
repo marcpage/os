@@ -783,6 +783,115 @@ void findFileCoverage(const String &file, const String &options,
   }
 }
 
+void reportRun(const std::string &reason, const std::string test,
+               const std::string &startTest, const std::string &startSource, const std::string &end,
+               const math::List &testRuns, const math::List &sourceRuns) {
+	double testMean, testStdDev = 0.0, sourceMean, sourceStdDev = 0.0;
+		double sumValue, varianceValue;
+
+	if (testRuns.size() >= 2) {
+  	math::statistics(testRuns, testMean, sumValue, varianceValue, testStdDev);
+	 } else {
+		 testMean = math::mean(testRuns);
+	}
+
+	if (sourceRuns.size() >= 2) {
+  	math::statistics(sourceRuns, sourceMean, sumValue, varianceValue, sourceStdDev);
+	 } else {
+		 sourceMean = math::mean(sourceRuns);
+	}
+
+  printf("%s: %s \n"
+  		"\t from %s to %s average   test run %4ld times run time = %6.2f seconds (%6.2f - %6.2f)\n"
+        "\t from %s to %s average source run %4ld times run time = %6.2f seconds (%6.2f - %6.2f)\n",
+         test.c_str(), reason.c_str(), // first line
+         startTest.c_str(), end.c_str(), // test dates
+         testRuns.size(), testMean, // test stats
+		testMean - testStdDev, testMean + testStdDev, // test range
+         startSource.c_str(), end.c_str(), // source dates
+         sourceRuns.size(), sourceMean, // source stats
+		sourceMean - sourceStdDev, sourceMean + sourceStdDev); // source range
+}
+
+void performanceReport(Sqlite3::DB &db, bool fullReport = false) {
+  Sqlite3::DB::Results results;
+  std::string test, test_hash, source_identifier, startTest, startSource, last;
+  std::string reason;
+  math::List testRuns;
+  math::List sourceRuns;
+
+  db.exec("SELECT test_hash,source_identifier,timestamp,name,run_time FROM run "
+          "ORDER BY cast(name as text),cast(timestamp as text);",
+          &results);
+
+  for (auto row : results) {
+    if (row("name", Sqlite3::TextType).text() != test) {
+      if (testRuns.size() > 0) {
+        reportRun(reason, test, startTest, startSource, last, testRuns, sourceRuns);
+      }
+      test = row("name", Sqlite3::TextType).text();
+      test_hash = row("test_hash", Sqlite3::TextType).text();
+      source_identifier = row("source_identifier", Sqlite3::TextType).text();
+      startTest = row("timestamp", Sqlite3::TextType).text();
+      startSource = row("timestamp", Sqlite3::TextType).text();
+      last = row("timestamp", Sqlite3::TextType).text();
+      testRuns.clear();
+      testRuns.push_back(row("run_time", Sqlite3::RealType).real());
+      sourceRuns.clear();
+      sourceRuns.push_back(row("run_time", Sqlite3::RealType).real());
+      reason = "Started testing";
+    } else if (row("test_hash", Sqlite3::TextType).text() != test_hash) {
+    	if (fullReport) {
+        reportRun(reason, test, startTest, startSource, last, testRuns, sourceRuns);
+    	}
+      // test = row("name", Sqlite3::TextType).text();
+      test_hash = row("test_hash", Sqlite3::TextType).text();
+      source_identifier = row("source_identifier", Sqlite3::TextType).text();
+      startTest = row("timestamp", Sqlite3::TextType).text();
+      startSource = row("timestamp", Sqlite3::TextType).text();
+      last = row("timestamp", Sqlite3::TextType).text();
+      testRuns.clear();
+      testRuns.push_back(row("run_time", Sqlite3::RealType).real());
+      sourceRuns.clear();
+      sourceRuns.push_back(row("run_time", Sqlite3::RealType).real());
+      reason = "Test changed   ";
+    } else if (row("source_identifier", Sqlite3::TextType).text() !=
+               source_identifier) {
+    	if (fullReport) {
+        reportRun(reason, test, startTest, startSource, last, testRuns, sourceRuns);
+    	}
+      // test = row("name", Sqlite3::TextType).text();
+      // test_hash = row("test_hash", Sqlite3::TextType).text();
+      source_identifier = row("source_identifier", Sqlite3::TextType).text();
+      // startTest = row("timestamp", Sqlite3::TextType).text();
+      startSource = row("timestamp", Sqlite3::TextType).text();
+      last = row("timestamp", Sqlite3::TextType).text();
+      // testRuns.clear();
+      testRuns.push_back(row("run_time", Sqlite3::RealType).real());
+      sourceRuns.clear();
+      sourceRuns.push_back(row("run_time", Sqlite3::RealType).real());
+      reason = "Source changed ";
+    } else {
+    	if (fullReport) {
+        reportRun(reason, test, startTest, startSource, last, testRuns, sourceRuns);
+    	}
+      // test = row("name", Sqlite3::TextType).text();
+      // test_hash = row("test_hash", Sqlite3::TextType).text();
+      // source_identifier = row("source_identifier", Sqlite3::TextType).text();
+      // startTest = row("timestamp", Sqlite3::TextType).text();
+      // startSource = row("timestamp", Sqlite3::TextType).text();
+      last = row("timestamp", Sqlite3::TextType).text();
+      // testRuns.clear();
+      testRuns.push_back(row("run_time", Sqlite3::RealType).real());
+      // sourceRuns.clear();
+      sourceRuns.push_back(row("run_time", Sqlite3::RealType).real());
+      // reason = "Test run       ";
+    }
+  }
+
+        reportRun(reason, test, startTest, startSource, last, testRuns, sourceRuns);
+}
+
 /**
         @todo Evaluate performance of compile and run of various compilers
 */
@@ -890,6 +999,7 @@ int main(int argc, const char *const argv[]) {
             "`lines_run` INT, "
             "`code_lines` INT, "
             "`timestamp` VARCHAR(20));");
+
     exec::execute("mkdir -p bin/tests bin/logs", results);
     if (results != "") {
       printf(WarningTextFormatStart "WARNING: mkdir '%s'" ClearTextFormat "\n",
@@ -972,6 +1082,7 @@ int main(int argc, const char *const argv[]) {
         }
       }
     }
+    performanceReport(db);
     // dumpCompilerStats(db); TODO: Need to determine what is wrong here
   } catch (const std::exception &exception) {
     printf("EXCEPTION: %s\n", exception.what());
