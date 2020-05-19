@@ -789,13 +789,16 @@ void reportRun(const std::string &reason, const std::string test,
                const math::List &sourceRuns) {
   double testMean, testStdDev = 0.0, sourceMean, sourceStdDev = 0.0;
   double sumValue, varianceValue;
-	math::List testRunsWithOtherSource = testRuns;
+  math::List testRunsWithOtherSource = testRuns;
+  const void *unused[] = {&unused, &reason};
 
   if (!io::Path(test + ".h").isFile()) {
     return;
   }
 
-	testRunsWithOtherSource.erase(testRunsWithOtherSource.begin() + (testRuns.size() - sourceRuns.size()), testRunsWithOtherSource.end());
+  testRunsWithOtherSource.erase(testRunsWithOtherSource.begin() +
+                                    (testRuns.size() - sourceRuns.size()),
+                                testRunsWithOtherSource.end());
   if (testRuns.size() >= 2) {
     math::statistics(testRuns, testMean, sumValue, varianceValue, testStdDev);
   } else {
@@ -803,23 +806,22 @@ void reportRun(const std::string &reason, const std::string test,
   }
 
   if (testRunsWithOtherSource.size() >= 2) {
-    math::statistics(testRunsWithOtherSource, sourceMean, sumValue, varianceValue,
-                     sourceStdDev);
+    math::statistics(testRunsWithOtherSource, sourceMean, sumValue,
+                     varianceValue, sourceStdDev);
   } else {
     sourceMean = math::mean(testRunsWithOtherSource);
   }
 
-  printf("%s: %s \n"
-         "\t from %s to %s average   test run %4ld times run time = %5.1f "
+  printf("%s: test last changed %s source last changed %s as of %s\n"
+         "\t average test   run %4ld times run time = %5.1f "
          "seconds (%5.1f - %5.1f)\n"
-         "\t from %s to %s average source run %4ld times run time = %5.1f "
+         "\t average source run %4ld times run time = %5.1f "
          "seconds (%5.1f - %5.1f)\n",
-         test.c_str(), reason.c_str(),                          // first line
-         startTest.c_str(), startSource.c_str(),                        // test dates
+         test.c_str(), // test name
+         startTest.c_str(), startSource.c_str(), end.c_str(),  // dates
          testRuns.size(), testMean,                             // test stats
          testMean - testStdDev, testMean + testStdDev,          // test range
-         startSource.c_str(), end.c_str(),                      // source dates
-         testRunsWithOtherSource.size(), sourceMean,                         // source stats
+         testRunsWithOtherSource.size(), sourceMean,            // source stats
          sourceMean - sourceStdDev, sourceMean + sourceStdDev); // source range
 }
 
