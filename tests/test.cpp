@@ -799,35 +799,47 @@ void reportRun(const std::string &reason, const std::string test,
   testRunsWithOtherSource.erase(testRunsWithOtherSource.begin() +
                                     (testRuns.size() - sourceRuns.size()),
                                 testRunsWithOtherSource.end());
-	if (testRunsWithOtherSource.size() == 0) {
-		return;
-	}
+  if (testRunsWithOtherSource.size() == 0) {
+    return;
+  }
 
   if (testRunsWithOtherSource.size() >= 2) {
-    math::statistics(testRunsWithOtherSource, testMean, sumValue, varianceValue, testStdDev);
+    math::statistics(testRunsWithOtherSource, testMean, sumValue, varianceValue,
+                     testStdDev);
   } else {
     testMean = math::mean(testRunsWithOtherSource);
   }
 
   if (sourceRuns.size() >= 2) {
-    math::statistics(sourceRuns, sourceMean, sumValue,
-                     varianceValue, sourceStdDev);
+    math::statistics(sourceRuns, sourceMean, sumValue, varianceValue,
+                     sourceStdDev);
   } else {
     sourceMean = math::mean(sourceRuns);
   }
 
+  const bool good = sourceMean <= testMean;
+  const bool great = good && (sourceMean < testMean - testStdDev);
+  const bool poor = sourceMean > testMean;
+  const bool bad = poor && (sourceMean > testMean + testStdDev);
+	const char *color = bad ? ErrorTextFormatStart :
+				(poor ? WarningTextFormatStart :
+				(great ? GreatTextFormatStart : GoodTextFormatStart));
+
   printf("%s\n"
-  		 "\t test last changed %s source last changed %s as of %s\n"
+         "\t test last changed %s source last changed %s as of %s\n"
          "\t average test   run %4ld times run time = %5.1f "
          "seconds (%5.1f - %5.1f)\n"
-         "\t average source run %4ld times run time = %5.1f "
-         "seconds (%5.1f - %5.1f)\n",
+         "\t %saverage source run %4ld times run time = %5.1f "
+         "seconds (%5.1f - %5.1f)%s\n",
          test.c_str(),                                          // test name
          startTest.c_str(), startSource.c_str(), end.c_str(),   // dates
          testRuns.size(), testMean,                             // test stats
          testMean - testStdDev, testMean + testStdDev,          // test range
-         sourceRuns.size(), sourceMean,            // source stats
-         sourceMean - sourceStdDev, sourceMean + sourceStdDev); // source range
+         color, ///start color
+         sourceRuns.size(), sourceMean,                         // source stats
+         sourceMean - sourceStdDev, sourceMean + sourceStdDev, // source range
+         ClearTextFormat
+         );
 }
 
 void performanceReport(Sqlite3::DB &db, bool fullReport = false) {
