@@ -224,7 +224,7 @@ inline std::string &base64Encode(const std::string &binary, std::string &base64,
   const int size = binary.size();
 
   if (ClearOutputFirst == clear) {
-    base64.clear(); // not tested
+    base64.clear();
   }
 
   base64.reserve(base64.size() + (size + 2) / 3 * 4);
@@ -389,7 +389,7 @@ inline std::string &base64Decode(const std::string &base64, std::string &binary,
   const std::string padding(__base_64_standard_trailer __base_64_url_trailer);
 
   if (ClearOutputFirst == clear) {
-    binary.clear(); // not tested
+    binary.clear();
   }
 
   binary.reserve(size / 4 * 3);
