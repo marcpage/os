@@ -30,7 +30,7 @@ inline std::wstring &convert(const std::string &utf8, std::wstring &wide,
   std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> wideconv;
 
   if (ClearOutputFirst == clear) {
-    wide.clear();
+    wide.clear(); // not tested
   }
   wide = wideconv.from_bytes(utf8);
   return wide;
@@ -48,7 +48,7 @@ inline std::string &convert(const std::wstring &wide, std::string &utf8,
   std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> wideconv;
 
   if (ClearOutputFirst == clear) {
-    utf8.clear();
+    utf8.clear(); // not tested
   }
   utf8 = wideconv.to_bytes(wide);
   return utf8;
@@ -66,7 +66,7 @@ inline std::wstring &tolower(const std::wstring &mixed, std::wstring &lower,
   std::locale utf8Locale("en_US.UTF-8");
 
   if (ClearOutputFirst == clear) {
-    lower.clear();
+    lower.clear(); // not tested
   }
   lower.reserve(lower.size() + mixed.size());
   for (auto c : mixed) {
@@ -221,7 +221,7 @@ inline std::string &base64Encode(const std::string &binary, std::string &base64,
   const int size = binary.size();
 
   if (ClearOutputFirst == clear) {
-    base64.clear();
+    base64.clear(); // not tested
   }
 
   base64.reserve(base64.size() + (size + 2) / 3 * 4);
@@ -309,10 +309,10 @@ _base64CharacterValue(char c, const std::string &standardCharacters,
     const auto f2 = urlCharacters.find(c);
 
     if (f2 == std::string::npos) {
-      AssertMessageException(allTrailingCharacters.find(c) !=
+      AssertMessageException(allTrailingCharacters.find(c) != // not tested
                              std::string::npos);
 
-      return 0;
+      return 0; // not tested
     }
     return f2;
   }
@@ -382,7 +382,7 @@ inline std::string &base64Decode(const std::string &base64, std::string &binary,
   const std::string padding(__base_64_standard_trailer __base_64_url_trailer);
 
   if (ClearOutputFirst == clear) {
-    binary.clear();
+    binary.clear(); // not tested
   }
 
   binary.reserve(size / 4 * 3);
