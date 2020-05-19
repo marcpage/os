@@ -546,10 +546,10 @@ inline Exception::Exception(const Exception &exceptionToCopy) throw()
     : msg::Exception(exceptionToCopy) {}
 inline Exception::Exception(const char *file, int line, int errorCode)
     : msg::Exception("Error #" + std::to_string(errorCode), file, line) {}
-inline Exception::Exception(const char *file, int line, // not tested
+inline Exception::Exception(const char *file, int line,
                             const std::string &errorString)
-    : msg::Exception("Error " + errorString, file, line) {} // not tested
-inline Exception::~Exception() throw() {}                   // not tested
+    : msg::Exception("Error " + errorString, file, line) {}
+inline Exception::~Exception() throw() {}
 inline Exception &Exception::operator=(const Exception &exceptionToCopy) {
   *reinterpret_cast<msg::Exception *>(this) = exceptionToCopy;
   return *this;
