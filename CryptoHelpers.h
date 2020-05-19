@@ -91,12 +91,12 @@ void handleCCCryptorStatus(CCCryptorStatus status, const std::string &call,
 int handleOpenSSLResult(int status, const std::string &call, const char *file,
                         int line) {
   if (!status) {
-    std::string buffer(512, '\0'); // not tested
+    std::string buffer(512, '\0'); // tested in libernet tests
     ERR_error_string(ERR_get_error(),
-                     const_cast<char *>(buffer.data())); // not tested
-    buffer.erase(strlen(buffer.c_str()));                // not tested
+                     const_cast<char *>(buffer.data())); // libernet tests
+    buffer.erase(strlen(buffer.c_str()));                // libernet tests
     throw Exception(std::string("OpenSSL Error (" + call + "): ") + buffer,
-                    file, line); // not tested
+                    file, line); // libernet tests
   }
   return status;
 }

@@ -48,7 +48,7 @@ inline std::string &convert(const std::wstring &wide, std::string &utf8,
   std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> wideconv;
 
   if (ClearOutputFirst == clear) {
-    utf8.clear(); // not tested
+    utf8.clear(); // tested in libernet tests
   }
   utf8 = wideconv.to_bytes(wide);
   return utf8;

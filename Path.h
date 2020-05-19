@@ -566,7 +566,7 @@ inline Path::StringList &Path::_list(HavePath havePath,
             }
           }
         } else {
-          keepListing = false; // not covered by tests
+          keepListing = false; // tested in libernet tests
         }
       } catch (const posix::err::ESRCH_Errno &) {
         keepListing = false; // sometimes we get spurious ESRCH No such process
