@@ -784,33 +784,43 @@ void findFileCoverage(const String &file, const String &options,
 }
 
 void reportRun(const std::string &reason, const std::string test,
-               const std::string &startTest, const std::string &startSource, const std::string &end,
-               const math::List &testRuns, const math::List &sourceRuns) {
-	double testMean, testStdDev = 0.0, sourceMean, sourceStdDev = 0.0;
-		double sumValue, varianceValue;
+               const std::string &startTest, const std::string &startSource,
+               const std::string &end, const math::List &testRuns,
+               const math::List &sourceRuns) {
+  double testMean, testStdDev = 0.0, sourceMean, sourceStdDev = 0.0;
+  double sumValue, varianceValue;
+	math::List testRunsWithOtherSource = testRuns;
 
-	if (testRuns.size() >= 2) {
-  	math::statistics(testRuns, testMean, sumValue, varianceValue, testStdDev);
-	 } else {
-		 testMean = math::mean(testRuns);
-	}
+  if (!io::Path(test + ".h").isFile()) {
+    return;
+  }
 
-	if (sourceRuns.size() >= 2) {
-  	math::statistics(sourceRuns, sourceMean, sumValue, varianceValue, sourceStdDev);
-	 } else {
-		 sourceMean = math::mean(sourceRuns);
-	}
+	testRunsWithOtherSource.erase(testRunsWithOtherSource.begin() + (testRuns.size() - sourceRuns.size()), testRunsWithOtherSource.end());
+  if (testRuns.size() >= 2) {
+    math::statistics(testRuns, testMean, sumValue, varianceValue, testStdDev);
+  } else {
+    testMean = math::mean(testRuns);
+  }
+
+  if (testRunsWithOtherSource.size() >= 2) {
+    math::statistics(testRunsWithOtherSource, sourceMean, sumValue, varianceValue,
+                     sourceStdDev);
+  } else {
+    sourceMean = math::mean(testRunsWithOtherSource);
+  }
 
   printf("%s: %s \n"
-  		"\t from %s to %s average   test run %4ld times run time = %6.2f seconds (%6.2f - %6.2f)\n"
-        "\t from %s to %s average source run %4ld times run time = %6.2f seconds (%6.2f - %6.2f)\n",
-         test.c_str(), reason.c_str(), // first line
-         startTest.c_str(), end.c_str(), // test dates
-         testRuns.size(), testMean, // test stats
-		testMean - testStdDev, testMean + testStdDev, // test range
-         startSource.c_str(), end.c_str(), // source dates
-         sourceRuns.size(), sourceMean, // source stats
-		sourceMean - sourceStdDev, sourceMean + sourceStdDev); // source range
+         "\t from %s to %s average   test run %4ld times run time = %5.1f "
+         "seconds (%5.1f - %5.1f)\n"
+         "\t from %s to %s average source run %4ld times run time = %5.1f "
+         "seconds (%5.1f - %5.1f)\n",
+         test.c_str(), reason.c_str(),                          // first line
+         startTest.c_str(), startSource.c_str(),                        // test dates
+         testRuns.size(), testMean,                             // test stats
+         testMean - testStdDev, testMean + testStdDev,          // test range
+         startSource.c_str(), end.c_str(),                      // source dates
+         testRunsWithOtherSource.size(), sourceMean,                         // source stats
+         sourceMean - sourceStdDev, sourceMean + sourceStdDev); // source range
 }
 
 void performanceReport(Sqlite3::DB &db, bool fullReport = false) {
@@ -827,7 +837,8 @@ void performanceReport(Sqlite3::DB &db, bool fullReport = false) {
   for (auto row : results) {
     if (row("name", Sqlite3::TextType).text() != test) {
       if (testRuns.size() > 0) {
-        reportRun(reason, test, startTest, startSource, last, testRuns, sourceRuns);
+        reportRun(reason, test, startTest, startSource, last, testRuns,
+                  sourceRuns);
       }
       test = row("name", Sqlite3::TextType).text();
       test_hash = row("test_hash", Sqlite3::TextType).text();
@@ -841,9 +852,10 @@ void performanceReport(Sqlite3::DB &db, bool fullReport = false) {
       sourceRuns.push_back(row("run_time", Sqlite3::RealType).real());
       reason = "Started testing";
     } else if (row("test_hash", Sqlite3::TextType).text() != test_hash) {
-    	if (fullReport) {
-        reportRun(reason, test, startTest, startSource, last, testRuns, sourceRuns);
-    	}
+      if (fullReport) {
+        reportRun(reason, test, startTest, startSource, last, testRuns,
+                  sourceRuns);
+      }
       // test = row("name", Sqlite3::TextType).text();
       test_hash = row("test_hash", Sqlite3::TextType).text();
       source_identifier = row("source_identifier", Sqlite3::TextType).text();
@@ -857,9 +869,10 @@ void performanceReport(Sqlite3::DB &db, bool fullReport = false) {
       reason = "Test changed   ";
     } else if (row("source_identifier", Sqlite3::TextType).text() !=
                source_identifier) {
-    	if (fullReport) {
-        reportRun(reason, test, startTest, startSource, last, testRuns, sourceRuns);
-    	}
+      if (fullReport) {
+        reportRun(reason, test, startTest, startSource, last, testRuns,
+                  sourceRuns);
+      }
       // test = row("name", Sqlite3::TextType).text();
       // test_hash = row("test_hash", Sqlite3::TextType).text();
       source_identifier = row("source_identifier", Sqlite3::TextType).text();
@@ -872,9 +885,10 @@ void performanceReport(Sqlite3::DB &db, bool fullReport = false) {
       sourceRuns.push_back(row("run_time", Sqlite3::RealType).real());
       reason = "Source changed ";
     } else {
-    	if (fullReport) {
-        reportRun(reason, test, startTest, startSource, last, testRuns, sourceRuns);
-    	}
+      if (fullReport) {
+        reportRun(reason, test, startTest, startSource, last, testRuns,
+                  sourceRuns);
+      }
       // test = row("name", Sqlite3::TextType).text();
       // test_hash = row("test_hash", Sqlite3::TextType).text();
       // source_identifier = row("source_identifier", Sqlite3::TextType).text();
@@ -889,7 +903,7 @@ void performanceReport(Sqlite3::DB &db, bool fullReport = false) {
     }
   }
 
-        reportRun(reason, test, startTest, startSource, last, testRuns, sourceRuns);
+  reportRun(reason, test, startTest, startSource, last, testRuns, sourceRuns);
 }
 
 /**
