@@ -821,9 +821,10 @@ void reportRun(const std::string &reason, const std::string test,
   const bool great = good && (sourceMean < testMean - testStdDev);
   const bool poor = sourceMean > testMean;
   const bool bad = poor && (sourceMean > testMean + testStdDev);
-	const char *color = bad ? ErrorTextFormatStart :
-				(poor ? WarningTextFormatStart :
-				(great ? GreatTextFormatStart : GoodTextFormatStart));
+  const char *color =
+      bad ? ErrorTextFormatStart
+          : (poor ? WarningTextFormatStart
+                  : (great ? GreatTextFormatStart : GoodTextFormatStart));
 
   printf("%s\n"
          "\t test last changed %s source last changed %s as of %s\n"
@@ -831,15 +832,14 @@ void reportRun(const std::string &reason, const std::string test,
          "seconds (%5.1f - %5.1f)\n"
          "\t %saverage source run %4ld times run time = %5.1f "
          "seconds (%5.1f - %5.1f)%s\n",
-         test.c_str(),                                          // test name
-         startTest.c_str(), startSource.c_str(), end.c_str(),   // dates
-         testRuns.size(), testMean,                             // test stats
-         testMean - testStdDev, testMean + testStdDev,          // test range
-         color, ///start color
-         sourceRuns.size(), sourceMean,                         // source stats
+         test.c_str(),                                         // test name
+         startTest.c_str(), startSource.c_str(), end.c_str(),  // dates
+         testRuns.size(), testMean,                            // test stats
+         testMean - testStdDev, testMean + testStdDev,         // test range
+         color,                                                /// start color
+         sourceRuns.size(), sourceMean,                        // source stats
          sourceMean - sourceStdDev, sourceMean + sourceStdDev, // source range
-         ClearTextFormat
-         );
+         ClearTextFormat);
 }
 
 void performanceReport(Sqlite3::DB &db, bool fullReport = false) {
