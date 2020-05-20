@@ -231,7 +231,7 @@ inline bool DateTime::operator!=(const DateTime &other) const {
 inline bool DateTime::operator<(const DateTime &other) const {
   ;
   if (_time.tv_sec == other._time.tv_sec) {
-    return _time.tv_nsec < other._time.tv_nsec; // not tested
+    return _time.tv_nsec < other._time.tv_nsec;
   }
   return _time.tv_sec < other._time.tv_sec;
 }
