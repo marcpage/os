@@ -31,6 +31,8 @@ int main(int /*argc*/, char * /*argv*/[]) {
 
       dotest(math::max({1, 2, 3, 4, 5}) == 5.0);
       dotest(math::min({1, 2, 3, 4, 5}) == 1.0);
+      dotest(math::max({5, 2, 3, 4, 1}) == 5.0);
+      dotest(math::min({5, 2, 3, 4, 1}) == 1.0);
       dotest(math::max({}) == 0.0);
       dotest(math::min({}) == 0.0);
       math::List numbers({1, 2, 3, 4, 5});
