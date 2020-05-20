@@ -1,6 +1,7 @@
 #ifndef __Statistics_h__
 #define __Statistics_h__
 
+#include <algorithm> // std::accumulate
 #include <math.h>
 #include <numeric>
 #include <string>
@@ -105,27 +106,23 @@ inline List &filterInRange(List &numbers, double min, double max) {
 }
 
 inline double min(const List &numbers) {
-  double low = numbers.size() > 0 ? numbers[0] : 0.0;
+  auto smaller = [](double a, double b) { return std::min(a, b); };
 
-  for (auto number : numbers) {
-    if (number < low) {
-      low = number;
-    }
+  if (numbers.size() == 0) {
+    return 0.0;
   }
 
-  return low;
+  return std::accumulate(numbers.begin(), numbers.end(), numbers[0], smaller);
 }
 
 inline double max(const List &numbers) {
-  double high = numbers.size() > 0 ? numbers[0] : 0.0;
+  auto larger = [](double a, double b) { return std::max(a, b); };
 
-  for (auto number : numbers) {
-    if (number > high) {
-      high = number;
-    }
+  if (numbers.size() == 0) {
+    return 0.0;
   }
 
-  return high;
+  return std::accumulate(numbers.begin(), numbers.end(), numbers[0], larger);
 }
 
 } // namespace math
