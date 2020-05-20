@@ -341,55 +341,6 @@ void updateCompilerTimesIfNeeded(
   }
 }
 
-void dumpCompilerStats(Sqlite3::DB &db) {
-  Sqlite3::DB::Results results;
-  CompilerBuildAndRunTimesList compilerTimes, compilerDifferences;
-  String currentSource, currentCompiler;
-  double runSum, count = 0, buildSum;
-
-  db.exec("SELECT "
-          "name,run_time,build_time,compiler,source_identifier "
-          "FROM run "
-          "GROUP BY source_identifier,compiler"
-          ";",
-          &results);
-
-  for (auto row : results) {
-    updateCompilerTimesIfNeeded(
-        compilerTimes, compilerDifferences,
-        row("compiler", Sqlite3::TextType).text(),
-        row("source_identifier", Sqlite3::TextType).text(), currentCompiler,
-        currentSource, buildSum, runSum, count);
-    buildSum += row("build_time", Sqlite3::RealType).real();
-    runSum += row("run_time", Sqlite3::RealType).real();
-    count += 1;
-  }
-
-  updateCompilerTimesIfNeeded(compilerTimes, compilerDifferences, "", "",
-                              currentCompiler, currentSource, buildSum, runSum,
-                              count);
-
-  printf("Build Times\n");
-  for (auto compilerAndLists : compilerDifferences) {
-    double mean = math::mean(compilerAndLists.second.first);
-    double stddev = math::stddev(compilerAndLists.second.first);
-
-    printf("\t"
-           "%s %7.10fs +/- %7.10fs\n",
-           compilerAndLists.first.c_str(), mean, stddev);
-  }
-
-  printf("Run Times\n");
-  for (auto compilerAndLists : compilerDifferences) {
-    double mean = math::mean(compilerAndLists.second.second);
-    double stddev = math::stddev(compilerAndLists.second.second);
-
-    printf("\t"
-           "%s %7.10fs +/- %7.10fs\n",
-           compilerAndLists.first.c_str(), mean, stddev);
-  }
-}
-
 void getTestStats(const String &name, const String &options,
                   const String &headerHash, const String &testHash,
                   uint32_t &testedLines, double &durationInSeconds,
@@ -953,6 +904,130 @@ void performanceReport(Sqlite3::DB &db, const StringList &testsToRun,
   reportRun(reason, test, startTest, startSource, last, testRuns, sourceRuns);
 }
 
+double getTime(const math::List &times) {
+
+  if (times.size() == 0) {
+    return 0.0;
+  }
+
+  if (times.size() == 1) {
+    return times[0];
+  }
+
+  double mean, sum, variance, stdev;
+  math::List timesCopy = times;
+
+  math::statistics(timesCopy, mean, sum, variance, stdev);
+  /*
+  math::filterInRange(timesCopy, mean - std::min(stdev,0.0), mean +
+  std::min(stdev, 0.0));
+
+      if (timesCopy.size() == 0) {
+              return 0.0;
+      }
+
+      if (timesCopy.size() == 1) {
+              return times[0];
+      }
+
+  math::statistics(timesCopy, mean, sum, variance, stdev);
+  */
+  return mean;
+}
+
+typedef std::map<std::string, math::List> NamedMathList;
+void analyze(const NamedMathList &build, const NamedMathList &run,
+             NamedMathList &builds, NamedMathList &runs,
+             const StringList &compilers) {
+  for (auto compiler : compilers) {
+    if ((build.find(compiler) == build.end()) ||
+        (run.find(compiler) == run.end())) {
+      return;
+    }
+    if (build.at(compiler).size() < 2) {
+      return;
+    }
+  }
+
+  auto primeCompiler = compilers[0];
+  auto otherCompilers = compilers;
+  const double buildPrimeTime = getTime(build.at(primeCompiler));
+  const double runPrimeTime = getTime(run.at(primeCompiler));
+
+  builds[primeCompiler].push_back(1.0);
+  runs[primeCompiler].push_back(1.0);
+  otherCompilers.erase(otherCompilers.begin());
+
+  for (auto compiler : otherCompilers) {
+    if (buildPrimeTime > 0.0) {
+      builds[compiler].push_back(getTime(build.at(compiler)) / buildPrimeTime);
+    }
+
+    if (runPrimeTime > 0.0) {
+      runs[compiler].push_back(getTime(run.at(compiler)) / runPrimeTime);
+    }
+  }
+}
+
+void compilerPerformanceReport(Sqlite3::DB &db, const StringList &compilers) {
+  Sqlite3::DB::Results results;
+  std::string currentSource;
+  math::List testRuns;
+  math::List sourceRuns;
+  NamedMathList buildTrace, runTrace;
+  NamedMathList buildPerf, runPerf;
+  NamedMathList builds, runs;
+
+  db.exec("SELECT "
+          "source_identifier,compiler,trace_build_time,trace_run_time,build_"
+          "time,run_time "
+          "FROM run ORDER BY cast(source_identifier as text);",
+          &results);
+
+  for (auto row : results) {
+    const std::string source =
+        row("source_identifier", Sqlite3::TextType).text();
+    const std::string compiler = row("compiler", Sqlite3::TextType).text();
+    const double traceBuildTime =
+        row("trace_build_time", Sqlite3::RealType).real();
+    const double performanceBuildTime =
+        row("build_time", Sqlite3::RealType).real();
+    const double traceRunTime = row("trace_run_time", Sqlite3::RealType).real();
+    const double performanceRunTime = row("run_time", Sqlite3::RealType).real();
+
+    if (source != currentSource) {
+      analyze(buildTrace, runTrace, builds, runs, compilers);
+      analyze(buildPerf, runPerf, builds, runs, compilers);
+      currentSource = source;
+      buildTrace.clear();
+      buildPerf.clear();
+      runTrace.clear();
+      runPerf.clear();
+    }
+
+    buildTrace[compiler].push_back(traceBuildTime);
+    buildPerf[compiler].push_back(performanceBuildTime);
+    runTrace[compiler].push_back(traceRunTime);
+    runPerf[compiler].push_back(performanceRunTime);
+  }
+  analyze(buildTrace, runTrace, builds, runs, compilers);
+  analyze(buildPerf, runPerf, builds, runs, compilers);
+
+  printf("Compile Performace\n");
+  for (auto compilerTimes : builds) {
+    const double time = getTime(compilerTimes.second);
+
+    printf("\t%s %0.2fx\n", compilerTimes.first.c_str(), time);
+  }
+
+  printf("Run Performace\n");
+  for (auto compilerTimes : runs) {
+    const double time = getTime(compilerTimes.second);
+
+    printf("\t%s %0.2fx\n", compilerTimes.first.c_str(), time);
+  }
+}
+
 /**
         @todo Evaluate performance of compile and run of various compilers
 */
@@ -1143,8 +1218,10 @@ int main(int argc, const char *const argv[]) {
         }
       }
     }
+
     performanceReport(db, testsToRun);
-    // dumpCompilerStats(db); TODO: Need to determine what is wrong here
+    compilerPerformanceReport(db, compilersToRun);
+
   } catch (const std::exception &exception) {
     printf("EXCEPTION: %s\n", exception.what());
   }
