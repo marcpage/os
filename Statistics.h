@@ -93,6 +93,41 @@ inline double stddev(const List &numbers) {
   return standardDeviationValue;
 }
 
+inline List &filterInRange(List &numbers, double min, double max) {
+  for (int i = 0; i < int(numbers.size()); ++i) {
+    if ((numbers[i] < min) || (numbers[i] > max)) {
+      numbers.erase(numbers.begin() + i, numbers.begin() + i + 1);
+      --i;
+    }
+  }
+
+  return numbers;
+}
+
+inline double min(const List &numbers) {
+  double low = numbers.size() > 0 ? numbers[0] : 0.0;
+
+  for (auto number : numbers) {
+    if (number < low) {
+      low = number;
+    }
+  }
+
+  return low;
+}
+
+inline double max(const List &numbers) {
+  double high = numbers.size() > 0 ? numbers[0] : 0.0;
+
+  for (auto number : numbers) {
+    if (number > high) {
+      high = number;
+    }
+  }
+
+  return high;
+}
+
 } // namespace math
 
 #endif // __Statistics_h__

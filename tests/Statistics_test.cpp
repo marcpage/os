@@ -6,7 +6,7 @@
   }
 
 int main(int /*argc*/, char * /*argv*/[]) {
-  int iterations = 120000;
+  int iterations = 30000;
 #ifdef __Tracer_h__
   iterations = 1;
 #endif
@@ -28,6 +28,19 @@ int main(int /*argc*/, char * /*argv*/[]) {
       dotest(abs(math::mean({10, 8, 10, 8, 8, 4}) - 8) < 0.001);
       dotest(abs(math::variance({10, 8, 10, 8, 8, 4}) - 4.8) < 0.001);
       dotest(abs(math::stddev({10, 8, 10, 8, 8, 4}) - 2.191) < 0.001);
+
+      dotest(math::max({1, 2, 3, 4, 5}) == 5.0);
+      dotest(math::min({1, 2, 3, 4, 5}) == 1.0);
+      dotest(math::max({}) == 0.0);
+      dotest(math::min({}) == 0.0);
+      math::List numbers({1, 2, 3, 4, 5});
+      math::List copy;
+
+      dotest(math::filterInRange((copy = numbers), 2.1, 2.9).size() == 0);
+      dotest(math::filterInRange((copy = numbers), 2.0, 2.9).size() == 1);
+      dotest(math::filterInRange((copy = numbers), 1.0, 5.0).size() == 5);
+      dotest(math::filterInRange((copy = numbers), -11.0, 105.0).size() == 5);
+      dotest(math::filterInRange((copy = numbers), 6, -1).size() == 0);
 
       try {
         math::statistics({}, mean, sum, variance, standardDeviation);
