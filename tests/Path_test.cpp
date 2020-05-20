@@ -9,7 +9,7 @@
   }
 
 int main(int, const char *const[]) {
-  int iterations = 600;
+  int iterations = 60;
 #ifdef __Tracer_h__
   iterations = 1;
 #endif
