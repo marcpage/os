@@ -82,9 +82,9 @@ public:
   bool operator==(const DateTime &other) const;
   bool operator!=(const DateTime &other) const;
   bool operator<(const DateTime &other) const;
-  bool operator>(const DateTime &other) const;
-  bool operator<=(const DateTime &other) const;
-  bool operator>=(const DateTime &other) const;
+  bool operator>(const DateTime &other) const { return (other < *this); }
+  bool operator<=(const DateTime &other) const { return !(other < *this); }
+  bool operator>=(const DateTime &other) const { return !(*this < other); }
   double seconds() const;
   DateTime &add(double value, Span span = Seconds);
   tm &gmt(tm &time) const;
@@ -234,27 +234,6 @@ inline bool DateTime::operator<(const DateTime &other) const {
     return _time.tv_nsec < other._time.tv_nsec; // not tested
   }
   return _time.tv_sec < other._time.tv_sec;
-}
-inline bool DateTime::operator>(const DateTime &other) const {
-  ;
-  if (_time.tv_sec == other._time.tv_sec) {
-    return _time.tv_nsec > other._time.tv_nsec; // not tested
-  }
-  return _time.tv_sec > other._time.tv_sec;
-}
-inline bool DateTime::operator<=(const DateTime &other) const {
-  ;
-  if (_time.tv_sec == other._time.tv_sec) {
-    return _time.tv_nsec <= other._time.tv_nsec;
-  }
-  return _time.tv_sec <= other._time.tv_sec;
-}
-inline bool DateTime::operator>=(const DateTime &other) const {
-  ;
-  if (_time.tv_sec == other._time.tv_sec) {
-    return _time.tv_nsec >= other._time.tv_nsec;
-  }
-  return _time.tv_sec >= other._time.tv_sec;
 }
 inline double DateTime::seconds() const {
   ;
