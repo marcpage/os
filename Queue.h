@@ -3,9 +3,9 @@
 
 #include "Exception.h"
 #include <condition_variable>
+#include <deque>
 #include <limits>
 #include <mutex>
-#include <vector>
 
 /// Helper macro that will throw an exception before accessing a closed queue
 #define AssertQueueNotClosed                                                   \
@@ -91,7 +91,7 @@ public:
   void close();
 
 private:
-  typedef std::vector<T> List;     ///< A list of elements
+  typedef std::deque<T> List;      ///< A list of elements
   std::mutex _lock;                ///< Protection on _queue
   std::condition_variable _full;   ///< Used to wait if the queue is full
   std::condition_variable _empty;  ///< Used to wait if the queue is empty
@@ -117,9 +117,9 @@ inline Queue<T>::Queue(int max, int reserve)
     : _lock(), _full(), _empty(), _queue(),
       _max(0 == max ? std::numeric_limits<int>::max() : max) {
   if (reserve > 0) {
-    _queue.reserve(reserve);
+    //_queue.reserve(reserve);
   } else if (max > 0) {
-    _queue.reserve(max);
+    //_queue.reserve(max);
   }
 }
 template <class T> inline Queue<T>::~Queue() {}
@@ -149,7 +149,8 @@ template <class T> inline Queue<T> &Queue<T>::enqueue(const T &value) {
     _full.wait(lock);
   }
   AssertQueueNotClosed;
-  _queue.insert(_queue.begin(), value);
+  //_queue.insert(_queue.begin(), value);
+  _queue.push_front(value);
   _empty.notify_all();
   return *this;
 }
@@ -169,7 +170,8 @@ inline bool Queue<T>::enqueue(const T &value, double timeoutInSeconds) {
     }
   }
   AssertQueueNotClosed;
-  _queue.insert(_queue.begin(), value);
+  //_queue.insert(_queue.begin(), value);
+  _queue.push_front(value);
   _empty.notify_all();
   return true;
 }
