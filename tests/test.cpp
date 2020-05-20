@@ -45,7 +45,7 @@ const char *const gDebugFlags =
     " -fno-optimize-sibling-calls -O1 -fsanitize=undefined ";
 
 const uint32_t gMinimumPercentCodeCoverage = 70;
-const String gCompilerList = "clang++,g++,llvm-g++";
+const String gCompilerList = "clang++"; //,g++,llvm-g++";
 Dictionary gCompilerLocations;
 bool gDebugging = false;
 bool gVerbose = false;
@@ -1220,7 +1220,9 @@ int main(int argc, const char *const argv[]) {
     }
 
     performanceReport(db, testsToRun);
-    compilerPerformanceReport(db, compilersToRun);
+    if (compilersToRun.size() > 1) {
+	    compilerPerformanceReport(db, compilersToRun);
+    }
 
   } catch (const std::exception &exception) {
     printf("EXCEPTION: %s\n", exception.what());
