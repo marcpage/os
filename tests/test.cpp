@@ -7,6 +7,7 @@
 #include "os/Path.h"
 #include "os/Sqlite3Plus.h"
 #include "os/Statistics.h"
+#include <algorithm> // std::find
 #include <ctype.h>
 #include <map>
 #include <stdio.h>
@@ -791,30 +792,47 @@ void reportRun(const std::string &reason, const std::string test,
   double sumValue, varianceValue;
   math::List testRunsWithOtherSource = testRuns;
   const void *unused[] = {&unused, &reason};
-
+  math::List filteredSourceRuns = sourceRuns;
+  math::List filteredTestRunsWithOtherSource;
   if (!io::Path(test + ".h").isFile()) {
     return;
-  }
-
-  testRunsWithOtherSource.erase(testRunsWithOtherSource.begin() +
-                                    (testRuns.size() - sourceRuns.size()),
-                                testRunsWithOtherSource.end());
-  if (testRunsWithOtherSource.size() == 0) {
-    return;
-  }
-
-  if (testRunsWithOtherSource.size() >= 2) {
-    math::statistics(testRunsWithOtherSource, testMean, sumValue, varianceValue,
-                     testStdDev);
-  } else {
-    testMean = math::mean(testRunsWithOtherSource);
   }
 
   if (sourceRuns.size() >= 2) {
     math::statistics(sourceRuns, sourceMean, sumValue, varianceValue,
                      sourceStdDev);
+    math::filterInRange(filteredSourceRuns, sourceMean - 2 * sourceStdDev,
+                        sourceMean + 2 * sourceStdDev);
   } else {
     sourceMean = math::mean(sourceRuns);
+  }
+
+  testRunsWithOtherSource.erase(testRunsWithOtherSource.begin() +
+                                    (testRuns.size() - sourceRuns.size()),
+                                testRunsWithOtherSource.end());
+
+  if (testRunsWithOtherSource.size() == 0) {
+    printf("%s\n"
+           "\t test last changed %s source last changed %s as of %s\n"
+           "\t average test   run %4ld times run time = %5.1f "
+           "seconds (%5.1f - %5.1f)\n",
+           test.c_str(),                                        // test name
+           startTest.c_str(), startSource.c_str(), end.c_str(), // dates
+           sourceRuns.size(), sourceMean,                       // source stats
+           math::min(filteredSourceRuns),
+           math::max(filteredSourceRuns)); // source range
+    return;
+  }
+
+  filteredTestRunsWithOtherSource = testRunsWithOtherSource;
+
+  if (testRunsWithOtherSource.size() >= 2) {
+    math::statistics(testRunsWithOtherSource, testMean, sumValue, varianceValue,
+                     testStdDev);
+    math::filterInRange(filteredTestRunsWithOtherSource,
+                        testMean - 2 * testStdDev, testMean + 2 * testStdDev);
+  } else {
+    testMean = math::mean(testRunsWithOtherSource);
   }
 
   const bool good = sourceMean <= testMean;
@@ -832,17 +850,20 @@ void reportRun(const std::string &reason, const std::string test,
          "seconds (%5.1f - %5.1f)\n"
          "\t %saverage source run %4ld times run time = %5.1f "
          "seconds (%5.1f - %5.1f)%s\n",
-         test.c_str(),                                         // test name
-         startTest.c_str(), startSource.c_str(), end.c_str(),  // dates
-         testRuns.size(), testMean,                            // test stats
-         testMean - testStdDev, testMean + testStdDev,         // test range
-         color,                                                /// start color
-         sourceRuns.size(), sourceMean,                        // source stats
-         sourceMean - sourceStdDev, sourceMean + sourceStdDev, // source range
+         test.c_str(),                                        // test name
+         startTest.c_str(), startSource.c_str(), end.c_str(), // dates
+         testRunsWithOtherSource.size(), testMean,            // test stats
+         math::min(filteredTestRunsWithOtherSource),
+         math::max(filteredTestRunsWithOtherSource), // test range
+         color,                                      /// start color
+         sourceRuns.size(), sourceMean,              // source stats
+         math::min(filteredSourceRuns),
+         math::max(filteredSourceRuns), // source range
          ClearTextFormat);
 }
 
-void performanceReport(Sqlite3::DB &db, bool fullReport = false) {
+void performanceReport(Sqlite3::DB &db, const StringList &testsToRun,
+                       bool fullReport = false) {
   Sqlite3::DB::Results results;
   std::string test, test_hash, source_identifier, startTest, startSource, last;
   std::string reason;
@@ -854,12 +875,19 @@ void performanceReport(Sqlite3::DB &db, bool fullReport = false) {
           &results);
 
   for (auto row : results) {
-    if (row("name", Sqlite3::TextType).text() != test) {
+    const std::string testName = row("name", Sqlite3::TextType).text();
+
+    if (!fullReport && (std::find(testsToRun.begin(), testsToRun.end(),
+                                  testName) == testsToRun.end())) {
+      continue;
+    }
+
+    if (testName != test) {
       if (testRuns.size() > 0) {
         reportRun(reason, test, startTest, startSource, last, testRuns,
                   sourceRuns);
       }
-      test = row("name", Sqlite3::TextType).text();
+      test = testName;
       test_hash = row("test_hash", Sqlite3::TextType).text();
       source_identifier = row("source_identifier", Sqlite3::TextType).text();
       startTest = row("timestamp", Sqlite3::TextType).text();
@@ -875,7 +903,7 @@ void performanceReport(Sqlite3::DB &db, bool fullReport = false) {
         reportRun(reason, test, startTest, startSource, last, testRuns,
                   sourceRuns);
       }
-      // test = row("name", Sqlite3::TextType).text();
+      // test = testName;
       test_hash = row("test_hash", Sqlite3::TextType).text();
       source_identifier = row("source_identifier", Sqlite3::TextType).text();
       startTest = row("timestamp", Sqlite3::TextType).text();
@@ -892,7 +920,7 @@ void performanceReport(Sqlite3::DB &db, bool fullReport = false) {
         reportRun(reason, test, startTest, startSource, last, testRuns,
                   sourceRuns);
       }
-      // test = row("name", Sqlite3::TextType).text();
+      // test = testName;
       // test_hash = row("test_hash", Sqlite3::TextType).text();
       source_identifier = row("source_identifier", Sqlite3::TextType).text();
       // startTest = row("timestamp", Sqlite3::TextType).text();
@@ -908,7 +936,7 @@ void performanceReport(Sqlite3::DB &db, bool fullReport = false) {
         reportRun(reason, test, startTest, startSource, last, testRuns,
                   sourceRuns);
       }
-      // test = row("name", Sqlite3::TextType).text();
+      // test = testName;
       // test_hash = row("test_hash", Sqlite3::TextType).text();
       // source_identifier = row("source_identifier", Sqlite3::TextType).text();
       // startTest = row("timestamp", Sqlite3::TextType).text();
@@ -1115,7 +1143,7 @@ int main(int argc, const char *const argv[]) {
         }
       }
     }
-    performanceReport(db);
+    performanceReport(db, testsToRun);
     // dumpCompilerStats(db); TODO: Need to determine what is wrong here
   } catch (const std::exception &exception) {
     printf("EXCEPTION: %s\n", exception.what());
