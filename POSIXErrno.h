@@ -224,10 +224,8 @@ ErrnoException(ETXTBSY);
 ErrnoException(EUSERS);
 ErrnoException(EWOULDBLOCK); // not  tested
 ErrnoException(EXDEV);
-#if 0
-	ErrnoException(ENOTRECOVERABLE);
-	ErrnoException(EOWNERDEAD);
-#endif
+ErrnoException(ENOTRECOVERABLE);
+ErrnoException(EOWNERDEAD);
 #undef ErrnoException
 
 inline Errno::Errno(int value, const char *errnoName, const char *file,
@@ -312,7 +310,6 @@ inline void Errno::_throw(int errnoCode, const std::string &message,
 #if defined(ESHLIBVERS)
       ErrnoCaseClass(ESHLIBVERS);
 #endif
-      /*ErrnoCaseClass(ENOPOLICY);*/
       ErrnoCaseClass(EBADF);
       ErrnoCaseClass(EBADMSG);
       ErrnoCaseClass(EBUSY);
@@ -370,9 +367,11 @@ inline void Errno::_throw(int errnoCode, const std::string &message,
       ErrnoCaseClass(ENOTSUP);
       ErrnoCaseClass(ENOTTY);
       ErrnoCaseClass(ENXIO);
+#if EOPNOTSUPP != ENOTSUP
       ErrnoCaseClass(EOPNOTSUPP);
+#endif
       ErrnoCaseClass(EOVERFLOW);
-      /*ErrnoCaseClass(EOWNERDEAD);*/
+      ErrnoCaseClass(EOWNERDEAD);
       ErrnoCaseClass(EPERM);
       ErrnoCaseClass(EPFNOSUPPORT);
       ErrnoCaseClass(EPIPE);
@@ -392,11 +391,13 @@ inline void Errno::_throw(int errnoCode, const std::string &message,
       ErrnoCaseClass(ETOOMANYREFS);
       ErrnoCaseClass(ETXTBSY);
       ErrnoCaseClass(EUSERS);
-      /*ErrnoCaseClass(EWOULDBLOCK);*/ ErrnoCaseClass(EXDEV);
-#if 0
-		ErrnoCaseClass(ENOTRECOVERABLE);
+#if EWOULDBLOCK != EAGAIN
+      ErrnoCaseClass(EWOULDBLOCK);
 #endif
-#undef ErrnoCase
+      ErrnoCaseClass(EXDEV);
+      ErrnoCaseClass(ENOPOLICY);
+      ErrnoCaseClass(ENOTRECOVERABLE);
+#undef ErrnoCaseClass
     default:
       throw Errno(message, errnoCode, "[Unknown]", file, line);
     }
