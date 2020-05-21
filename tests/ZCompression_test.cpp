@@ -1,5 +1,6 @@
 #include "os/ZCompression.h"
 #include <stdio.h>
+#include <string.h> // strlen
 
 int main(const int, const char *const[]) {
   int iterations = 100;

@@ -116,17 +116,19 @@ int main(int, const char *const[]) {
            ++item) {
         io::Path entry(*item);
 
-        printf("%16s inode=%d:%llu permissions=%o links=%d uid=%d gid=%d "
-               "size=%llu size on disk=%llu created=%s modified=%s updated=%s "
-               "accessed=%s\n",
-               entry.name().c_str(), entry.device(), entry.inode(),
-               entry.permissions(), entry.links(), entry.userId(),
-               entry.groupId(), entry.size(),
-               entry.blocks() * entry.blockSize(),
-               entry.created().format("%Y/%m/%d %H:%M:%S").c_str(),
-               entry.lastModification().format("%Y/%m/%d %H:%M:%S").c_str(),
-               entry.lastStatusChange().format("%Y/%m/%d %H:%M:%S").c_str(),
-               entry.lastAccess().format("%Y/%m/%d %H:%M:%S").c_str());
+        printf(
+            "%16s inode=%ld:%llu permissions=%o links=%ld uid=%d gid=%d "
+            "size=%llu size on disk=%llu created=%s modified=%s updated=%s "
+            "accessed=%s\n",
+            entry.name().c_str(), static_cast<unsigned long>(entry.device()),
+            static_cast<unsigned long long>(entry.inode()), entry.permissions(),
+            static_cast<unsigned long>(entry.links()), entry.userId(),
+            entry.groupId(), static_cast<unsigned long long>(entry.size()),
+            static_cast<unsigned long long>(entry.blocks() * entry.blockSize()),
+            entry.created().format("%Y/%m/%d %H:%M:%S").c_str(),
+            entry.lastModification().format("%Y/%m/%d %H:%M:%S").c_str(),
+            entry.lastStatusChange().format("%Y/%m/%d %H:%M:%S").c_str(),
+            entry.lastAccess().format("%Y/%m/%d %H:%M:%S").c_str());
         found = found || (entry.name() == "test");
       }
       if (!found) {
