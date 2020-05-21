@@ -90,13 +90,38 @@ ErrnoException(EADDRNOTAVAIL);
 ErrnoException(EAFNOSUPPORT);
 ErrnoException(EAGAIN);
 ErrnoException(EALREADY);
-ErrnoException(EAUTH);
-ErrnoException(EBADARCH);
-ErrnoException(EBADEXEC);
 ErrnoException(EBADF);
+#if defined(EAUTH)
+ErrnoException(EAUTH);
+#endif
+#if defined(EBADARCH)
+ErrnoException(EBADARCH);
+#endif
+#if defined(EBADEXEC)
+ErrnoException(EBADEXEC);
+#endif
+#if defined(EBADMACHO)
 ErrnoException(EBADMACHO);
-ErrnoException(EBADMSG);
+#endif
+#if defined(EBADRPC)
 ErrnoException(EBADRPC);
+#endif
+#if defined(EDEVERR)
+ErrnoException(EDEVERR);
+#endif
+#if defined(EFTYPE)
+ErrnoException(EFTYPE);
+#endif
+#if defined(ELAST)
+ErrnoException(ELAST);
+#endif
+#if defined(ENEEDAUTH)
+ErrnoException(ENEEDAUTH);
+#endif
+#if defined(ENOATTR)
+ErrnoException(ENOATTR);
+#endif
+ErrnoException(EBADMSG);
 ErrnoException(EBUSY);
 ErrnoException(ECANCELED);
 ErrnoException(ECHILD);
@@ -105,13 +130,11 @@ ErrnoException(ECONNREFUSED);
 ErrnoException(ECONNRESET);
 ErrnoException(EDEADLK);
 ErrnoException(EDESTADDRREQ);
-ErrnoException(EDEVERR);
 ErrnoException(EDOM);
 ErrnoException(EDQUOT);
 ErrnoException(EEXIST);
 ErrnoException(EFAULT);
 ErrnoException(EFBIG);
-ErrnoException(EFTYPE);
 ErrnoException(EHOSTDOWN);
 ErrnoException(EHOSTUNREACH);
 ErrnoException(EIDRM);
@@ -122,19 +145,16 @@ ErrnoException(EINVAL);
 ErrnoException(EIO);
 ErrnoException(EISCONN);
 ErrnoException(EISDIR);
-ErrnoException(ELAST);
 ErrnoException(ELOOP);
 ErrnoException(EMFILE);
 ErrnoException(EMLINK);
 ErrnoException(EMSGSIZE);
 ErrnoException(EMULTIHOP);
 ErrnoException(ENAMETOOLONG);
-ErrnoException(ENEEDAUTH);
 ErrnoException(ENETDOWN);
 ErrnoException(ENETRESET);
 ErrnoException(ENETUNREACH);
 ErrnoException(ENFILE);
-ErrnoException(ENOATTR);
 ErrnoException(ENOBUFS);
 ErrnoException(ENODATA);
 ErrnoException(ENODEV);
@@ -225,13 +245,38 @@ inline void Errno::_throw(int errnoCode, const std::string &message,
       ErrnoCaseClass(EAFNOSUPPORT);
       ErrnoCaseClass(EAGAIN);
       ErrnoCaseClass(EALREADY);
+#if defined(EAUTH)
       ErrnoCaseClass(EAUTH);
+#endif
+#if defined(EBADARCH)
       ErrnoCaseClass(EBADARCH);
+#endif
+#if defined(EBADEXEC)
       ErrnoCaseClass(EBADEXEC);
-      ErrnoCaseClass(EBADF);
+#endif
+#if defined(EBADMACHO)
       ErrnoCaseClass(EBADMACHO);
-      ErrnoCaseClass(EBADMSG);
+#endif
+#if defined(EBADRPC)
       ErrnoCaseClass(EBADRPC);
+#endif
+#if defined(EDEVERR)
+      ErrnoCaseClass(EDEVERR);
+#endif
+#if defined(EFTYPE)
+      ErrnoCaseClass(EFTYPE);
+#endif
+#if defined(ELAST)
+      ErrnoCaseClass(ELAST);
+#endif
+#if defined(ENEEDAUTH)
+      ErrnoCaseClass(ENEEDAUTH);
+#endif
+#if defined(ENOATTR)
+      ErrnoCaseClass(ENOATTR);
+#endif
+      ErrnoCaseClass(EBADF);
+      ErrnoCaseClass(EBADMSG);
       ErrnoCaseClass(EBUSY);
       ErrnoCaseClass(ECANCELED);
       ErrnoCaseClass(ECHILD);
@@ -240,13 +285,11 @@ inline void Errno::_throw(int errnoCode, const std::string &message,
       ErrnoCaseClass(ECONNRESET);
       ErrnoCaseClass(EDEADLK);
       ErrnoCaseClass(EDESTADDRREQ);
-      ErrnoCaseClass(EDEVERR);
       ErrnoCaseClass(EDOM);
       ErrnoCaseClass(EDQUOT);
       ErrnoCaseClass(EEXIST);
       ErrnoCaseClass(EFAULT);
       ErrnoCaseClass(EFBIG);
-      ErrnoCaseClass(EFTYPE);
       ErrnoCaseClass(EHOSTDOWN);
       ErrnoCaseClass(EHOSTUNREACH);
       ErrnoCaseClass(EIDRM);
@@ -257,19 +300,16 @@ inline void Errno::_throw(int errnoCode, const std::string &message,
       ErrnoCaseClass(EIO);
       ErrnoCaseClass(EISCONN);
       ErrnoCaseClass(EISDIR);
-      ErrnoCaseClass(ELAST);
       ErrnoCaseClass(ELOOP);
       ErrnoCaseClass(EMFILE);
       ErrnoCaseClass(EMLINK);
       ErrnoCaseClass(EMSGSIZE);
       ErrnoCaseClass(EMULTIHOP);
       ErrnoCaseClass(ENAMETOOLONG);
-      ErrnoCaseClass(ENEEDAUTH);
       ErrnoCaseClass(ENETDOWN);
       ErrnoCaseClass(ENETRESET);
       ErrnoCaseClass(ENETUNREACH);
       ErrnoCaseClass(ENFILE);
-      ErrnoCaseClass(ENOATTR);
       ErrnoCaseClass(ENOBUFS);
       ErrnoCaseClass(ENODATA);
       ErrnoCaseClass(ENODEV);
