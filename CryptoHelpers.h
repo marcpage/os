@@ -2,6 +2,7 @@
 #define __OpenSLLHelpers_h__
 
 #include "os/Exception.h"
+#include <string.h> // strlen
 
 #if OpenSSLAvailable
 #include <openssl/err.h>

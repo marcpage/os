@@ -344,6 +344,8 @@ inline bool Library::_search_bundle(const std::string &name) {
   if (NULL != str) {
     CFRelease(str);
   }
+#else
+  const void *__unused__[] = {&__unused__, &name};
 #endif
   return false;
 }
@@ -382,6 +384,8 @@ inline bool Library::_attempt_core(const char *path, PathModified modified) {
       return true;
     }
   }
+#else
+  const void *__unused__[] = {&__unused__, &modified};
 #endif
 #if __use_dlopen__
   _dl = dlopen(path, RTLD_NOW);

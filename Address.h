@@ -49,11 +49,13 @@ private:
 
 GAIException(EAI_AGAIN);
 GAIException(EAI_BADFLAGS);
+#if defined(__APPLE__)
 #if defined(EAI_BADHINTS)
 GAIException(EAI_BADHINTS);
 #endif
 #if defined(EAI_PROTOCOL)
 GAIException(EAI_PROTOCOL);
+#endif
 #endif
 GAIException(EAI_FAIL);
 GAIException(EAI_FAMILY);
