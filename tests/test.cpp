@@ -42,7 +42,10 @@ const char *const gCompilerFlags =
 #if linux
     " -lcrypto -DOpenSSLAvailable=1"
 #endif
-    " -lz -lsqlite3 -framework CoreFoundation";
+#if defined(__APPLE__)
+	" -framework CoreFoundation"
+#endif
+    " -lz -lsqlite3";
 const char *const gDebugFlags =
 #if defined(__APPLE__)
     " -fsanitize=address -fsanitize-address-use-after-scope"
@@ -1116,7 +1119,7 @@ int main(int argc, const char *const argv[]) {
     StringList headers;
     String parentDirectoryName =
         io::Path(argv[0]).canonical().parent().parent().name();
-#if defined(__APPLE__) // http://predef.sourceforge.net/preos.html#sec20
+#if defined(__APPLE__)
     io::Path cacheDir = io::Path(env::get("HOME")) + "Library" + "Caches";
 #else
     io::Path cacheDir = io::Path(env::get("HOME")) + ".testRuns";
