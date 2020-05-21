@@ -14,7 +14,7 @@ ifeq ($(PLATFORM),Darwin)
 endif
 
 ifeq ($(PLATFORM),Linux)
-  USE_OPENSSL = -DOpenSSLAvailable=1
+  USE_OPENSSL = -DOpenSSLAvailable=1 -lcrypto
 endif
 
 KNOWN_ERRORS:= --suppress=unusedFunction \
