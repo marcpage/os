@@ -8,8 +8,11 @@
 #include "POSIXErrno.h"
 #include <map>
 #include <string>
+#include <unistd.h>
 
+#if !defined(_GNU_SOURCE)
 extern const char **environ;
+#endif
 
 namespace env {
 
