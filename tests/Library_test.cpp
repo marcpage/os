@@ -54,6 +54,7 @@ int main(const int argc, const char *const argv[]) {
       fprintf(stderr, "FAILED: EXCEPTION(libz.dylib:zlibVersion): %s\n",
               exception.what());
     }
+#if defined(__APPLE__)
     try {
       printf("Carbon:TickCount=%d\n",
              sys::Library("Carbon").function<tick_count>("TickCount")());
@@ -77,6 +78,7 @@ int main(const int argc, const char *const argv[]) {
       fprintf(stderr, "FAILED: EXCEPTION(Carbon.framework:TickCount): %s\n",
               exception.what());
     }
+#endif
     try {
       sys::Library("Nonsense Library");
       fprintf(stderr, "FAILED: Expected an exception for Nonsense Library\n");

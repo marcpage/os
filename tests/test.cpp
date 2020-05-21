@@ -57,7 +57,9 @@ const uint32_t gMinimumPercentCodeCoverage = 70;
 #if defined(__APPLE__)
 const String gCompilerList = "clang++"; //,g++,llvm-g++";
 #elif defined(__linux__)
-const String gCompilerList = "clang++,g++"; //,llvm-g++";
+// may do clang++ later, but need to figure out llvm-cov (and maybe install
+// llvm)
+const String gCompilerList = "g++"; //,clang++,llvm-g++";
 #endif
 
 Dictionary gCompilerLocations;
@@ -550,8 +552,12 @@ void runTest(const String &name, const std::string::size_type maxNameSize,
       printf(WarningTextFormatStart "WARNING: mkdir '%s'" ClearTextFormat "\n",
              results.c_str());
     }
-    exec::execute("gcov " + name + "_test.cpp" + " &> bin/logs/" + gcovLogName,
-                  results);
+    command =
+        String("gcov ") + name + "_test.cpp" + " &> bin/logs/" + gcovLogName;
+    if (gVerbose) {
+      printf("EXECUTING: %s\n", command.c_str());
+    }
+    exec::execute(command, results);
     if (results != "") {
       printf(WarningTextFormatStart "WARNING: gcov '%s'" ClearTextFormat "\n",
              results.c_str());
