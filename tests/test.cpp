@@ -39,7 +39,7 @@ const char *const gOpensllFlags = "-lcrypto";
 const char *const gCompilerFlags =
     "-I.. -MMD -std=c++11"
     " -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings"
-#if linux
+#if defined(linux)
     " -lcrypto -DOpenSSLAvailable=1"
 #endif
 #if defined(__APPLE__)
