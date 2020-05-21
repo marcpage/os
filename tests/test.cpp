@@ -1108,10 +1108,19 @@ int main(int argc, const char *const argv[]) {
   try {
     String results;
     StringList headers;
-    String parentDirectory =
+    String parentDirectoryName =
         io::Path(argv[0]).canonical().parent().parent().name();
-    Sqlite3::DB db(env::get("HOME") + "/Library/Caches/" + parentDirectory +
-                   "_tests.sqlite3");
+#if defined(__APPLE__) // http://predef.sourceforge.net/preos.html#sec20
+    io::Path cacheDir = io::Path(env::get("HOME")) + "Library" + "Caches";
+#else
+    io::Path cacheDir = io::Path(env::get("HOME")) + ".testRuns";
+#endif
+
+    if (!cacheDir.isDirectory()) {
+      cacheDir.mkdirs();
+    }
+
+    Sqlite3::DB db(cacheDir + (parentDirectoryName + "_tests.sqlite3"));
 
     db.exec("CREATE TABLE IF NOT EXISTS `run` ("
             "`name` VARCHAR(256), "
