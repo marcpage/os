@@ -39,10 +39,16 @@ const char *const gOpensllFlags = "-lcrypto";
 const char *const gCompilerFlags =
     "-I.. -MMD -std=c++11"
     " -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings"
+#if linux
+    " -lcrypto -DOpenSSLAvailable=1"
+#endif
     " -lz -lsqlite3 -framework CoreFoundation";
 const char *const gDebugFlags =
-    " -g -fsanitize=address -fsanitize-address-use-after-scope"
-    " -fno-optimize-sibling-calls -O1 -fsanitize=undefined ";
+#if defined(__APPLE__)
+    " -fsanitize=address -fsanitize-address-use-after-scope"
+    " -fsanitize=undefined"
+#endif
+    " -fno-optimize-sibling-calls -O0 -g ";
 
 const uint32_t gMinimumPercentCodeCoverage = 70;
 const String gCompilerList = "clang++"; //,g++,llvm-g++";
