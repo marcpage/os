@@ -1221,7 +1221,7 @@ int main(int argc, const char *const argv[]) {
 
     performanceReport(db, testsToRun);
     if (compilersToRun.size() > 1) {
-	    compilerPerformanceReport(db, compilersToRun);
+      compilerPerformanceReport(db, compilersToRun);
     }
 
   } catch (const std::exception &exception) {

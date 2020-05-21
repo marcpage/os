@@ -6,6 +6,8 @@ lint:bin/logs/lint.txt
 
 OPENSSL_PATH=$(subst openssl=,-I,$(OS_OPTIONS))/include
 
+CLANG_FORMAT_FLAGS = --verbose
+
 KNOWN_ERRORS:= --suppress=unusedFunction \
     			--inline-suppr \
 				-U_DEBUG_FILE
@@ -47,7 +49,7 @@ format:bin/logs/clang-format.txt
 bin/logs/clang-format.txt:tests/*.cpp *.h
 	@echo Cleaning code ...
 	@mkdir -p bin/logs/
-	@clang-format --verbose -i *.h tests/*.cpp 2> bin/logs/clang-format.txt
+	@clang-format $(CLANG_FORMAT_FLAGS) -i *.h tests/*.cpp 2> bin/logs/clang-format.txt
 
 # -fsanitize=memory
 # -fsanitize=thread

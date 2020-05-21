@@ -5,8 +5,11 @@
         @todo document
 */
 
-#include <cxxabi.h> // abi::__cxa_demangle
-#include <execinfo.h>
+#include <cxxabi.h>    // abi::__cxa_demangle
+#if defined(__APPLE__) // http://predef.sourceforge.net/preos.html#sec20
+#include <execinfo.h>  // not available on Linux?
+#define BACKTRACE_AVAILABLE 1
+#endif
 #include <stdlib.h>
 #include <string>
 #include <vector>
@@ -70,17 +73,20 @@ inline std::string stripPrefix(const std::string &line) {
 }
 inline StringList &stack(StringList &list, int maxDepth = 4096) {
   // trace::stack() call, std::string, and Exception x 2
+  list.clear();
+
+#if BACKTRACE_AVAILABLE
   const int skipStackFrames = 4;
   void **frames = new void *[maxDepth];
   int count = ::backtrace(frames, maxDepth);
   char **names = ::backtrace_symbols(frames, count);
 
-  list.clear();
   for (int i = skipStackFrames; i < count; ++i) {
     list.push_back(demangleLine(stripPrefix(names[i])));
   }
   ::free(names);
   delete[] frames;
+#endif
   return list;
 }
 inline StringList stack(int maxDepth = 4096) {
@@ -96,5 +102,7 @@ inline void print(int maxDepth = 4096) {
   }
 }
 } // namespace trace
+
+#undef BACKTRACE_AVAILABLE
 
 #endif // __Backtrace_h__

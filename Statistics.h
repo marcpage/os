@@ -4,6 +4,7 @@
 #include <algorithm> // std::accumulate
 #include <math.h>
 #include <numeric>
+#include <stdexcept> // std::out_of_range
 #include <string>
 #include <vector>
 
