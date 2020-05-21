@@ -86,6 +86,8 @@ inline StringList &stack(StringList &list, int maxDepth = 4096) {
   }
   ::free(names);
   delete[] frames;
+#else
+  void *__unused__[] = {&__unused__, &maxDepth};
 #endif
   return list;
 }
