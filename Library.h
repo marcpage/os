@@ -23,11 +23,11 @@
   ".dylib" ///< dlopen libraries on Mac are usually dylib
 #endif
 
-#if defined(linux)
+#if defined(__linux__)
 #define __std_lib_suffix__ ".so" ///< dlopen libraries on linux are .so
 #endif
 
-#if defined(linux) || defined(__APPLE__)
+#if defined(__linux__) || defined(__APPLE__)
 #include <dlfcn.h>
 #define __use_dlopen__ 1         ///< dlopen API supported
 #define __use_something__        ///< We've figured out a library API
