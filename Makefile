@@ -6,7 +6,15 @@ lint:bin/logs/lint.txt
 
 OPENSSL_PATH=$(subst openssl=,-I,$(OS_OPTIONS))/include
 
-CLANG_FORMAT_FLAGS = --verbose
+PLATFORM = $(shell uname)
+
+ifeq ($(PLATFORM),Darwin)
+  CLANG_FORMAT_FLAGS = --verbose
+endif
+
+ifeq ($(PLATFORM),Linux)
+  USE_OPENSSL = -DOpenSSLAvailable=1
+endif
 
 KNOWN_ERRORS:= --suppress=unusedFunction \
     			--inline-suppr \
@@ -59,7 +67,7 @@ bin/logs/clang-format.txt:tests/*.cpp *.h
 # -D_LIBCPP_DEBUG=1
 bin/test:tests/test.cpp *.h
 	@mkdir -p bin
-	@clang++ tests/test.cpp -o $@ -I.. -std=c++11 -lsqlite3 -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -fsanitize=address -fsanitize-address-use-after-scope -fno-optimize-sibling-calls -O1 -fsanitize=undefined -g
+	@clang++ tests/test.cpp -o $@ $(USE_OPENSSL) -I.. -std=c++11 -lsqlite3 -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -fsanitize=address -fsanitize-address-use-after-scope -fno-optimize-sibling-calls -O1 -fsanitize=undefined -g
 
 clean:
 	@rm -Rf documentation bin/coverage bin/test bin/tests bin/logs/*.log bin/logs/*.txt
