@@ -553,7 +553,11 @@ inline Path::StringList &Path::_list(HavePath havePath,
         ErrnoOnNULL(ep = ::readdir(dp));
 
         if (NULL != ep) {
+#if defined(__APPLE__) // http://predef.sourceforge.net/preos.html#sec20
           const String name = String(ep->d_name, 0, ep->d_namlen);
+#else
+          const String name = String(ep->d_name); //, 0, ep->d_namlen);
+#endif
           const bool isDirectory = DT_DIR == ep->d_type;
 
           if ((name != ".") && (name != "..")) {
@@ -655,22 +659,38 @@ inline gid_t Path::groupId(LinkHandling action) const {
 inline dt::DateTime Path::lastAccess(LinkHandling action) const {
   struct stat info;
 
+#if defined(__APPLE__) // http://predef.sourceforge.net/preos.html#sec20
   return dt::DateTime(_stat(info, action).st_atimespec);
+#else
+  return dt::DateTime(_stat(info, action).st_atime);
+#endif
 }
 inline dt::DateTime Path::lastModification(LinkHandling action) const {
   struct stat info;
 
+#if defined(__APPLE__) // http://predef.sourceforge.net/preos.html#sec20
   return dt::DateTime(_stat(info, action).st_mtimespec);
+#else
+  return dt::DateTime(_stat(info, action).st_mtime);
+#endif
 }
 inline dt::DateTime Path::lastStatusChange(LinkHandling action) const {
   struct stat info;
 
+#if defined(__APPLE__) // http://predef.sourceforge.net/preos.html#sec20
   return dt::DateTime(_stat(info, action).st_ctimespec);
+#else
+  return dt::DateTime(_stat(info, action).st_ctime);
+#endif
 }
 inline dt::DateTime Path::created(LinkHandling action) const {
   struct stat info;
 
+#if defined(__APPLE__) // http://predef.sourceforge.net/preos.html#sec20
   return dt::DateTime(_stat(info, action).st_birthtimespec);
+#else
+  return dt::DateTime(_stat(info, action).st_mtime);
+#endif
 }
 inline off_t Path::size(LinkHandling action) const {
   struct stat info;
