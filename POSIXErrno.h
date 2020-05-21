@@ -121,6 +121,30 @@ ErrnoException(ENEEDAUTH);
 #if defined(ENOATTR)
 ErrnoException(ENOATTR);
 #endif
+#if defined(ENOPOLICY)
+ErrnoException(ENOPOLICY); // Not tested
+#endif
+#if defined(EPROCLIM)
+ErrnoException(EPROCLIM);
+#endif
+#if defined(EPROCUNAVAIL)
+ErrnoException(EPROCUNAVAIL);
+#endif
+#if defined(EPROGMISMATCH)
+ErrnoException(EPROGMISMATCH);
+#endif
+#if defined(EPROGUNAVAIL)
+ErrnoException(EPROGUNAVAIL);
+#endif
+#if defined(EPWROFF)
+ErrnoException(EPWROFF);
+#endif
+#if defined(ERPCMISMATCH)
+ErrnoException(ERPCMISMATCH);
+#endif
+#if defined(ESHLIBVERS)
+ErrnoException(ESHLIBVERS);
+#endif
 ErrnoException(EBADMSG);
 ErrnoException(EBUSY);
 ErrnoException(ECANCELED);
@@ -164,7 +188,6 @@ ErrnoException(ENOLCK);
 ErrnoException(ENOLINK);
 ErrnoException(ENOMEM);
 ErrnoException(ENOMSG);
-ErrnoException(ENOPOLICY); // Not tested
 ErrnoException(ENOPROTOOPT);
 ErrnoException(ENOSPC);
 ErrnoException(ENOSR);
@@ -183,19 +206,12 @@ ErrnoException(EOVERFLOW);
 ErrnoException(EPERM);
 ErrnoException(EPFNOSUPPORT);
 ErrnoException(EPIPE);
-ErrnoException(EPROCLIM);
-ErrnoException(EPROCUNAVAIL);
-ErrnoException(EPROGMISMATCH);
-ErrnoException(EPROGUNAVAIL);
 ErrnoException(EPROTO);
 ErrnoException(EPROTONOSUPPORT);
 ErrnoException(EPROTOTYPE);
-ErrnoException(EPWROFF);
 ErrnoException(ERANGE);
 ErrnoException(EREMOTE);
 ErrnoException(EROFS);
-ErrnoException(ERPCMISMATCH);
-ErrnoException(ESHLIBVERS);
 ErrnoException(ESHUTDOWN);
 ErrnoException(ESOCKTNOSUPPORT);
 ErrnoException(ESPIPE);
@@ -275,6 +291,28 @@ inline void Errno::_throw(int errnoCode, const std::string &message,
 #if defined(ENOATTR)
       ErrnoCaseClass(ENOATTR);
 #endif
+#if defined(EPROCLIM)
+      ErrnoCaseClass(EPROCLIM);
+#endif
+#if defined(EPROCUNAVAIL)
+      ErrnoCaseClass(EPROCUNAVAIL);
+#endif
+#if defined(EPROGMISMATCH)
+      ErrnoCaseClass(EPROGMISMATCH);
+#endif
+#if defined(EPROGUNAVAIL)
+      ErrnoCaseClass(EPROGUNAVAIL);
+#endif
+#if defined(EPWROFF)
+      ErrnoCaseClass(EPWROFF);
+#endif
+#if defined(ERPCMISMATCH)
+      ErrnoCaseClass(ERPCMISMATCH);
+#endif
+#if defined(ESHLIBVERS)
+      ErrnoCaseClass(ESHLIBVERS);
+#endif
+      /*ErrnoCaseClass(ENOPOLICY);*/
       ErrnoCaseClass(EBADF);
       ErrnoCaseClass(EBADMSG);
       ErrnoCaseClass(EBUSY);
@@ -318,7 +356,7 @@ inline void Errno::_throw(int errnoCode, const std::string &message,
       ErrnoCaseClass(ENOLCK);
       ErrnoCaseClass(ENOLINK);
       ErrnoCaseClass(ENOMEM);
-      ErrnoCaseClass(ENOMSG); /*ErrnoCaseClass(ENOPOLICY);*/
+      ErrnoCaseClass(ENOMSG);
       ErrnoCaseClass(ENOPROTOOPT);
       ErrnoCaseClass(ENOSPC);
       ErrnoCaseClass(ENOSR);
@@ -334,22 +372,16 @@ inline void Errno::_throw(int errnoCode, const std::string &message,
       ErrnoCaseClass(ENXIO);
       ErrnoCaseClass(EOPNOTSUPP);
       ErrnoCaseClass(EOVERFLOW);
-      /*ErrnoCaseClass(EOWNERDEAD);*/ ErrnoCaseClass(EPERM);
+      /*ErrnoCaseClass(EOWNERDEAD);*/
+      ErrnoCaseClass(EPERM);
       ErrnoCaseClass(EPFNOSUPPORT);
       ErrnoCaseClass(EPIPE);
-      ErrnoCaseClass(EPROCLIM);
-      ErrnoCaseClass(EPROCUNAVAIL);
-      ErrnoCaseClass(EPROGMISMATCH);
-      ErrnoCaseClass(EPROGUNAVAIL);
       ErrnoCaseClass(EPROTO);
       ErrnoCaseClass(EPROTONOSUPPORT);
       ErrnoCaseClass(EPROTOTYPE);
-      ErrnoCaseClass(EPWROFF);
       ErrnoCaseClass(ERANGE);
       ErrnoCaseClass(EREMOTE);
       ErrnoCaseClass(EROFS);
-      ErrnoCaseClass(ERPCMISMATCH);
-      ErrnoCaseClass(ESHLIBVERS);
       ErrnoCaseClass(ESHUTDOWN);
       ErrnoCaseClass(ESOCKTNOSUPPORT);
       ErrnoCaseClass(ESPIPE);
