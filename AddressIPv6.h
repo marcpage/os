@@ -53,7 +53,9 @@ inline AddressIPv6::AddressIPv6(const void *address, socklen_t size)
 inline AddressIPv6::AddressIPv6(in_port_t port, const struct in6_addr &address)
     : Address(), _address() {
   ::bzero(reinterpret_cast<char *>(&_address), size());
+#if defined(__APPLE__)
   _address.sin6_len = sizeof(_address);
+#endif
   _address.sin6_family = family();
   _address.sin6_addr = address;
   _address.sin6_port = htons(port);
@@ -71,9 +73,11 @@ inline AddressIPv6::AddressIPv6(const std::string &address, in_port_t port)
   hostaddress = ::gethostbyname2(address.c_str(), family());
   if (NULL == hostaddress) {
     ThrowMessageException(
-        std::string("gethostbyname2 failed: ").append(::hstrerror(::h_errno)));
+        std::string("gethostbyname2 failed: ").append(::hstrerror(h_errno)));
   }
+#if defined(__APPLE__)
   _address.sin6_len = sizeof(_address);
+#endif
   _address.sin6_family = hostaddress->h_addrtype;
   _address.sin6_port = htons(port);
   ::bcopy(reinterpret_cast<char *>(hostaddress->h_addr),

@@ -54,7 +54,12 @@ const char *const gDebugFlags =
     " -fno-optimize-sibling-calls -O0 -g ";
 
 const uint32_t gMinimumPercentCodeCoverage = 70;
+#if defined(__APPLE__)
 const String gCompilerList = "clang++"; //,g++,llvm-g++";
+#elif defined(__linux__)
+const String gCompilerList = "clang++,g++"; //,llvm-g++";
+#endif
+
 Dictionary gCompilerLocations;
 bool gDebugging = false;
 bool gVerbose = false;

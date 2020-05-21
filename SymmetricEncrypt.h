@@ -14,7 +14,7 @@
 #include <string.h>
 #include <string>
 
-#if __APPLE_CC__ || __APPLE__
+#if defined(__APPLE__)
 #include <CommonCrypto/CommonCryptor.h>
 #endif
 
@@ -226,18 +226,28 @@ typedef SpecificSymmetricKey<OpenSSL_AES256_CBC_Padded_Cryptor>
     OpenSSL_AES256_CBC_Padded;
 typedef SpecificSymmetricKey<OpenSSL_AES256_CBC_Cryptor> OpenSSL_AES256_CBC;
 
-#if __APPLE_CC__ || __APPLE__
+/* for some reason, EVP_aes_256_ebc is not defined
+typedef OpenSSLAES<EVP_aes_256_ebc, true, 32, AES_BLOCK_SIZE, AES_BLOCK_SIZE>
+    OpenSSL_AES256_EBC_Padded_Cryptor;
+typedef OpenSSLAES<EVP_aes_256_ebc, false, 32, AES_BLOCK_SIZE, AES_BLOCK_SIZE>
+    OpenSSL_AES256_EBC_Cryptor;
+typedef SpecificSymmetricKey<OpenSSL_AES256_EBC_Padded_Cryptor>
+    OpenSSL_AES256_EBC_Padded;
+typedef SpecificSymmetricKey<OpenSSL_AES256_EBC_Cryptor> OpenSSL_AES256_EBC;
+*/
+
+#if defined(__APPLE__)
 typedef OpenSSL_AES256_CBC_Padded OpenSSL_AES256;
 #else
 typedef SpecificSymmetricKey<OpenSSL_AES256_CBC_Padded_Cryptor>
     AES256_CBC_Padded;
 typedef SpecificSymmetricKey<OpenSSL_AES256_CBC_Cryptor> AES256_CBC;
 typedef AES256_CBC_Padded AES256;
-#endif // __APPLE_CC__ || __APPLE__
+#endif // defined(__APPLE__)
 
 #endif // OpenSSLAvailable
 
-#if __APPLE_CC__ || __APPLE__
+#if defined(__APPLE__)
 
 template <CCAlgorithm algorithm, CCOptions options, size_t keyLength,
           size_t blockSize, size_t ivLength>
@@ -290,7 +300,7 @@ typedef SpecificSymmetricKey<CommonCrypto_AES256_EBC_Cryptor> AES256_EBC;
 
 typedef AES256_CBC_Padded AES256;
 
-#endif // __APPLE_CC__ || __APPLE__
+#endif // defined(__APPLE__)
 } // namespace crypto
 
 #endif // __SymmetricEncrypt_h__

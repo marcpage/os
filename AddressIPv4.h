@@ -57,7 +57,9 @@ inline AddressIPv4::AddressIPv4(const struct sockaddr *address, socklen_t size)
 inline AddressIPv4::AddressIPv4(in_port_t port, u_int32_t address)
     : Address(), _address() {
   ::bzero(reinterpret_cast<char *>(&_address), size());
+#if defined(__APPLE__)
   _address.sin_len = sizeof(_address);
+#endif
   _address.sin_family = family();
   _address.sin_addr.s_addr = address;
   _address.sin_port = htons(port);
@@ -75,9 +77,11 @@ inline AddressIPv4::AddressIPv4(const std::string &address, in_port_t port)
   hostaddress = ::gethostbyname2(address.c_str(), family());
   if (NULL == hostaddress) {
     ThrowMessageException(
-        std::string("gethostbyname2 failed: ").append(::hstrerror(::h_errno)));
+        std::string("gethostbyname2 failed: ").append(::hstrerror(h_errno)));
   }
+#if defined(__APPLE__)
   _address.sin_len = sizeof(_address);
+#endif
   _address.sin_family = hostaddress->h_addrtype;
   _address.sin_port = htons(port);
   ::bcopy(reinterpret_cast<char *>(hostaddress->h_addr),

@@ -10,6 +10,7 @@
 
 #include "os/Exception.h"
 #include <exception>
+#include <string.h> // strchr
 #include <string>
 
 // --- System Headers ---

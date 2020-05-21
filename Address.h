@@ -49,13 +49,11 @@ private:
 
 GAIException(EAI_AGAIN);
 GAIException(EAI_BADFLAGS);
-#if defined(__APPLE__)
 #if defined(EAI_BADHINTS)
 GAIException(EAI_BADHINTS);
 #endif
 #if defined(EAI_PROTOCOL)
 GAIException(EAI_PROTOCOL);
-#endif
 #endif
 GAIException(EAI_FAIL);
 GAIException(EAI_FAMILY);
@@ -129,13 +127,17 @@ inline void GetAddressInfoException::_throw(int value,
     throw name##_GAI(message, file, line)
       GAICaseClass(EAI_AGAIN);
       GAICaseClass(EAI_BADFLAGS);
+#if defined(EAI_BADHINTS)
       GAICaseClass(EAI_BADHINTS);
+#endif
+#if defined(EAI_PROTOCOL)
+      GAICaseClass(EAI_PROTOCOL);
+#endif
       GAICaseClass(EAI_FAIL);
       GAICaseClass(EAI_FAMILY);
       GAICaseClass(EAI_MEMORY);
       GAICaseClass(EAI_NONAME);
       GAICaseClass(EAI_OVERFLOW);
-      GAICaseClass(EAI_PROTOCOL);
       GAICaseClass(EAI_SERVICE);
       GAICaseClass(EAI_SOCKTYPE);
       GAICaseClass(EAI_SYSTEM);
