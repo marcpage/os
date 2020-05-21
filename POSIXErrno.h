@@ -122,7 +122,7 @@ ErrnoException(ENEEDAUTH);
 ErrnoException(ENOATTR);
 #endif
 #if defined(ENOPOLICY)
-ErrnoException(ENOPOLICY); // Not tested
+ErrnoException(ENOPOLICY);
 #endif
 #if defined(EPROCLIM)
 ErrnoException(EPROCLIM);
@@ -243,8 +243,8 @@ inline Errno &Errno::operator=(const Errno &other) { // not tested
   return *this;
 }
 inline Errno::~Errno() throw() {}
-inline const char *Errno::name() const {
-  return "[Unknown]"; // not tested
+inline const char *Errno::name() const { // not tested
+  return "[Unknown]";                    // not tested
 }
 inline int Errno::code() const throw() {
   return _errno; // not tested
