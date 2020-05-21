@@ -37,8 +37,8 @@ inline std::string &execute(const std::string &command, std::string &stdout,
 /// @todo Test
 inline std::string execute(const std::string &command,
                            const size_t blocks = 4096) {
-  std::string stdout;
+  std::string output;
 
-  return execute(command, stdout, blocks);
+  return execute(command, output, blocks);
 }
 } // namespace exec

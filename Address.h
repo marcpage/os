@@ -49,13 +49,17 @@ private:
 
 GAIException(EAI_AGAIN);
 GAIException(EAI_BADFLAGS);
+#if defined(EAI_BADHINTS)
 GAIException(EAI_BADHINTS);
+#endif
+#if defined(EAI_PROTOCOL)
+GAIException(EAI_PROTOCOL);
+#endif
 GAIException(EAI_FAIL);
 GAIException(EAI_FAMILY);
 GAIException(EAI_MEMORY);
 GAIException(EAI_NONAME);
 GAIException(EAI_OVERFLOW);
-GAIException(EAI_PROTOCOL);
 GAIException(EAI_SERVICE);
 GAIException(EAI_SOCKTYPE);
 GAIException(EAI_SYSTEM);
