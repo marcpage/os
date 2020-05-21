@@ -10,6 +10,7 @@ PLATFORM = $(shell uname)
 
 ifeq ($(PLATFORM),Darwin)
   CLANG_FORMAT_FLAGS = --verbose
+  SANITIZERS = -fsanitize=address -fsanitize-address-use-after-scope -fsanitize=undefined
 endif
 
 ifeq ($(PLATFORM),Linux)
@@ -67,7 +68,7 @@ bin/logs/clang-format.txt:tests/*.cpp *.h
 # -D_LIBCPP_DEBUG=1
 bin/test:tests/test.cpp *.h
 	@mkdir -p bin
-	@clang++ tests/test.cpp -o $@ $(USE_OPENSSL) -I.. -std=c++11 -lsqlite3 -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings -fsanitize=address -fsanitize-address-use-after-scope -fno-optimize-sibling-calls -O1 -fsanitize=undefined -g
+	@clang++ tests/test.cpp -o $@ $(USE_OPENSSL) -I.. -std=c++11 -lsqlite3 -Wall -Weffc++ -Wextra -Wshadow -Wwrite-strings $(SANITIZERS) -fno-optimize-sibling-calls -O0 -g
 
 clean:
 	@rm -Rf documentation bin/coverage bin/test bin/tests bin/logs/*.log bin/logs/*.txt
