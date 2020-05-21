@@ -19,20 +19,22 @@
 #include <CoreFoundation/CoreFoundation.h>
 #define __use_bundles__ 1 ///< CFBundle API supported
 #define __use_something__ ///< We've figured out a library API
+#define __std_lib_suffix__                                                     \
+  ".dylib" ///< dlopen libraries on Mac are usually dylib
 #endif
-#if defined(__APPLE__) || defined(linux)
+
+#if defined(linux)
+#define __std_lib_suffix__ ".so" ///< dlopen libraries on linux are .so
+#endif
+
+#if defined(linux) || defined(__APPLE__)
 #include <dlfcn.h>
 #define __use_dlopen__ 1         ///< dlopen API supported
 #define __use_something__        ///< We've figured out a library API
 #define __std_lib_prefix__ "lib" ///< dlopen libraries usually start with lib
-#if defined(__APPLE__)
-#define __std_lib_suffix__                                                     \
-  ".dylib" ///< dlopen libraries on Mac are usually dylib
-#else
-#define __std_lib_suffix__ ".so" ///< dlopen libraries on linux are .so
+#define __path_separator__ '/'   ///< UNIX platforms use the / separator
 #endif
-#define __path_separator__ '/' ///< UNIX platforms use the / separator
-#endif
+
 #if defined(_WIN32)
 #include <windows.h>
 #define __use_module__ 1          ///< HMODULE API supported
@@ -41,6 +43,7 @@
 #define __std_lib_suffix__ ".dll" ///< dll is the standard extension
 #define __path_separator__ '\\'   ///< \ is the DOS path separator
 #endif
+
 #if !defined(__use_something__)
 #error Need to port to this platform
 #endif

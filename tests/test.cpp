@@ -43,7 +43,7 @@ const char *const gCompilerFlags =
     " -lcrypto -DOpenSSLAvailable=1"
 #endif
 #if defined(__APPLE__)
-	" -framework CoreFoundation"
+    " -framework CoreFoundation"
 #endif
     " -lz -lsqlite3";
 const char *const gDebugFlags =

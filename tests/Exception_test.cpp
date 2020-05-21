@@ -33,13 +33,68 @@ int main(const int /*argc*/, const char *const /*argv*/[]) {
     Test(EAFNOSUPPORT);
     Test(EAGAIN);
     Test(EALREADY);
+#if defined(EAUTH)
     Test(EAUTH);
+#endif
+#if defined(EBADARCH)
     Test(EBADARCH);
+#endif
+#if defined(EBADEXEC)
     Test(EBADEXEC);
-    Test(EBADF);
+#endif
+#if defined(EBADMACHO)
     Test(EBADMACHO);
-    Test(EBADMSG);
+#endif
+#if defined(EBADRPC)
     Test(EBADRPC);
+#endif
+#if defined(EDEVERR)
+    Test(EDEVERR);
+#endif
+#if defined(EFTYPE)
+    Test(EFTYPE);
+#endif
+#if defined(ELAST)
+    Test(ELAST);
+#endif
+#if defined(ENEEDAUTH)
+    Test(ENEEDAUTH);
+#endif
+#if defined(ENOATTR)
+    Test(ENOATTR);
+#endif
+#if defined(EPROCLIM)
+    Test(EPROCLIM);
+#endif
+#if defined(EPROCUNAVAIL)
+    Test(EPROCUNAVAIL);
+#endif
+#if defined(EPROGMISMATCH)
+    Test(EPROGMISMATCH);
+#endif
+#if defined(EPROGUNAVAIL)
+    Test(EPROGUNAVAIL);
+#endif
+#if defined(EPWROFF)
+    Test(EPWROFF);
+#endif
+#if defined(ERPCMISMATCH)
+    Test(ERPCMISMATCH);
+#endif
+#if defined(ESHLIBVERS)
+    Test(ESHLIBVERS);
+#endif
+#if defined(ENOPOLICY)
+    Test(ENOPOLICY);
+#endif
+#if EOPNOTSUPP != ENOTSUP
+    Test(EOPNOTSUPP);
+#endif
+#if EWOULDBLOCK != EAGAIN
+    Test(EWOULDBLOCK);
+#endif
+    Test(EBADF);
+    Test(EBADMSG);
     Test(EBUSY);
     Test(ECANCELED);
     Test(ECHILD);
@@ -48,13 +103,11 @@ int main(const int /*argc*/, const char *const /*argv*/[]) {
     Test(ECONNRESET);
     Test(EDEADLK);
     Test(EDESTADDRREQ);
-    Test(EDEVERR);
     Test(EDOM);
     Test(EDQUOT);
     Test(EEXIST);
     Test(EFAULT);
     Test(EFBIG);
-    Test(EFTYPE);
     Test(EHOSTDOWN);
     Test(EHOSTUNREACH);
     Test(EIDRM);
@@ -65,19 +118,16 @@ int main(const int /*argc*/, const char *const /*argv*/[]) {
     Test(EIO);
     Test(EISCONN);
     Test(EISDIR);
-    Test(ELAST);
     Test(ELOOP);
     Test(EMFILE);
     Test(EMLINK);
     Test(EMSGSIZE);
     Test(EMULTIHOP);
     Test(ENAMETOOLONG);
-    Test(ENEEDAUTH);
     Test(ENETDOWN);
     Test(ENETRESET);
     Test(ENETUNREACH);
     Test(ENFILE);
-    Test(ENOATTR);
     Test(ENOBUFS);
     Test(ENODATA);
     Test(ENODEV);
@@ -86,7 +136,7 @@ int main(const int /*argc*/, const char *const /*argv*/[]) {
     Test(ENOLCK);
     Test(ENOLINK);
     Test(ENOMEM);
-    Test(ENOMSG); /*Test(ENOPOLICY);*/
+    Test(ENOMSG);
     Test(ENOPROTOOPT);
     Test(ENOSPC);
     Test(ENOSR);
@@ -100,24 +150,16 @@ int main(const int /*argc*/, const char *const /*argv*/[]) {
     Test(ENOTSUP);
     Test(ENOTTY);
     Test(ENXIO);
-    Test(EOPNOTSUPP);
     Test(EOVERFLOW);
     Test(EPERM);
     Test(EPFNOSUPPORT);
     Test(EPIPE);
-    Test(EPROCLIM);
-    Test(EPROCUNAVAIL);
-    Test(EPROGMISMATCH);
-    Test(EPROGUNAVAIL);
     Test(EPROTO);
     Test(EPROTONOSUPPORT);
     Test(EPROTOTYPE);
-    Test(EPWROFF);
     Test(ERANGE);
     Test(EREMOTE);
     Test(EROFS);
-    Test(ERPCMISMATCH);
-    Test(ESHLIBVERS);
     Test(ESHUTDOWN);
     Test(ESOCKTNOSUPPORT);
     Test(ESPIPE);
@@ -128,7 +170,7 @@ int main(const int /*argc*/, const char *const /*argv*/[]) {
     Test(ETOOMANYREFS);
     Test(ETXTBSY);
     Test(EUSERS);
-    /*Test(EWOULDBLOCK);*/ Test(EXDEV);
+    Test(EXDEV);
 
     try {
       ThrowMessageException("Testing");

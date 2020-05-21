@@ -11,7 +11,7 @@ int main(const int, const char *const[]) {
 #ifdef __Tracer_h__
   iterations = 1;
 #endif
-  for (const char **env = environ; *env != nullptr; env++) {
+  for (auto env = environ; *env != nullptr; env++) {
     const char *thisEnv = *env;
     printf("%s\n", thisEnv);
   }
