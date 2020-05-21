@@ -317,6 +317,12 @@ inline void Errno::_throw(int errnoCode, const std::string &message,
 #if defined(ENOPOLICY)
       ErrnoCaseClass(ENOPOLICY);
 #endif
+#if EOPNOTSUPP != ENOTSUP
+      ErrnoCaseClass(EOPNOTSUPP);
+#endif
+#if EWOULDBLOCK != EAGAIN
+      ErrnoCaseClass(EWOULDBLOCK);
+#endif
       ErrnoCaseClass(EBADF);
       ErrnoCaseClass(EBADMSG);
       ErrnoCaseClass(EBUSY);
@@ -374,9 +380,6 @@ inline void Errno::_throw(int errnoCode, const std::string &message,
       ErrnoCaseClass(ENOTSUP);
       ErrnoCaseClass(ENOTTY);
       ErrnoCaseClass(ENXIO);
-#if EOPNOTSUPP != ENOTSUP
-      ErrnoCaseClass(EOPNOTSUPP);
-#endif
       ErrnoCaseClass(EOVERFLOW);
       ErrnoCaseClass(EOWNERDEAD);
       ErrnoCaseClass(EPERM);
@@ -398,9 +401,6 @@ inline void Errno::_throw(int errnoCode, const std::string &message,
       ErrnoCaseClass(ETOOMANYREFS);
       ErrnoCaseClass(ETXTBSY);
       ErrnoCaseClass(EUSERS);
-#if EWOULDBLOCK != EAGAIN
-      ErrnoCaseClass(EWOULDBLOCK);
-#endif
       ErrnoCaseClass(EXDEV);
       ErrnoCaseClass(ENOTRECOVERABLE); // not tested
 #undef ErrnoCaseClass
