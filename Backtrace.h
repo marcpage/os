@@ -5,9 +5,9 @@
         @todo document
 */
 
-#include <cxxabi.h>    // abi::__cxa_demangle
-#if defined(__APPLE__) // http://predef.sourceforge.net/preos.html#sec20
-#include <execinfo.h>  // not available on Linux?
+#include <cxxabi.h> // abi::__cxa_demangle
+#if defined(__APPLE__)
+#include <execinfo.h> // not available on Linux?
 #define BACKTRACE_AVAILABLE 1
 #endif
 #include <stdlib.h>

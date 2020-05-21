@@ -14,14 +14,13 @@
 
 // --- System Headers ---
 
-#if defined(__APPLE__) // http://predef.sourceforge.net/preos.html#sec20
+#if defined(__APPLE__)
 #include <Carbon/Carbon.h>
 #include <CoreFoundation/CoreFoundation.h>
 #define __use_bundles__ 1 ///< CFBundle API supported
 #define __use_something__ ///< We've figured out a library API
 #endif
-#if defined(__APPLE__) ||                                                      \
-    defined(linux) // http://predef.sourceforge.net/preos.html#sec18
+#if defined(__APPLE__) || defined(linux)
 #include <dlfcn.h>
 #define __use_dlopen__ 1         ///< dlopen API supported
 #define __use_something__        ///< We've figured out a library API
@@ -34,7 +33,7 @@
 #endif
 #define __path_separator__ '/' ///< UNIX platforms use the / separator
 #endif
-#if defined(_WIN32) // http://predef.sourceforge.net/preos.html#sec25
+#if defined(_WIN32)
 #include <windows.h>
 #define __use_module__ 1          ///< HMODULE API supported
 #define __use_something__         ///< We've figured out a library API

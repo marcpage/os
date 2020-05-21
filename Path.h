@@ -553,7 +553,7 @@ inline Path::StringList &Path::_list(HavePath havePath,
         ErrnoOnNULL(ep = ::readdir(dp));
 
         if (NULL != ep) {
-#if defined(__APPLE__) // http://predef.sourceforge.net/preos.html#sec20
+#if defined(__APPLE__)
           const String name = String(ep->d_name, 0, ep->d_namlen);
 #else
           const String name = String(ep->d_name); //, 0, ep->d_namlen);
@@ -659,7 +659,7 @@ inline gid_t Path::groupId(LinkHandling action) const {
 inline dt::DateTime Path::lastAccess(LinkHandling action) const {
   struct stat info;
 
-#if defined(__APPLE__) // http://predef.sourceforge.net/preos.html#sec20
+#if defined(__APPLE__)
   return dt::DateTime(_stat(info, action).st_atimespec);
 #else
   return dt::DateTime(_stat(info, action).st_atime);
@@ -668,7 +668,7 @@ inline dt::DateTime Path::lastAccess(LinkHandling action) const {
 inline dt::DateTime Path::lastModification(LinkHandling action) const {
   struct stat info;
 
-#if defined(__APPLE__) // http://predef.sourceforge.net/preos.html#sec20
+#if defined(__APPLE__)
   return dt::DateTime(_stat(info, action).st_mtimespec);
 #else
   return dt::DateTime(_stat(info, action).st_mtime);
@@ -677,7 +677,7 @@ inline dt::DateTime Path::lastModification(LinkHandling action) const {
 inline dt::DateTime Path::lastStatusChange(LinkHandling action) const {
   struct stat info;
 
-#if defined(__APPLE__) // http://predef.sourceforge.net/preos.html#sec20
+#if defined(__APPLE__)
   return dt::DateTime(_stat(info, action).st_ctimespec);
 #else
   return dt::DateTime(_stat(info, action).st_ctime);
@@ -686,7 +686,7 @@ inline dt::DateTime Path::lastStatusChange(LinkHandling action) const {
 inline dt::DateTime Path::created(LinkHandling action) const {
   struct stat info;
 
-#if defined(__APPLE__) // http://predef.sourceforge.net/preos.html#sec20
+#if defined(__APPLE__)
   return dt::DateTime(_stat(info, action).st_birthtimespec);
 #else
   return dt::DateTime(_stat(info, action).st_mtime);
