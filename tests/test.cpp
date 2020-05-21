@@ -508,7 +508,7 @@ void runTest(const String &name, const std::string::size_type maxNameSize,
                (gDebugging ? gDebugFlags : "") + gCompilerFlags + otherFlags +
                " &> bin/logs/" + logName;
     if (gVerbose) {
-      printf("EXECUTING: %s\n", command.c_str());
+      printf("\nEXECUTING: %s\n", command.c_str());
     }
     compilePerfTime = runNoResultsExpected(command, "compile performance");
 
