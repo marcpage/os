@@ -120,12 +120,14 @@ int main(int /*argc*/, char * /*argv*/[]) {
       printf("keySize: %lu\n", crypto::AES256_CBC_Padded(key).keySize());
       printf("ivSize: %lu\n", crypto::AES256_CBC_Padded(key).ivSize());
 
+#if defined(__APPLE__)
       dotest(16 == crypto::AES256_EBC_Padded(key).blockSize());
       dotest(32 == crypto::AES256_EBC_Padded(key).keySize());
       dotest(16 == crypto::AES256_EBC_Padded(key).ivSize());
       printf("blockSize: %lu\n", crypto::AES256_EBC_Padded(key).blockSize());
       printf("keySize: %lu\n", crypto::AES256_EBC_Padded(key).keySize());
       printf("ivSize: %lu\n", crypto::AES256_EBC_Padded(key).ivSize());
+#endif
 
       dotest(16 == crypto::AES256_CBC(key).blockSize());
       dotest(32 == crypto::AES256_CBC(key).keySize());
@@ -136,17 +138,22 @@ int main(int /*argc*/, char * /*argv*/[]) {
 
       dotest("test" == crypto::AES256_CBC_Padded(key).decrypt(
                            crypto::AES256_CBC_Padded(key).encrypt("test")));
+
+#if defined(__APPLE__)
       dotest("test" == crypto::AES256_EBC_Padded(key).decrypt(
                            crypto::AES256_EBC_Padded(key).encrypt("test")));
+#endif
       dotest("1234567890123456" ==
              crypto::AES256_CBC_Padded(key).decrypt(
                  crypto::AES256_CBC_Padded(key).encrypt("1234567890123456")));
       dotest("1234567890123456" ==
              crypto::AES256_CBC(key).decrypt(
                  crypto::AES256_CBC(key).encrypt("1234567890123456")));
+#if defined(__APPLE__)
       dotest("1234567890123456" ==
              crypto::AES256_EBC_Padded(key).decrypt(
                  crypto::AES256_EBC_Padded(key).encrypt("1234567890123456")));
+#endif
       dotest("1234567890123456" ==
              crypto::AES256_EBC(key).decrypt(
                  crypto::AES256_EBC(key).encrypt("1234567890123456")));
