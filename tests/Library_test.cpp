@@ -33,21 +33,23 @@ int main(const int argc, const char *const argv[]) {
     }
     try {
       printf("z.dylib:zlibVersion=%s\n",
-             sys::Library("z.dylib").function<zlibVersion>("zlibVersion")());
+             sys::Library("z" __std_lib_suffix__)
+                 .function<zlibVersion>("zlibVersion")());
     } catch (const std::exception &exception) {
       fprintf(stderr, "FAILED: EXCEPTION(z.dylib:zlibVersion): %s\n",
               exception.what());
     }
     try {
       printf("libz.dylib:zlibVersion=%s\n",
-             sys::Library("libz.dylib").function<zlibVersion>("zlibVersion")());
+             sys::Library("libz" __std_lib_suffix__)
+                 .function<zlibVersion>("zlibVersion")());
     } catch (const std::exception &exception) {
       fprintf(stderr, "FAILED: EXCEPTION(libz.dylib:zlibVersion): %s\n",
               exception.what());
     }
     try {
       printf("libz.dylib:zlibVersion=%s\n",
-             sys::Library("/usr/lib/libz.dylib")
+             sys::Library("/usr/lib/libz" __std_lib_suffix__)
                  .function<zlibVersion>("zlibVersion")());
     } catch (const std::exception &exception) {
       fprintf(stderr, "FAILED: EXCEPTION(libz.dylib:zlibVersion): %s\n",

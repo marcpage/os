@@ -477,7 +477,7 @@ inline std::string Library::Exception::_buildMessage(const std::string &message,
 #undef __use_module__          // don't export
 #undef __use_something__       // don't export
 #undef __std_lib_prefix__      // don't export
-#undef __std_lib_suffix__      // don't export
-#undef __path_separator__      // don't export
+//#undef __std_lib_suffix__      // don't export
+#undef __path_separator__ // don't export
 
 #endif // __Library_h__
