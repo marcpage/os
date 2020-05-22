@@ -37,6 +37,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
                     .c_str());
         source += "test";
       }
+#if defined(__APPLE__)
       fprintf(stderr, "AES256_EBC AlignmentError size test\n");
       dotest(16 == crypto::AES256_EBC(key).blockSize());
       dotest(32 == crypto::AES256_EBC(key).keySize());
@@ -52,6 +53,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
       } catch (const std::exception &exception) {
         fprintf(stderr, "FAILED: Exception: %s\n", exception.what());
       }
+#endif
       fprintf(stderr, "iv test\n");
       try {
         crypto::AES256(key).decryptWithIV(
@@ -61,7 +63,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
       } catch (const std::exception &exception) {
         fprintf(stderr, "FAILED: Exception: %s\n", exception.what());
       }
-#if __APPLE_CC__ || __APPLE__
+#if defined(__APPLE__)
       fprintf(stderr, "apple test\n");
       try {
         encrypted.assign(
@@ -153,10 +155,10 @@ int main(int /*argc*/, char * /*argv*/[]) {
       dotest("1234567890123456" ==
              crypto::AES256_EBC_Padded(key).decrypt(
                  crypto::AES256_EBC_Padded(key).encrypt("1234567890123456")));
-#endif
       dotest("1234567890123456" ==
              crypto::AES256_EBC(key).decrypt(
                  crypto::AES256_EBC(key).encrypt("1234567890123456")));
+#endif
       fprintf(stderr, "Testing IV\n");
       iv = "1234567890123456";
       dotest(source == crypto::AES256(key).decryptWithIV(

@@ -8,7 +8,6 @@ int main(const int argc, const char *const argv[]) {
 #endif
   for (int i = 0; i < iterations; ++i) {
     typedef const char *(*zlibVersion)();
-    typedef int (*tick_count)();
     for (int arg = 1; arg + 1 < argc; arg += 2) {
       try {
         printf("%s:%s->%p\n", argv[arg], argv[arg + 1],
@@ -55,6 +54,7 @@ int main(const int argc, const char *const argv[]) {
               exception.what());
     }
 #if defined(__APPLE__)
+    typedef int (*tick_count)();
     try {
       printf("Carbon:TickCount=%d\n",
              sys::Library("Carbon").function<tick_count>("TickCount")());

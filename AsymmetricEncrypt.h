@@ -20,7 +20,7 @@ namespace crypto {
 class AsymmetricPublicKey {
 public:
   AsymmetricPublicKey() {}
-  virtual ~AsymmetricPublicKey() {}
+  virtual ~AsymmetricPublicKey() {} // not tested
   virtual std::string &serialize(std::string &buffer) const = 0;
   virtual bool verify(const std::string &text,
                       const std::string &signature) = 0;
@@ -34,7 +34,7 @@ private:
 
 class AsymmetricPrivateKey {
 public:
-  AsymmetricPrivateKey() {}
+  AsymmetricPrivateKey() {} // not tested
   virtual ~AsymmetricPrivateKey() {}
   virtual AsymmetricPublicKey *publicKey() = 0;
   virtual std::string &serialize(std::string &buffer) const = 0;
@@ -55,11 +55,14 @@ public:
   operator const T *() const { return data; }
   operator T *() const { return data; }
   T *operator->() const { return data; }
+  /* move semantics with operator= may have unintended side effects
   AutoClean<T> &operator=(const AutoClean<T> &other) {
     dispose();
     data = other.data;
+    other.data = nullptr;
     return *this;
   }
+  */
   void dispose() {
     if (nullptr != data) {
       delete data;
@@ -67,6 +70,10 @@ public:
     }
   }
   T *data;
+
+private:
+  AutoClean<T> &operator=(const AutoClean<T> &); ///< Prevent usage
+  AutoClean<T>(const AutoClean<T> &);            ///< Prevent usage
 };
 
 template <> inline void AutoClean<RSA>::dispose() { RSA_free(data); }
@@ -170,7 +177,7 @@ public:
   }
   bool verify(const std::string &text, const std::string &signature,
               MessageDigestType messageDigestType) { // EVP_sha256
-    AutoClean<EVP_MD_CTX> verifier = (__crypto_OSSLHandle(EVP_MD_CTX_create()));
+    AutoClean<EVP_MD_CTX> verifier(__crypto_OSSLHandle(EVP_MD_CTX_create()));
     AutoClean<EVP_PKEY> key(__crypto_OSSLHandle(EVP_PKEY_new()));
     int status = -1;
 
@@ -222,8 +229,9 @@ private:
 
 class OpenSSLRSAAES256PublicKey : public AsymmetricPublicKey {
 public:
-  OpenSSLRSAAES256PublicKey() : _rsa() {}
-  OpenSSLRSAAES256PublicKey(const OpenSSLRSAAES256PublicKey &other) : _rsa() {
+  OpenSSLRSAAES256PublicKey() : AsymmetricPublicKey(), _rsa() {}
+  OpenSSLRSAAES256PublicKey(const OpenSSLRSAAES256PublicKey &other)
+      : AsymmetricPublicKey(), _rsa() {
     *this = other;
   }
   OpenSSLRSAAES256PublicKey &operator=(const OpenSSLRSAAES256PublicKey &other) {
@@ -233,7 +241,7 @@ public:
     return *this;
   }
   explicit OpenSSLRSAAES256PublicKey(const std::string &serialized)
-      : _rsa(serialized, PEM_read_bio_RSAPublicKey) {}
+      : AsymmetricPublicKey(), _rsa(serialized, PEM_read_bio_RSAPublicKey) {}
   virtual ~OpenSSLRSAAES256PublicKey() {}
   std::string serialize() const {
     std::string buffer;
@@ -274,7 +282,7 @@ public:
     _rsa.init(other._rsa.serializePrivate(buffer), PEM_read_bio_RSAPrivateKey);
     return *this;
   }
-  virtual ~OpenSSLRSAAES256PrivateKey() {}
+  virtual ~OpenSSLRSAAES256PrivateKey() {} // not tested
   std::string serialize() const {
     std::string buffer;
 

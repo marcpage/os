@@ -241,19 +241,23 @@ inline double DateTime::seconds() const {
          static_cast<double>(_time.tv_nsec) / 1000000000.0;
 }
 inline DateTime &DateTime::add(double amount, Span span) {
-  ;
   switch (span) {
   case Weeks:
-    amount *= 7.0;
+    amount *= 7.0 * 24.0 * 60.0 * 60.0;
+    break;
   case Days:
-    amount *= 24.0;
+    amount *= 24.0 * 60.0 * 60.0;
+    break;
   case Hours:
-    amount *= 60.0;
+    amount *= 60.0 * 60.0;
+    break;
   case Minutes:
     amount *= 60.0;
+    break;
   case Seconds:
     break;
   default:
+  	ThrowMessageException("Unknown timespan");
     break; // not tested
   }
   return *this += amount;

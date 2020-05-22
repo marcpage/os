@@ -6,6 +6,7 @@
 #include <thread>
 #include <vector>
 
+// TODO: Find out why this test hangs on linux
 void Echo(net::Socket *connection) {
   std::string buffer = connection->read(4096);
   size_t amountOut;

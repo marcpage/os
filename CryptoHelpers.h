@@ -111,13 +111,15 @@ T *handleOpenSSLResult(T *pointer, const std::string &call, const char *file,
 
 class OpenSSLContext {
 public:
-  OpenSSLContext() { __crypto_OSSLHandle(_context = EVP_CIPHER_CTX_new()); }
+  OpenSSLContext() : _context(__crypto_OSSLHandle(EVP_CIPHER_CTX_new())) {}
   ~OpenSSLContext() { __crypto_OSSLHandle(EVP_CIPHER_CTX_cleanup(_context)); }
   operator const EVP_CIPHER_CTX *() const { return _context; }
   operator EVP_CIPHER_CTX *() const { return _context; }
 
 private:
   EVP_CIPHER_CTX *_context;
+  OpenSSLContext(const OpenSSLContext &);            ///< Prevent usage
+  OpenSSLContext &operator=(const OpenSSLContext &); ///< Prevent usage
 };
 
 #endif //  OpenSSLAvailable
