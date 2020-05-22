@@ -272,7 +272,8 @@ public:
       : _rsa(keySize, publicExponent) {}
   explicit OpenSSLRSAAES256PrivateKey(const std::string &serialized)
       : _rsa(serialized, PEM_read_bio_RSAPrivateKey) {}
-  OpenSSLRSAAES256PrivateKey(const OpenSSLRSAAES256PrivateKey &other) {
+  OpenSSLRSAAES256PrivateKey(const OpenSSLRSAAES256PrivateKey &other)
+      : AsymmetricPrivateKey(), _rsa() {
     *this = other;
   }
   OpenSSLRSAAES256PrivateKey &
