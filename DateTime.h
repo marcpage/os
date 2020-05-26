@@ -257,8 +257,8 @@ inline DateTime &DateTime::add(double amount, Span span) {
   case Seconds:
     break;
   default:
-    ThrowMessageException("Unknown timespan");
-    break; // not tested
+    ThrowMessageException("Unknown timespan"); // not tested
+    break;                                     // not tested
   }
   return *this += amount;
 }
