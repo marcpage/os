@@ -35,7 +35,7 @@ bin/logs/lint.txt: *.h
 	@grep -rniw todo *.h
 	@echo `grep -rniw todo *.h | wc -l` TODO items
 	@cat bin/coverage/*/*.gcov | grep -E '[0-9]+:' | grep -ve -: | grep -v "#####" > bin/logs/all_code_coverage.txt
-	@grep // bin/logs/all_code_coverage.txt | grep -i test | sort | uniq  || true
+	@grep // bin/logs/all_code_coverage.txt | grep -i test | grep -ivw $(PLATFORM) | sort | uniq  || true
 	@echo `grep // bin/logs/all_code_coverage.txt | grep -i test | sort | uniq | wc -l` lines now tested
 
 documentation/index.html:
