@@ -34,7 +34,6 @@ inline std::string &execute(const std::string &command, std::string &stdout,
   return stdout;
 }
 
-/// @todo Test
 inline std::string execute(const std::string &command,
                            const size_t blocks = 4096) {
   std::string output;

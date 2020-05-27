@@ -573,11 +573,11 @@ inline Path::StringList &Path::_list(HavePath havePath,
           keepListing = false; // tested in libernet tests
         }
       } catch (const posix::err::ESRCH_Errno &) {
-        keepListing = false; // sometimes we get spurious ESRCH No such process
-                             // after listing a directory
+        keepListing = false; // not tested: sometimes we get spurious ESRCH No
+                             // such process after listing a directory
       } catch (const posix::err::EINTR_Errno &) { // not covered by tests
-        keepListing = false; // sometimes we get spurious EINTR when there is an
-                             // empty directory
+        keepListing = false; // not tested: sometimes we get spurious EINTR when
+                             // there is an empty directory
       }
     } while (keepListing);
   } catch (const posix::err::ENOENT_Errno &) {

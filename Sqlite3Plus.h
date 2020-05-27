@@ -197,13 +197,13 @@ private:
     virtual Instance *clone() = 0;
     virtual void bind(sqlite3 *db, sqlite3_stmt *statement, int column) = 0;
     virtual Instance *convertTo(Type t) = 0;
-    virtual std::string &data() {                              // cannot reach
-      Sql3ThrowMessage("Wrong Type");                          // cannot reach
-    }                                                          // cannot reach
-    virtual double &real() { Sql3ThrowMessage("Wrong Type"); } // cannot reach
-    virtual int64_t &integer() {                               // cannot reach
-      Sql3ThrowMessage("Wrong Type");                          // cannot reach
-    }                                                          // cannot reach
+    virtual std::string &data() {                              // cannot test
+      Sql3ThrowMessage("Wrong Type");                          // cannot test
+    }                                                          // cannot test
+    virtual double &real() { Sql3ThrowMessage("Wrong Type"); } // cannot test
+    virtual int64_t &integer() {                               // cannot test
+      Sql3ThrowMessage("Wrong Type");                          // cannot test
+    }                                                          // cannot test
   };
   class Text : public Instance {
   public:
@@ -230,7 +230,7 @@ private:
       case NullType:
       case TextType:
       default:
-        break; // unreachable
+        break; // not testable
       }
       Sql3ThrowMessage("Should not be able to get here");
       return nullptr;
@@ -266,7 +266,7 @@ private:
       case NullType:
       case BlobType:
       default:
-        break; // unreachable
+        break; // not testable
       }
       Sql3ThrowMessage("Should not be able to get here");
       return nullptr;
@@ -295,7 +295,7 @@ private:
       case IntegerType:
       case NullType:
       default:
-        break; // unreachable
+        break; // not testable
       }
       Sql3ThrowMessage("Should not be able to get here");
       return nullptr;
@@ -327,7 +327,7 @@ private:
       case RealType:
       case NullType:
       default:
-        break; // unreachable
+        break; // not testable
       }
       Sql3ThrowMessage("Should not be able to get here");
       return nullptr;
@@ -381,7 +381,7 @@ private:
 
       break;
     default:
-      break; // unreachable
+      break; // not testable
     }
     return nullptr;
   }

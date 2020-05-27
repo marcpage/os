@@ -9,7 +9,7 @@
   }
 
 int main(int, const char *const[]) {
-  int iterations = 60;
+  int iterations = 200;
 #ifdef __Tracer_h__
   iterations = 1;
 #endif
@@ -50,6 +50,17 @@ int main(int, const char *const[]) {
         printf("FAILED: Created %s but it isn't a file\n",
                std::string(test).c_str());
       }
+
+      if ((working + "Path_test_file_2.txt").isFile()) {
+        (working + "Path_test_file_2.txt").remove();
+      }
+
+      test.copyContentsTo(working + "Path_test_file_2.txt");
+
+      if ((working + "Path_test_file_2.txt").contents() != "test") {
+        printf("FAILED: File copy has different contents\n");
+      }
+
       if (test.isDirectory()) {
         printf("FAILED: Created %s as a file but it is a directory\n",
                std::string(test).c_str());
