@@ -12,11 +12,11 @@ void Echo(net::Socket *connection) {
   size_t amountOut;
 
   while (buffer.size() > 0) {
-    printf("THREAD: received->sent('%s')\n", buffer.c_str());
+    printf("ECHO THREAD: received->sent('%s')\n", buffer.c_str());
     amountOut = connection->write(buffer);
     if (amountOut != buffer.size()) {
-      printf("THREAD: FAILED: we read %ld but we wrote %ld\n", buffer.size(),
-             amountOut);
+      printf("ECHO THREAD: FAILED: we read %ld but we wrote %ld\n",
+             buffer.size(), amountOut);
     }
     buffer = connection->read(4096);
   }
@@ -33,9 +33,9 @@ void Server(net::SocketServer *server) {
       net::AddressIPv6 connectedTo;
       net::Socket *connection = new net::Socket();
 
-      printf("THREAD: Waiting for connection\n");
+      printf("SERVER THREAD: Waiting for connection\n");
       server->accept(connectedTo, *connection);
-      printf("THREAD: Connection received\n");
+      printf("SERVER THREAD: Connection received\n");
       threads.push_back(std::thread(Echo, connection));
     }
   } catch (const posix::err::ECONNABORTED_Errno &) {
@@ -76,39 +76,51 @@ int main(const int argc, const char *const argv[]) {
         net::AddressIPv4 local(port);
         net::Socket connection(local.family());
 
-        printf("THREAD: Connecting\n");
+        printf("MAIN THREAD: Connecting\n");
         connection.connect(local);
         if (writeString.size() > 1024) {
           writeString = "";
         }
         writeString += "he";
-        printf("THREAD: Writing %s\n", writeString.c_str());
+        printf("MAIN THREAD: Writing %s\n", writeString.c_str());
         amount = connection.write(writeString, writeString.size() + 20);
         if (amount != writeString.size()) {
-          printf("THREAD: FAIL: Unable to write Hello\n");
+          printf("MAIN THREAD: FAIL: Unable to write Hello\n");
         }
-        printf("THREAD: Reading\n");
+        printf("MAIN THREAD: Reading\n");
         readString = connection.read(amount);
         if (readString != writeString) {
-          printf("THREAD: FAIL: Unable to read Hello\n");
+          printf("MAIN THREAD: FAIL: Unable to read Hello\n");
         }
-        printf("THREAD: Closing\n");
+        printf("MAIN THREAD: Closing\n");
         connection.close();
       } catch (const posix::err::EADDRNOTAVAIL_Errno &exception) {
-        printf(
-            "THREAD: FAILED: appears address is not available (connect?): %s\n",
-            exception.what());
+        printf("MAIN THREAD: FAILED: appears address is not available "
+               "(connect?): %s\n",
+               exception.what());
       } catch (const std::exception &exception) {
-        printf("THREAD: FAILED: exception thrown on main thread, iteration %d: "
+        printf("MAIN THREAD: FAILED: exception thrown on main thread, "
+               "iteration %d: "
                "%s\n",
                i, exception.what());
       }
     }
-    serverSocket.close();
     running = false;
+    try {
+      net::AddressIPv4 local(port);
+      net::Socket connection(local.family());
+
+      printf("MAIN THREAD: Final connect\n");
+      connection.connect(local);
+      connection.close();
+    } catch (const std::exception &exception) {
+      printf("MAIN THREAD: FAILED: exception thrown on main thread: %s\n",
+             exception.what());
+    }
+    serverSocket.close();
     server.join();
   } catch (const std::exception &exception) {
-    printf("THREAD: FAILED: exception thrown on main thread: %s\n",
+    printf("MAIN THREAD: FAILED: exception thrown on main thread: %s\n",
            exception.what());
   }
   return 0;
