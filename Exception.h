@@ -2,8 +2,6 @@
 #define __MessageException_h__
 
 /** @file Exception.h
-        @todo add __func__ or __FUNCTION__, whichever is more appropriate and
-   only if available
         @todo write a test file for Exception
 */
 #include "os/Backtrace.h"
@@ -14,12 +12,14 @@ namespace msg {
 inline void noop() {} ///< Used for if() else corrrectness with macros
 } // namespace msg
 
+// NOTE: __func__ is C99 standard
+
 /// Throws an exception without condition
 #define ThrowMessageException(message)                                         \
-  throw msg::Exception((message), __FILE__, __LINE__)
-/// Throws an exception if an expression is NULL
+  throw msg::Exception((message), __FILE__, __LINE__, __func__)
+/// Throws an exception if an expression is nullptr
 #define ThrowMessageExceptionIfNULL(variable)                                  \
-  if (NULL == (variable)) {                                                    \
+  if (nullptr == (variable)) {                                                 \
     ThrowMessageException(std::string(#variable).append(" == NULL"));          \
   } else                                                                       \
     msg::noop()
@@ -60,11 +60,11 @@ namespace msg {
 class Exception : public std::exception {
 public:
   /// Get a message
-  explicit Exception(const char *message, const char *file = NULL,
-                     int line = 0) throw();
+  explicit Exception(const char *message, const char *file = nullptr,
+                     int line = 0, const char *function = nullptr) throw();
   /// Get a message
-  explicit Exception(const std::string &message, const char *file = NULL,
-                     int line = 0) throw();
+  explicit Exception(const std::string &message, const char *file = nullptr,
+                     int line = 0, const char *function = nullptr) throw();
   /// Copy constructor
   Exception(const Exception &other);
   /// assignment operator
@@ -78,7 +78,9 @@ private:
   std::string *_message; ///< The message about why the exception was thrown.
 
   /// Helper function to initialize from the various constructors.
-  template <class S> std::string *_init(S message, const char *file, int line);
+  template <class S>
+  std::string *_init(S message, const char *file, int line,
+                     const char *function);
 };
 
 /**
@@ -86,27 +88,27 @@ private:
         @param file		Set to __FILE__
         @param line		Set to __LINE__
 */
-inline Exception::Exception(const char *message, const char *file,
-                            int line) throw()
-    : _message(_init(message, file, line)) {}
+inline Exception::Exception(const char *message, const char *file, int line,
+                            const char *function) throw()
+    : _message(_init(message, file, line, function)) {}
 /**
         @param message	The reason for the exception
         @param file		Set to __FILE__
         @param line		Set to __LINE__
 */
 inline Exception::Exception(const std::string &message, const char *file,
-                            int line) throw()
-    : _message(_init(message, file, line)) {}
+                            int line, const char *function) throw()
+    : _message(_init(message, file, line, function)) {}
 /**
         @param other	The exception to copy.
 */
 inline Exception::Exception(const Exception &other)
     : exception(), _message(other._message) {
-  if (NULL != _message) {
+  if (nullptr != _message) {
     try {
       _message = new std::string(*_message);
     } catch (const std::exception &) {
-      _message = NULL;
+      _message = nullptr;
     }
   }
 }
@@ -115,9 +117,9 @@ inline Exception::Exception(const Exception &other)
 */
 inline Exception &Exception::operator=(const Exception &other) {
   if (this != &other) {
-    if (NULL != other._message) {
+    if (nullptr != other._message) {
       try {
-        if (NULL != _message) {
+        if (nullptr != _message) {
           _message->assign(*other._message);
         } else {
           _message = new std::string(*other._message);
@@ -126,7 +128,7 @@ inline Exception &Exception::operator=(const Exception &other) {
       }
     } else {
       delete _message;
-      _message = NULL;
+      _message = nullptr;
     }
   }
   return *this;
@@ -135,13 +137,13 @@ inline Exception &Exception::operator=(const Exception &other) {
  */
 inline Exception::~Exception() throw() {
   delete _message;
-  _message = NULL;
+  _message = nullptr;
 }
 /**
         @return	The reason why the exception was thrown.
 */
 inline const char *Exception::what() const throw() {
-  if (NULL != _message) {
+  if (nullptr != _message) {
     return _message->c_str();
   } else {
     return "Unable to allocate " // not tested
@@ -158,17 +160,21 @@ inline const char *Exception::what() const throw() {
         @return			A std::string of the complete message.
 */
 template <class S>
-inline std::string *Exception::_init(S message, const char *file, int line) {
-  std::string *messagePtr = NULL;
+inline std::string *Exception::_init(S message, const char *file, int line,
+                                     const char *function) {
+  std::string *messagePtr = nullptr;
 
   try {
     trace::StringList stack;
 
     trace::stack(stack);
     messagePtr = new std::string(message);
-    if (NULL != file) {
+    if (nullptr != file) {
       messagePtr->append(" File: ").append(file).append(" Line: ").append(
           std::to_string(line));
+      if (nullptr != function) {
+        messagePtr->append(" Function: ").append(function);
+      }
       for (auto i : stack) {
         messagePtr->append("\n" + i);
       }
