@@ -20,7 +20,7 @@ namespace crypto {
 class AsymmetricPublicKey {
 public:
   AsymmetricPublicKey() {}
-  virtual ~AsymmetricPublicKey() {} // tested on Darwin
+  virtual ~AsymmetricPublicKey() {} // tested on Darwin and libernet
   virtual std::string &serialize(std::string &buffer) const = 0;
   virtual bool verify(const std::string &text,
                       const std::string &signature) = 0;
@@ -34,7 +34,7 @@ private:
 
 class AsymmetricPrivateKey {
 public:
-  AsymmetricPrivateKey() {} // tested on Darwin
+  AsymmetricPrivateKey() {} // tested on Darwin and libernet
   virtual ~AsymmetricPrivateKey() {}
   virtual AsymmetricPublicKey *publicKey() = 0;
   virtual std::string &serialize(std::string &buffer) const = 0;
@@ -283,7 +283,7 @@ public:
     _rsa.init(other._rsa.serializePrivate(buffer), PEM_read_bio_RSAPrivateKey);
     return *this;
   }
-  virtual ~OpenSSLRSAAES256PrivateKey() {} // tested on Darwin
+  virtual ~OpenSSLRSAAES256PrivateKey() {} // tested on Darwin and libernet
   std::string serialize() const {
     std::string buffer;
 

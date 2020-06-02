@@ -412,7 +412,7 @@ inline void Errno::_throw(int errnoCode, const std::string &message,
 inline int Errno::_throwOnNegative(const int returnCode, const char *call,
                                    const char *file, const int line) {
   if (returnCode < 0) {
-    _throw(errno, call, file, line); // tested on Darwin
+    _throw(errno, call, file, line); // tested on Darwin and libernet
   }
   return returnCode;
 }
