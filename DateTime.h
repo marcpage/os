@@ -113,12 +113,10 @@ inline DateTime::DateTime() : _time() {
 }
 inline DateTime::DateTime(const DateTime &time) : _time(time._time) { ; }
 inline DateTime::DateTime(const time_t &time) : _time() {
-  ;
   _time.tv_sec = time;
   _time.tv_nsec = 0UL;
 }
 inline DateTime::DateTime(const timeval &time) : _time() {
-  ;
   _time.tv_sec = time.tv_sec;
   _time.tv_nsec = static_cast<long>(time.tv_usec) * 1000UL;
 }
@@ -130,11 +128,9 @@ inline void DateTime::_init(tm &time, double fractionalSeconds,
   AssertMessageException(_time.tv_sec != static_cast<time_t>(-1));
 }
 inline DateTime::DateTime(tm &time, Location location) : _time() {
-  ;
   _init(time, 0.0, location);
 }
 inline DateTime::DateTime(const double &time) : _time() {
-  ;
   double wholeSeconds = floor(time);
 
   _time.tv_sec = static_cast<time_t>(wholeSeconds);
@@ -173,70 +169,52 @@ inline DateTime::DateTime(int year, Month month, int day, int hour,
 }
 inline DateTime::~DateTime() { ; }
 /// @todo Test
-inline DateTime::operator time_t() const {
-  ;
-  return _time.tv_sec;
-}
+inline DateTime::operator time_t() const { return _time.tv_sec; }
 /// @todo Test
 inline DateTime::operator timeval() const {
-  ;
   struct timeval timeValue;
-  value(timeValue);
-  return timeValue;
+  return value(timeValue);
 }
 /// @todo Test
 inline DateTime::operator const timespec() const { return _time; }
 /// @todo Test
-inline DateTime::operator double() const {
-  ;
-  return seconds();
-}
+inline DateTime::operator double() const { return seconds(); }
 inline DateTime &DateTime::operator+=(double secs) {
-  ;
   *this = *this + secs;
   return *this;
 }
 inline DateTime DateTime::operator+(double secs) const {
-  ;
   return DateTime(seconds() + secs);
 }
 inline DateTime &DateTime::operator-=(double secs) {
-  ;
   *this = *this - secs;
   return *this;
 }
 inline DateTime DateTime::operator-(double secs) const {
-  ;
   return DateTime(seconds() - secs);
 }
 inline double DateTime::operator-(const DateTime &other) const {
-  ;
   return seconds() - other.seconds();
 }
 inline DateTime &DateTime::operator=(const DateTime &other) {
-  ;
   _time = other._time;
   return *this;
 }
 inline bool DateTime::operator==(const DateTime &other) const {
-  ;
   return (_time.tv_sec == other._time.tv_sec) &&
          (_time.tv_nsec == other._time.tv_nsec);
 }
 inline bool DateTime::operator!=(const DateTime &other) const {
-  ;
   return (_time.tv_sec != other._time.tv_sec) ||
          (_time.tv_nsec != other._time.tv_nsec);
 }
 inline bool DateTime::operator<(const DateTime &other) const {
-  ;
   if (_time.tv_sec == other._time.tv_sec) {
     return _time.tv_nsec < other._time.tv_nsec;
   }
   return _time.tv_sec < other._time.tv_sec;
 }
 inline double DateTime::seconds() const {
-  ;
   return static_cast<double>(_time.tv_sec) +
          static_cast<double>(_time.tv_nsec) / 1000000000.0;
 }
@@ -276,10 +254,7 @@ inline timeval &DateTime::value(timeval &tv) const {
   return tv;
 }
 /// @todo Test
-inline timespec &DateTime::value(timespec &ts) const {
-  ts = _time;
-  return ts;
-}
+inline timespec &DateTime::value(timespec &ts) const { return ts = _time; }
 inline DateTime::String &DateTime::format(const String &format,
                                           String &buffer) const {
   size_t size;

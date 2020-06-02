@@ -1,9 +1,7 @@
 #ifndef __MessageException_h__
 #define __MessageException_h__
 
-/** @file Exception.h
-        @todo write a test file for Exception
-*/
+/** @file Exception.h */
 #include "os/Backtrace.h"
 #include <exception>
 #include <string>
@@ -20,7 +18,7 @@ inline void noop() {} ///< Used for if() else corrrectness with macros
 /// Throws an exception if an expression is nullptr
 #define ThrowMessageExceptionIfNULL(variable)                                  \
   if (nullptr == (variable)) {                                                 \
-    ThrowMessageException(std::string(#variable).append(" == NULL"));          \
+    ThrowMessageException(std::string(#variable).append(" == nullptr"));       \
   } else                                                                       \
     msg::noop()
 /// Throws and exception if an asserted condition is false
